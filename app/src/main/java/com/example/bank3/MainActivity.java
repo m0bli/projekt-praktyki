@@ -14,6 +14,7 @@ public class MainActivity extends AppCompatActivity {
     private TextInputLayout loginLayout;
     private TextInputLayout hasloLayout;
     //aaaa
+    //kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk
 
     private TextInputEditText loginInput;
     private TextInputEditText hasloInput;
