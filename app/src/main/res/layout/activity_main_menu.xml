@@ -20,6 +20,19 @@
             android:textSize="44sp"
             android:layout_marginTop="200dp"
             />
+
     </RelativeLayout>
 
+    <!-- TODO: Rejestracja
+         TODO: Nawigacja
+         TODO: Połączenie z bazą danych
+         TODO: Strona główna z Saldem, imieniem naziwskiem itp
+        TODO: System przelewów na konta
+        TODO: Dekoracja strony
+        TODO: Informacje (Wersja aplikacji, ToS, FaQ)
+        TODO: Wylogowywanie się
+        TODO: Zapisywanie o zalogowaniu się
+        TODO: Kod 4 cyfrowy (po zalogowaniu się) (dodanie w bazie danych kodu 4 cyfrowego, i podczas rejestracji dodanie)
+        TODO: Zmiana hasła / Login
+        TODO: System telefon/Email (pop-up o zarejestrowaniu e-maila) (Telefon podczas tworzenia konta) -->
 </androidx.constraintlayout.widget.ConstraintLayout>
