@@ -2,16 +2,30 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:id="@+id/register"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    android:background="@color/white">
+    tools:context=".RegisterActivity"
+    android:background="@color/app_bg">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:fitsSystemWindows="true">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/app_bg"
+            app:title="Aplaikacja Bankowa"
+            app:titleTextColor="@color/black"
+
+            app:navigationIcon="@drawable/ic_arrow_back"
+            >
+
+        </com.google.android.material.appbar.MaterialToolbar>
 
 
         <TextView
@@ -20,6 +34,7 @@
             android:layout_height="wrap_content"
             android:padding="5dp"
             android:text="Zarejestruj Się"
+            android:layout_below="@+id/toolbar"
             android:textSize="38sp"
             android:layout_marginTop="10sp"
             android:textColor="@color/black"

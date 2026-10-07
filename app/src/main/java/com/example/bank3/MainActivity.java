@@ -1,5 +1,7 @@
 package com.example.bank3;
 
+
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Build;
@@ -9,6 +11,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -28,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView btnRegister;
     private Button btnLogin;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,8 +48,11 @@ public class MainActivity extends AppCompatActivity {
         btnRegister = findViewById(R.id.btnRegister);
 
         btnRegister.setOnClickListener(v -> {
-            setContentView(R.layout.activity_register);
+            Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
+            startActivity(intent);
         });
+
+
 
         btnLogin.setOnClickListener(v -> {
 
@@ -77,13 +84,10 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            if (login.equals("admin") && haslo.equals("1234")) {
+            if (login.equals("admin") && haslo.equals("aa")) {
 
-                errorText.setTextColor(
-                        getColor(android.R.color.holo_green_dark)
-                );
-
-                errorText.setText("Zalogowano pomyślnie!");
+                Intent intent = new Intent(MainActivity.this, MainMenuActivity.class);
+                startActivity(intent);
 
             } else {
 

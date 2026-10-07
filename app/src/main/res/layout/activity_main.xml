@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
-    android:background="@color/white">
+    android:background="@color/app_bg">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -86,10 +86,11 @@
             android:layout_below="@id/hasloLayout"
             android:text="Zarejestruj Się"
             android:textColor="@color/black"
-             android:textSize="18sp"
+             android:textSize="24sp"
             android:gravity="right"
             android:padding="5px"
             android:layout_marginRight="15dp"
+            android:layout_marginLeft="235dp"
             android:layout_marginTop="5dp"
             android:layout_marginBottom="5dp"
             android:clickable="true"
