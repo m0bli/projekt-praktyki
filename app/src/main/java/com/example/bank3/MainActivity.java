@@ -1,5 +1,8 @@
 package com.example.bank3;
 
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
@@ -49,19 +52,22 @@ public class MainActivity extends AppCompatActivity {
                     ? hasloInput.getText().toString()
                     : "";
 
-            // Czyścimy poprzednie błędy
             errorText.setText("");
             loginLayout.setError(null);
             hasloLayout.setError(null);
 
             if (login.isEmpty()) {
                 loginLayout.setError("Podaj login.");
+                loginLayout.setBoxStrokeErrorColor(ColorStateList.valueOf(Color.RED));
+                loginLayout.setErrorTextColor(ColorStateList.valueOf(Color.RED));
                 loginInput.requestFocus();
                 return;
             }
 
             if (haslo.isEmpty()) {
                 hasloLayout.setError("Podaj hasło.");
+                hasloLayout.setBoxStrokeErrorColor(ColorStateList.valueOf(Color.RED));
+                hasloLayout.setErrorTextColor(ColorStateList.valueOf(Color.RED));
                 hasloInput.requestFocus();
                 return;
             }

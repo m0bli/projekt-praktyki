@@ -36,13 +36,17 @@
             android:layout_below="@id/bank"
             android:layout_marginTop="90dp"
             app:boxStrokeColor="@color/black"
+            app:hintTextColor="@color/black"
+            android:padding="5dp"
             android:textColorHint="@color/black"
-            android:padding="5dp">
+            app:errorIconTint="@color/red">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editLogin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:hintTextColor="@color/black"
+                android:textColor="@color/black"
                 android:hint="Login">
             </com.google.android.material.textfield.TextInputEditText>
 
@@ -54,16 +58,20 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/loginLayout"
             app:boxStrokeColor="@color/black"
+            app:hintTextColor="@color/black"
             android:textColorHint="@color/black"
             app:passwordToggleEnabled="true"
+            app:passwordToggleTint="@color/black"
             android:inputType="textPassword"
-
+            app:errorIconTint="@color/red"
             android:padding="5dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editHaslo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:hintTextColor="@color/black"
+                android:textColor="@color/black"
                 android:hint="Haslo"
                 android:inputType="textPassword">
             </com.google.android.material.textfield.TextInputEditText>
