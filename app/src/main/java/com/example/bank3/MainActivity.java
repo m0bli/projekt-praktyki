@@ -18,11 +18,14 @@ public class MainActivity extends AppCompatActivity {
     private TextInputLayout hasloLayout;
     //aaaa
     //kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk
+    //nic
 
     private TextInputEditText loginInput;
     private TextInputEditText hasloInput;
 
     private TextView errorText;
+
+    private TextView btnRegister;
     private Button btnLogin;
 
     @Override
@@ -30,17 +33,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Pola tekstowe
         loginInput = findViewById(R.id.editLogin);
         hasloInput = findViewById(R.id.editHaslo);
 
-        // Kontenery pól (jeśli masz je w XML)
         loginLayout = findViewById(R.id.loginLayout);
         hasloLayout = findViewById(R.id.hasloLayout);
 
-        // Pozostałe elementy
         errorText = findViewById(R.id.errorText);
         btnLogin = findViewById(R.id.btnLogin);
+        btnRegister = findViewById(R.id.btnRegister);
+
+        btnRegister.setOnClickListener(v -> {
+            setContentView(R.layout.activity_register);
+        });
 
         btnLogin.setOnClickListener(v -> {
 
@@ -72,7 +77,6 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            // Przykładowe dane logowania
             if (login.equals("admin") && haslo.equals("1234")) {
 
                 errorText.setTextColor(

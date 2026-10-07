@@ -19,14 +19,17 @@
             android:layout_height="wrap_content"
             android:padding="5dp"
             android:text="BANK"
-            android:textSize="56dp"
-            android:layout_marginTop="90dp"
+            android:textSize="62dp"
+            android:layout_marginTop="80dp"
             android:textColor="@color/black"
             android:gravity="center"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            android:fontFamily="@font/nunito"
+            android:textFontWeight="800"
+            android:letterSpacing="0.3"/>
 
 
         <com.google.android.material.textfield.TextInputLayout
@@ -45,7 +48,6 @@
                 android:id="@+id/editLogin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:hintTextColor="@color/black"
                 android:textColor="@color/black"
                 android:hint="Login">
             </com.google.android.material.textfield.TextInputEditText>
@@ -70,7 +72,6 @@
                 android:id="@+id/editHaslo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:hintTextColor="@color/black"
                 android:textColor="@color/black"
                 android:hint="Haslo"
                 android:inputType="textPassword">
@@ -78,14 +79,28 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-
+        <TextView
+            android:id="@+id/btnRegister"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/hasloLayout"
+            android:text="Zarejestruj Się"
+            android:textColor="@color/black"
+             android:textSize="18sp"
+            android:gravity="right"
+            android:padding="5px"
+            android:layout_marginRight="15dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:clickable="true"
+            />
         <TextView
             android:id="@+id/errorText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/hasloLayout"
+            android:layout_below="@+id/btnRegister"
             android:text=""
-            android:textColor = "#FF0000"
+            android:textColor="#FF0000"
             android:gravity="center"
             android:textSize="18sp"
             />
@@ -96,16 +111,14 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/errorText"
             android:textSize="20sp"
-            android:padding="10dp"
+            android:padding="15dp"
             android:layout_marginLeft="100dp"
             android:layout_marginRight="100dp"
             android:gravity="center"
             android:text="Login"
             />
 
-
     </RelativeLayout>
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
