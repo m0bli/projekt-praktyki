@@ -9,25 +9,33 @@
     android:background="@color/app_bg"
     tools:context=".RegisterActivity">
 
-    <!-- STAŁY ACTIONBAR -->
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
+    <!-- STAŁY TOOLBAR -->
+    <FrameLayout
+        android:id="@+id/toolbarContainer"
         android:layout_width="0dp"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="wrap_content"
         android:background="@color/app_bg"
-        app:title="Aplaikacja Bankowa"
-        app:titleTextColor="@color/black"
-        app:navigationIcon="@drawable/ic_arrow_back"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/app_bg"
+            app:title="Aplaikacja Bankowa"
+            app:titleTextColor="@color/black"
+            app:navigationIcon="@drawable/ic_arrow_back" />
+
+    </FrameLayout>
 
     <!-- PRZEWIJANA CZĘŚĆ -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintTop_toBottomOf="@id/toolbarContainer"
         app:layout_constraintBottom_toTopOf="@id/btnRegister"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -187,12 +195,37 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/xddddd2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/xddddd"
+                android:layout_marginTop="15dp"
+                android:padding="5dp"
+                android:textColorHint="@color/black"
+                android:inputType="textPassword"
+                app:boxStrokeColor="@color/black"
+                app:hintTextColor="@color/black"
+                app:passwordToggleEnabled="true"
+                app:passwordToggleTint="@color/black"
+                app:errorIconTint="@color/red">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/xdddddd2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:hint="Powtórz hasło"
+                    android:inputType="textPassword" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
             <CheckBox
                 android:id="@+id/checkboxRegister"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Czy akceptujesz naszą zajebistą polityke prywatności LINK"
-                android:layout_below="@id/xddddd"
+                android:layout_below="@id/xddddd2"
                 android:layout_marginTop="10dp"
                 android:layout_marginLeft="10dp"
                 android:textColor="@color/black"/>
