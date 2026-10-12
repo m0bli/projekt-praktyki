@@ -1,17 +1,20 @@
 package com.example.bank3;
 
-
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -19,23 +22,45 @@ public class MainActivity extends AppCompatActivity {
 
     private TextInputLayout loginLayout;
     private TextInputLayout hasloLayout;
-    //aaaa
-    //kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk
-    //nic
 
     private TextInputEditText loginInput;
     private TextInputEditText hasloInput;
 
     private TextView errorText;
-
     private TextView btnRegister;
     private Button btnLogin;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Enable edge-to-edge
+        EdgeToEdge.enable(this);
+        WindowInsetsControllerCompat controller =
+                new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
+
+        controller.setAppearanceLightStatusBars(true);
+        controller.setAppearanceLightNavigationBars(true);
+
         setContentView(R.layout.activity_main);
+
+        // Handle status bar and navigation bar insets
+        View main = findViewById(R.id.main);
+
+        ViewCompat.setOnApplyWindowInsetsListener(main, (view, insets) -> {
+            Insets systemBars = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+            );
+
+            view.setPadding(
+                    systemBars.left,
+                    systemBars.top,
+                    systemBars.right,
+                    systemBars.bottom
+            );
+
+            return insets;
+        });
 
         loginInput = findViewById(R.id.editLogin);
         hasloInput = findViewById(R.id.editHaslo);
@@ -48,11 +73,12 @@ public class MainActivity extends AppCompatActivity {
         btnRegister = findViewById(R.id.btnRegister);
 
         btnRegister.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
+            Intent intent = new Intent(
+                    MainActivity.this,
+                    RegisterActivity.class
+            );
             startActivity(intent);
         });
-
-
 
         btnLogin.setOnClickListener(v -> {
 
@@ -70,23 +96,34 @@ public class MainActivity extends AppCompatActivity {
 
             if (login.isEmpty()) {
                 loginLayout.setError("Podaj login.");
-                loginLayout.setBoxStrokeErrorColor(ColorStateList.valueOf(Color.RED));
-                loginLayout.setErrorTextColor(ColorStateList.valueOf(Color.RED));
+                loginLayout.setBoxStrokeErrorColor(
+                        ColorStateList.valueOf(Color.RED)
+                );
+                loginLayout.setErrorTextColor(
+                        ColorStateList.valueOf(Color.RED)
+                );
                 loginInput.requestFocus();
                 return;
             }
 
             if (haslo.isEmpty()) {
                 hasloLayout.setError("Podaj hasło.");
-                hasloLayout.setBoxStrokeErrorColor(ColorStateList.valueOf(Color.RED));
-                hasloLayout.setErrorTextColor(ColorStateList.valueOf(Color.RED));
+                hasloLayout.setBoxStrokeErrorColor(
+                        ColorStateList.valueOf(Color.RED)
+                );
+                hasloLayout.setErrorTextColor(
+                        ColorStateList.valueOf(Color.RED)
+                );
                 hasloInput.requestFocus();
                 return;
             }
 
             if (login.equals("admin") && haslo.equals("aa")) {
 
-                Intent intent = new Intent(MainActivity.this, MainMenuActivity.class);
+                Intent intent = new Intent(
+                        MainActivity.this,
+                        MainMenuActivity.class
+                );
                 startActivity(intent);
 
             } else {
@@ -95,10 +132,10 @@ public class MainActivity extends AppCompatActivity {
                         getColor(android.R.color.holo_red_dark)
                 );
 
-                errorText.setText("Nieprawidłowy login lub hasło.");
+                errorText.setText(
+                        "Nieprawidłowy login lub hasło."
+                );
             }
         });
     }
-
-
 }
