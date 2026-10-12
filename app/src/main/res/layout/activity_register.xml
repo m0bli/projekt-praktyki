@@ -74,7 +74,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
-                    android:hint="Podaj Imie" />
+                    android:hint="Podaj Imie"
+                    android:singleLine="true"
+                    />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -95,7 +97,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
-                    android:hint="Podaj Nazwisko" />
+                    android:hint="Podaj Nazwisko"
+                    android:singleLine="true"
+                    />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -116,7 +120,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
-                    android:hint="Podaj Login" />
+                    android:hint="Podaj Login"
+                    android:singleLine="true"/>
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -170,62 +175,12 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/xddddd"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/layoutRegisterPotwierdzHaslo"
-                android:layout_marginTop="15dp"
-                android:padding="5dp"
-                android:textColorHint="@color/black"
-                android:inputType="textPassword"
-                app:boxStrokeColor="@color/black"
-                app:hintTextColor="@color/black"
-                app:passwordToggleEnabled="true"
-                app:passwordToggleTint="@color/black"
-                app:errorIconTint="@color/red">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/xdddddd"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                    android:hint="Powtórz hasło"
-                    android:inputType="textPassword" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/xddddd2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/xddddd"
-                android:layout_marginTop="15dp"
-                android:padding="5dp"
-                android:textColorHint="@color/black"
-                android:inputType="textPassword"
-                app:boxStrokeColor="@color/black"
-                app:hintTextColor="@color/black"
-                app:passwordToggleEnabled="true"
-                app:passwordToggleTint="@color/black"
-                app:errorIconTint="@color/red">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/xdddddd2"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                    android:hint="Powtórz hasło"
-                    android:inputType="textPassword" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
             <CheckBox
                 android:id="@+id/checkboxRegister"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Czy akceptujesz naszą zajebistą polityke prywatności LINK"
-                android:layout_below="@id/xddddd2"
+                android:layout_below="@id/layoutRegisterPotwierdzHaslo"
                 android:layout_marginTop="10dp"
                 android:layout_marginLeft="10dp"
                 android:textColor="@color/black"/>
