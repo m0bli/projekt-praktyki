@@ -24,7 +24,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/app_bg"
-            app:title="Aplaikacja Bankowa"
+            app:title="Aplikacja Bankowa"
             app:titleTextColor="@color/black"
             app:navigationIcon="@drawable/ic_arrow_back" />
 

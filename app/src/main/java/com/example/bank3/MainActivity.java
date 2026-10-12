@@ -7,19 +7,22 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
+import android.widget.Toast;
+import java.util.List;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
-
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-public class MainActivity extends AppCompatActivity {
 
+public class MainActivity extends AppCompatActivity {
     private TextInputLayout loginLayout;
     private TextInputLayout hasloLayout;
 
@@ -71,6 +74,8 @@ public class MainActivity extends AppCompatActivity {
         errorText = findViewById(R.id.errorText);
         btnLogin = findViewById(R.id.btnLogin);
         btnRegister = findViewById(R.id.btnRegister);
+
+        testApiConnection();
 
         btnRegister.setOnClickListener(v -> {
             Intent intent = new Intent(
@@ -135,6 +140,28 @@ public class MainActivity extends AppCompatActivity {
                 errorText.setText(
                         "Nieprawidłowy login lub hasło."
                 );
+            }
+        });
+    }
+
+    private void testApiConnection() {
+        UserAPI userAPI = RetrofitClient.getInstance().create(UserAPI.class);
+
+        userAPI.getUsers().enqueue(new Callback<List<UserResponse>>() {
+            @Override
+            public void onResponse(Call<List<UserResponse>> call, Response<List<UserResponse>> response) {
+                if (response.isSuccessful() && response.body() != null){
+                    int liczbaUzytkownikow = response.body().size();
+
+                    Toast.makeText(MainActivity.this, "dziala API. users: " + liczbaUzytkownikow, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "nie dziala: HTTP " + response.code(), Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<UserResponse>> call, Throwable throwable) {
+                Toast.makeText(MainActivity.this, "Brak połączenia: " + throwable.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
