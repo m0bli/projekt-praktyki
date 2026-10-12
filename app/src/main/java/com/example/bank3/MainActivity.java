@@ -75,8 +75,6 @@ public class MainActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btnLogin);
         btnRegister = findViewById(R.id.btnRegister);
 
-        testApiConnection();
-
         btnRegister.setOnClickListener(v -> {
             Intent intent = new Intent(
                     MainActivity.this,
@@ -86,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnLogin.setOnClickListener(v -> {
+            testApiConnection();
 
             String login = loginInput.getText() != null
                     ? loginInput.getText().toString().trim()
@@ -101,46 +100,79 @@ public class MainActivity extends AppCompatActivity {
 
             if (login.isEmpty()) {
                 loginLayout.setError("Podaj login.");
-                loginLayout.setBoxStrokeErrorColor(
-                        ColorStateList.valueOf(Color.RED)
-                );
-                loginLayout.setErrorTextColor(
-                        ColorStateList.valueOf(Color.RED)
-                );
                 loginInput.requestFocus();
                 return;
             }
 
             if (haslo.isEmpty()) {
                 hasloLayout.setError("Podaj hasło.");
-                hasloLayout.setBoxStrokeErrorColor(
-                        ColorStateList.valueOf(Color.RED)
-                );
-                hasloLayout.setErrorTextColor(
-                        ColorStateList.valueOf(Color.RED)
-                );
                 hasloInput.requestFocus();
                 return;
             }
 
-            if (login.equals("admin") && haslo.equals("aa")) {
+            // Blokujemy przycisk na czas requestu.
+            btnLogin.setEnabled(false);
 
-                Intent intent = new Intent(
-                        MainActivity.this,
-                        MainMenuActivity.class
-                );
-                startActivity(intent);
+            LoginRequest request = new LoginRequest(login, haslo);
 
-            } else {
+            AuthAPI authAPI = RetrofitClient.getInstance()
+                    .create(AuthAPI.class);
 
-                errorText.setTextColor(
-                        getColor(android.R.color.holo_red_dark)
-                );
+            authAPI.login(request).enqueue(new retrofit2.Callback<AuthResponse>() {
 
-                errorText.setText(
-                        "Nieprawidłowy login lub hasło."
-                );
-            }
+                @Override
+                public void onResponse(
+                        retrofit2.Call<AuthResponse> call,
+                        retrofit2.Response<AuthResponse> response) {
+
+                    btnLogin.setEnabled(true);
+
+                    AuthResponse body = response.body();
+
+                    if (response.isSuccessful()
+                            && body != null
+                            && body.isSukces()) {
+
+                        Intent intent = new Intent(
+                                MainActivity.this,
+                                MainMenuActivity.class
+                        );
+
+                        startActivity(intent);
+
+                    } else if (response.code() == 401) {
+
+                        errorText.setTextColor(
+                                getColor(android.R.color.holo_red_dark)
+                        );
+                        errorText.setText("Nieprawidłowy login lub hasło.");
+
+                    } else {
+
+                        errorText.setTextColor(
+                                getColor(android.R.color.holo_red_dark)
+                        );
+                        errorText.setText(
+                                "Błąd serwera. Kod HTTP: " + response.code()
+                        );
+                    }
+                }
+
+                @Override
+                public void onFailure(
+                        retrofit2.Call<AuthResponse> call,
+                        Throwable throwable) {
+
+                    btnLogin.setEnabled(true);
+
+                    errorText.setTextColor(
+                            getColor(android.R.color.holo_red_dark)
+                    );
+                    errorText.setText(
+                            "Nie można połączyć się z serwerem."
+                    );
+                }
+            });
         });
     }
 
