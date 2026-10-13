@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Enable edge-to-edge
+        // system bar
         EdgeToEdge.enable(this);
         WindowInsetsControllerCompat controller =
                 new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
@@ -110,13 +110,12 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            // Blokujemy przycisk na czas requestu.
+            // Blokujemy przycisk na czas requestu
             btnLogin.setEnabled(false);
 
             LoginRequest request = new LoginRequest(login, haslo);
 
-            AuthAPI authAPI = RetrofitClient.getInstance()
-                    .create(AuthAPI.class);
+            AuthAPI authAPI = RetrofitClient.getInstance().create(AuthAPI.class);
 
             authAPI.login(request).enqueue(new retrofit2.Callback<AuthResponse>() {
 

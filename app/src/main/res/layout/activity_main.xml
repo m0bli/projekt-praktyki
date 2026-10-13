@@ -1,128 +1,207 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    android:background="@color/app_bg">
+    android:background="#F3F6FB"
+    tools:context=".MainActivity">
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal">
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:scrollbars="none"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView
-            android:id="@+id/bank"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="5dp"
-            android:text="BANK"
-            android:textSize="62sp"
-            android:layout_marginTop="80dp"
-            android:textColor="@color/black"
-            android:gravity="center"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:fontFamily="@font/nunito"
-            android:textFontWeight="800"
-            android:letterSpacing="0.3"/>
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingTop="36dp"
+            android:paddingBottom="28dp">
 
+            <!-- Logo -->
+            <TextView
+                android:layout_width="76dp"
+                android:layout_height="76dp"
+                android:gravity="center"
+                android:text="A"
+                android:textColor="#FFFFFF"
+                android:textSize="43sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_logo_round"
+                android:elevation="5dp" />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/loginLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/bank"
-            android:layout_marginTop="90dp"
-            app:boxStrokeColor="@color/black"
-            app:hintTextColor="@color/black"
-            android:padding="5dp"
-            android:textColorHint="@color/black"
-            app:errorIconTint="@color/red">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editLogin"
+            <TextView
+                android:id="@+id/bank"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/black"
-                android:hint="login"
-                android:singleLine="true">
-            </com.google.android.material.textfield.TextInputEditText>
+                android:layout_marginTop="18dp"
+                android:gravity="center"
+                android:text="Adrian Christian Hernandez"
+                android:textColor="#173B70"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08" />
 
-        </com.google.android.material.textfield.TextInputLayout>
-
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/hasloLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/loginLayout"
-            app:boxStrokeColor="@color/black"
-            app:hintTextColor="@color/black"
-            android:textColorHint="@color/black"
-            app:passwordToggleEnabled="true"
-            app:passwordToggleTint="@color/black"
-            android:inputType="textPassword"
-            app:errorIconTint="@color/red"
-            android:padding="5dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editHaslo"
+            <!-- Karta logowania -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/black"
-                android:hint="Hasło"
-                android:singleLine="true"
-                android:inputType="textPassword">
-            </com.google.android.material.textfield.TextInputEditText>
+                android:layout_marginTop="32dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="3dp"
+                app:strokeColor="#E7ECF4"
+                app:strokeWidth="1dp">
 
-        </com.google.android.material.textfield.TextInputLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="22dp">
 
-        <TextView
-            android:id="@+id/btnRegister"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/hasloLayout"
-            android:text="Zarejestruj Się"
-            android:textColor="@color/black"
-             android:textSize="24sp"
-            android:gravity="right"
-            android:padding="5px"
-            android:layout_marginRight="15dp"
-            android:layout_marginLeft="235dp"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"
-            android:clickable="true"
-            />
-        <TextView
-            android:id="@+id/errorText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/btnRegister"
-            android:text=""
-            android:textColor="#FF0000"
-            android:gravity="center"
-            android:textSize="18sp"
-            />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Zaloguj się"
+                        android:textColor="#18243A"
+                        android:textSize="28sp"
+                        android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnLogin"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/errorText"
-            android:textSize="20sp"
-            android:padding="15dp"
-            android:layout_marginLeft="100dp"
-            android:layout_marginRight="100dp"
-            android:gravity="center"
-            android:text="Login"
-            />
+                    <!-- Login -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/loginLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Login"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="14dp"
+                        app:boxCornerRadiusTopEnd="14dp"
+                        app:boxCornerRadiusBottomStart="14dp"
+                        app:boxCornerRadiusBottomEnd="14dp"
+                        app:boxStrokeColor="#24599B"
+                        app:hintTextColor="#24599B"
+                        app:startIconDrawable="@drawable/sprint"
+                        app:startIconTint="#77849A"
+                        app:errorIconTint="@color/red"
+                        android:layout_marginTop="15dp">
 
-    </RelativeLayout>
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editLogin"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text"
+                            android:singleLine="true"
+                            android:imeOptions="actionNext"
+                            android:textColor="#18243A"
+                            android:textSize="16sp"
+                            android:paddingTop="16dp"
+                            android:paddingBottom="16dp" />
 
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Hasło -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/hasloLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:hint="Hasło"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="14dp"
+                        app:boxCornerRadiusTopEnd="14dp"
+                        app:boxCornerRadiusBottomStart="14dp"
+                        app:boxCornerRadiusBottomEnd="14dp"
+                        app:boxStrokeColor="#24599B"
+                        app:hintTextColor="#24599B"
+                        app:startIconDrawable="@android:drawable/ic_lock_lock"
+                        app:startIconTint="#77849A"
+                        app:passwordToggleEnabled="true"
+                        app:passwordToggleTint="#77849A"
+                        app:errorIconTint="@color/red">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editHaslo"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword"
+                            android:singleLine="true"
+                            android:imeOptions="actionDone"
+                            android:textColor="#18243A"
+                            android:textSize="16sp"
+                            android:paddingTop="16dp"
+                            android:paddingBottom="16dp" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Rejestracja -->
+                    <TextView
+                        android:id="@+id/btnRegister"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:layout_gravity="end"
+                        android:gravity="center"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="2dp"
+                        android:text="Nie masz konta? Zarejestruj się"
+                        android:textColor="#24599B"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground" />
+
+                    <!-- Komunikaty błędów -->
+                    <TextView
+                        android:id="@+id/errorText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+
+                        android:textColor="#C62828"
+                        android:textSize="13sp"
+                        android:accessibilityLiveRegion="polite" />
+
+                    <!-- Przycisk logowania -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnLogin"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:text="Zaloguj się"
+                        android:textAllCaps="false"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:backgroundTint="#173B70"
+                        app:cornerRadius="14dp"
+                        app:elevation="2dp" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Stopka -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:gravity="center"
+                android:text="eedededededededededed"
+                android:textColor="#929DB0"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

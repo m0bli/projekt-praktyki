@@ -125,11 +125,35 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutRegisterEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/layoutRegisterLogin"
+                android:layout_marginTop="15dp"
+                android:padding="5dp"
+                android:textColorHint="@color/black"
+                app:boxStrokeColor="@color/black"
+                app:hintTextColor="@color/black"
+                app:errorIconTint="@color/red">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/editRegisterEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                        android:hint="Podaj E-Mail"
+                    android:singleLine="true"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/layoutRegisterHaslo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/layoutRegisterLogin"
+                android:layout_below="@id/layoutRegisterEmail"
                 android:layout_marginTop="15dp"
                 android:padding="5dp"
                 android:textColorHint="@color/black"
