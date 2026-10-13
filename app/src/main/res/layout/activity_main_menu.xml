@@ -75,9 +75,10 @@
                     android:padding="20dp">
 
                     <TextView
+                        android:id="@+id/txtWelcome"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Witaj, nick"
+                        android:text="Witaj!"
                         android:textColor="#18243A"
                         android:textSize="26sp"
                         android:textStyle="bold" />

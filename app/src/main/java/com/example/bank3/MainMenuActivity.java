@@ -28,6 +28,8 @@ public class MainMenuActivity extends AppCompatActivity {
     private FrameLayout contentFrame;
     private View homeScroll;
 
+    private TextView txtWelcome;
+
     private LinearLayout navHome;
     private LinearLayout navPayments;
     private LinearLayout navCards;
@@ -60,6 +62,14 @@ public class MainMenuActivity extends AppCompatActivity {
         navPayments = findViewById(R.id.navPayments);
         navCards = findViewById(R.id.navCards);
         navMore = findViewById(R.id.navMore);
+
+        txtWelcome = findViewById(R.id.txtWelcome);
+
+        String nick = getIntent().getStringExtra("nick");
+
+        if (nick != null && !nick.trim().isEmpty()){
+            txtWelcome.setText("Witaj, " + nick + "!");
+        }
 
         // Edge-to-edge: bezpieczne odstępy dla systemowych pasków.
         View mainContent = drawerLayout.getChildAt(0);

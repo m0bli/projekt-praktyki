@@ -9,7 +9,6 @@ import retrofit2.http.GET;
 import retrofit2.http.POST;
 
 public interface UserAPI {
-
     @GET("api/uzytkownicy")
     Call<List<UserResponse>> getUsers();
 

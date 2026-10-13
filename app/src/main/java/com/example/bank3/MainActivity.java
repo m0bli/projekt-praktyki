@@ -137,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
                                 MainMenuActivity.class
                         );
 
+                        intent.putExtra("nick", login);
                         startActivity(intent);
 
                     } else if (response.code() == 401) {
