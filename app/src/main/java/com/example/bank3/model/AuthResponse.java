@@ -1,4 +1,4 @@
-package com.example.bank3;
+package com.example.bank3.model;
 
 public class AuthResponse {
 

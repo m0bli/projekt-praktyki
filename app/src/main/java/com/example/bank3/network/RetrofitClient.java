@@ -1,4 +1,4 @@
-package com.example.bank3;
+package com.example.bank3.network;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;

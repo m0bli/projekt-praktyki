@@ -1,5 +1,8 @@
 
-package com.example.bank3;
+package com.example.bank3.data.api;
+
+import com.example.bank3.model.UserRequest;
+import com.example.bank3.model.UserResponse;
 
 import java.util.List;
 

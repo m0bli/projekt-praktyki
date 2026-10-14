@@ -1,5 +1,5 @@
 
-package com.example.bank3;
+package com.example.bank3.ui.auth;
 
 import android.os.Bundle;
 import android.util.Patterns;
@@ -15,6 +15,11 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
+import com.example.bank3.R;
+import com.example.bank3.network.RetrofitClient;
+import com.example.bank3.data.api.UserAPI;
+import com.example.bank3.model.UserRequest;
+import com.example.bank3.model.UserResponse;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;

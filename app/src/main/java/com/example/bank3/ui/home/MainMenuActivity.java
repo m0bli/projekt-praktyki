@@ -1,4 +1,4 @@
-package com.example.bank3;
+package com.example.bank3.ui.home;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -21,6 +21,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+
+import com.example.bank3.R;
+import com.example.bank3.ui.auth.MainActivity;
 
 public class MainMenuActivity extends AppCompatActivity {
 
