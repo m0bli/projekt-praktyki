@@ -6,15 +6,15 @@
     android:id="@+id/register"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/app_bg"
+    android:background="#F3F6FB"
     tools:context=".RegisterActivity">
 
-    <!-- STAŁY TOOLBAR -->
+    <!-- Pasek nawigacji -->
     <FrameLayout
         android:id="@+id/toolbarContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@color/app_bg"
+        android:background="#F3F6FB"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -23,209 +23,326 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/app_bg"
-            app:title="Aplikacja Bankowa"
-            app:titleTextColor="@color/black"
+            android:background="#F3F6FB"
+            app:title="Tworzenie konta"
+            app:titleTextColor="#173B70"
             app:navigationIcon="@drawable/ic_arrow_back" />
 
     </FrameLayout>
 
-    <!-- PRZEWIJANA CZĘŚĆ -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
+        android:clipToPadding="false"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:scrollbars="none"
         app:layout_constraintTop_toBottomOf="@id/toolbarContainer"
         app:layout_constraintBottom_toTopOf="@id/btnRegister"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingBottom="10dp">
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingTop="18dp"
+            android:paddingBottom="24dp">
 
+            <!-- header -->
             <TextView
                 android:id="@+id/bank"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10sp"
+                android:layout_marginTop="2dp"
                 android:gravity="center"
-                android:padding="5dp"
-                android:text="Zarejestruj Się"
-                android:textColor="@color/black"
-                android:textSize="38sp" />
+                android:text="Rejestracja"
+                android:textColor="#173B70"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.04" />
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutRegisterImie"
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/bank"
-                android:layout_marginTop="35dp"
-                android:padding="5dp"
-                android:textColorHint="@color/black"
-                app:boxStrokeColor="@color/black"
-                app:hintTextColor="@color/black"
-                app:errorIconTint="@color/red">
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:text="Utwórz konto, aby rozpocząć"
+                android:textColor="#77849A"
+                android:textSize="14sp" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editRegisterImie"
+            <!-- Karta -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="3dp"
+                app:strokeColor="#E7ECF4"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                    android:hint="Podaj Imie"
-                    android:singleLine="true"
-                    />
+                    android:orientation="vertical"
+                    android:padding="22dp">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    ```xml
+                    <!-- Imię -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/layoutRegisterImie"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:hint="Imię"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="14dp"
+                        app:boxCornerRadiusTopEnd="14dp"
+                        app:boxCornerRadiusBottomStart="14dp"
+                        app:boxCornerRadiusBottomEnd="14dp"
+                        app:boxStrokeColor="#24599B"
+                        app:hintTextColor="@color/black"
+                        app:errorTextColor="@color/red"
+                        app:boxStrokeErrorColor="@color/red"
+                        android:textColorHint="@color/gray"
+                        app:startIconDrawable="@drawable/ic_person"
+                        app:startIconTint="#77849A"
+                        app:errorIconTint="@color/red">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutRegisterNazwisko"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/layoutRegisterImie"
-                android:layout_marginTop="15dp"
-                android:padding="5dp"
-                android:textColorHint="@color/black"
-                app:boxStrokeColor="@color/black"
-                app:hintTextColor="@color/black"
-                app:errorIconTint="@color/red">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editRegisterImie"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textCapWords"
+                            android:singleLine="true"
+                            android:imeOptions="actionNext"
+                            android:textColor="@color/black"
+                            android:textSize="16sp"
+                            android:paddingTop="16dp"
+                            android:paddingBottom="16dp" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editRegisterNazwisko"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                    android:hint="Podaj Nazwisko"
-                    android:singleLine="true"
-                    />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutRegisterLogin"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/layoutRegisterNazwisko"
-                android:layout_marginTop="15dp"
-                android:padding="5dp"
-                android:textColorHint="@color/black"
-                app:boxStrokeColor="@color/black"
-                app:hintTextColor="@color/black"
-                app:errorIconTint="@color/red">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editRegisterLogin"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                    android:hint="Podaj Login"
-                    android:singleLine="true"/>
-
-            </com.google.android.material.textfield.TextInputLayout>
+                    </com.google.android.material.textfield.TextInputLayout>
 
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutRegisterEmail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/layoutRegisterLogin"
-                android:layout_marginTop="15dp"
-                android:padding="5dp"
-                android:textColorHint="@color/black"
-                app:boxStrokeColor="@color/black"
-                app:hintTextColor="@color/black"
-                app:errorIconTint="@color/red">
+                    <!-- Nazwisko -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/layoutRegisterNazwisko"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:hint="Nazwisko"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="14dp"
+                        app:boxCornerRadiusTopEnd="14dp"
+                        app:boxCornerRadiusBottomStart="14dp"
+                        app:boxCornerRadiusBottomEnd="14dp"
+                        app:boxStrokeColor="#24599B"
+                        app:hintTextColor="@color/black"
+                        app:errorTextColor="@color/red"
+                        app:boxStrokeErrorColor="@color/red"
+                        android:textColorHint="@color/gray"
+                        app:startIconDrawable="@drawable/ic_person"
+                        app:startIconTint="#77849A"
+                        app:errorIconTint="@color/red">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editRegisterEmail"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                        android:hint="Podaj E-Mail"
-                    android:singleLine="true"/>
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editRegisterNazwisko"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textCapWords"
+                            android:singleLine="true"
+                            android:imeOptions="actionNext"
+                            android:textColor="@color/black"
+                            android:textSize="16sp"
+                            android:paddingTop="16dp"
+                            android:paddingBottom="16dp" />
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    </com.google.android.material.textfield.TextInputLayout>
 
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutRegisterHaslo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/layoutRegisterEmail"
-                android:layout_marginTop="15dp"
-                android:padding="5dp"
-                android:textColorHint="@color/black"
-                android:inputType="textPassword"
-                app:boxStrokeColor="@color/black"
-                app:hintTextColor="@color/black"
-                app:passwordToggleEnabled="true"
-                app:passwordToggleTint="@color/black"
-                app:errorIconTint="@color/red">
+                    <!-- Login -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/layoutRegisterLogin"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:hint="Login"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="14dp"
+                        app:boxCornerRadiusTopEnd="14dp"
+                        app:boxCornerRadiusBottomStart="14dp"
+                        app:boxCornerRadiusBottomEnd="14dp"
+                        app:boxStrokeColor="#24599B"
+                        app:hintTextColor="@color/black"
+                        app:errorTextColor="@color/red"
+                        app:boxStrokeErrorColor="@color/red"
+                        android:textColorHint="@color/gray"
+                        app:startIconDrawable="@drawable/ic_person"
+                        app:startIconTint="#77849A"
+                        app:errorIconTint="@color/red">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editRegisterHaslo"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                    android:hint="Podaj hasło"
-                    android:inputType="textPassword" />
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editRegisterLogin"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text"
+                            android:singleLine="true"
+                            android:imeOptions="actionNext"
+                            android:textColor="@color/black"
+                            android:textSize="16sp"
+                            android:paddingTop="16dp"
+                            android:paddingBottom="16dp" />
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutRegisterPotwierdzHaslo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/layoutRegisterHaslo"
-                android:layout_marginTop="15dp"
-                android:padding="5dp"
-                android:textColorHint="@color/black"
-                android:inputType="textPassword"
-                app:boxStrokeColor="@color/black"
-                app:hintTextColor="@color/black"
-                app:passwordToggleEnabled="true"
-                app:passwordToggleTint="@color/black"
-                app:errorIconTint="@color/red">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editRegisterPotwierdzHaslo"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                    android:hint="Powtórz hasło"
-                    android:inputType="textPassword" />
+                    <!-- E-mail -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/layoutRegisterEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:hint="Adres e-mail"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="14dp"
+                        app:boxCornerRadiusTopEnd="14dp"
+                        app:boxCornerRadiusBottomStart="14dp"
+                        app:boxCornerRadiusBottomEnd="14dp"
+                        app:boxStrokeColor="#24599B"
+                        app:hintTextColor="@color/black"
+                        app:errorTextColor="@color/red"
+                        app:boxStrokeErrorColor="@color/red"
+                        android:textColorHint="@color/gray"
+                        app:startIconDrawable="@android:drawable/ic_dialog_email"
+                        app:startIconTint="#77849A"
+                        app:errorIconTint="@color/red">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editRegisterEmail"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textEmailAddress"
+                            android:singleLine="true"
+                            android:imeOptions="actionNext"
+                            android:textColor="@color/black"
+                            android:textSize="16sp"
+                            android:paddingTop="16dp"
+                            android:paddingBottom="16dp" />
 
-            <CheckBox
-                android:id="@+id/checkboxRegister"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Czy akceptujesz naszą zajebistą polityke prywatności LINK"
-                android:layout_below="@id/layoutRegisterPotwierdzHaslo"
-                android:layout_marginTop="10dp"
-                android:layout_marginLeft="10dp"
-                android:textColor="@color/black"/>
+                    </com.google.android.material.textfield.TextInputLayout>
 
-        </RelativeLayout>
+
+                    <!-- Hasło -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/layoutRegisterHaslo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:hint="Hasło"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="14dp"
+                        app:boxCornerRadiusTopEnd="14dp"
+                        app:boxCornerRadiusBottomStart="14dp"
+                        app:boxCornerRadiusBottomEnd="14dp"
+                        app:boxStrokeColor="#24599B"
+                        app:hintTextColor="@color/black"
+                        app:errorTextColor="@color/red"
+                        app:boxStrokeErrorColor="@color/red"
+                        android:textColorHint="@color/gray"
+                        app:startIconDrawable="@android:drawable/ic_lock_lock"
+                        app:startIconTint="#77849A"
+                        app:errorIconTint="@color/red"
+                        app:endIconMode="password_toggle">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editRegisterHaslo"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword"
+                            android:singleLine="true"
+                            android:imeOptions="actionNext"
+                            android:textColor="@color/black"
+                            android:textSize="16sp"
+                            android:paddingTop="16dp"
+                            android:paddingBottom="16dp" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+
+                    <!-- Potwierdź hasło -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/layoutRegisterPotwierdzHaslo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:hint="Potwierdź hasło"
+                        app:boxBackgroundMode="outline"
+                        app:boxCornerRadiusTopStart="14dp"
+                        app:boxCornerRadiusTopEnd="14dp"
+                        app:boxCornerRadiusBottomStart="14dp"
+                        app:boxCornerRadiusBottomEnd="14dp"
+                        app:boxStrokeColor="#24599B"
+                        app:hintTextColor="@color/black"
+                        app:errorTextColor="@color/red"
+                        app:boxStrokeErrorColor="@color/red"
+                        android:textColorHint="@color/gray"
+                        app:startIconDrawable="@android:drawable/ic_lock_lock"
+                        app:startIconTint="#77849A"
+                        app:errorIconTint="@color/red"
+                        app:endIconMode="password_toggle">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editRegisterPotwierdzHaslo"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword"
+                            android:singleLine="true"
+                            android:imeOptions="actionDone"
+                            android:textColor="@color/black"
+                            android:textSize="16sp"
+                            android:paddingTop="16dp"
+                            android:paddingBottom="16dp" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+                    ```
+
+                    <CheckBox
+                        android:id="@+id/checkboxRegister"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:buttonTint="#24599B"
+                        android:text="Akceptuję politykę prywatności"
+                        android:textColor="#526078"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
 
     </ScrollView>
 
-    <!-- STAŁY PRZYCISK -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnRegister"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:padding="15dp"
-        android:layout_marginLeft="75dp"
-        android:layout_marginRight="75dp"
-        android:gravity="center"
-        android:text="Utwórz konto"
+        android:layout_height="56dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
+        android:text="Utwórz konto"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:backgroundTint="#173B70"
+        app:cornerRadius="14dp"
+        app:elevation="2dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

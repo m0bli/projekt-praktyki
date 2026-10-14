@@ -84,18 +84,21 @@
                         android:id="@+id/loginLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
                         android:hint="Login"
+                        android:textColorHint="@color/gray"
                         app:boxBackgroundMode="outline"
                         app:boxCornerRadiusTopStart="14dp"
                         app:boxCornerRadiusTopEnd="14dp"
                         app:boxCornerRadiusBottomStart="14dp"
                         app:boxCornerRadiusBottomEnd="14dp"
                         app:boxStrokeColor="#24599B"
-                        app:hintTextColor="#24599B"
+                        app:hintTextColor="@color/black"
+                        app:errorTextColor="@color/red"
+                        app:boxStrokeErrorColor="@color/red"
                         app:startIconDrawable="@drawable/sprint"
                         app:startIconTint="#77849A"
-                        app:errorIconTint="@color/red"
-                        android:layout_marginTop="15dp">
+                        app:errorIconTint="@color/red">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/editLogin"
@@ -104,12 +107,13 @@
                             android:inputType="text"
                             android:singleLine="true"
                             android:imeOptions="actionNext"
-                            android:textColor="#18243A"
+                            android:textColor="@color/black"
                             android:textSize="16sp"
                             android:paddingTop="16dp"
                             android:paddingBottom="16dp" />
 
                     </com.google.android.material.textfield.TextInputLayout>
+
 
                     <!-- Hasło -->
                     <com.google.android.material.textfield.TextInputLayout
@@ -118,17 +122,20 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="18dp"
                         android:hint="Hasło"
+                        android:textColorHint="@color/gray"
                         app:boxBackgroundMode="outline"
                         app:boxCornerRadiusTopStart="14dp"
                         app:boxCornerRadiusTopEnd="14dp"
                         app:boxCornerRadiusBottomStart="14dp"
                         app:boxCornerRadiusBottomEnd="14dp"
                         app:boxStrokeColor="#24599B"
-                        app:hintTextColor="#24599B"
+                        app:hintTextColor="@color/black"
+                        app:errorTextColor="@color/red"
+                        app:boxStrokeErrorColor="@color/red"
                         app:startIconDrawable="@android:drawable/ic_lock_lock"
                         app:startIconTint="#77849A"
-                        app:passwordToggleEnabled="true"
-                        app:passwordToggleTint="#77849A"
+                        app:endIconMode="password_toggle"
+                        app:endIconTint="#77849A"
                         app:errorIconTint="@color/red">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -138,7 +145,7 @@
                             android:inputType="textPassword"
                             android:singleLine="true"
                             android:imeOptions="actionDone"
-                            android:textColor="#18243A"
+                            android:textColor="@color/black"
                             android:textSize="16sp"
                             android:paddingTop="16dp"
                             android:paddingBottom="16dp" />
