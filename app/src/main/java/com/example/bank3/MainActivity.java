@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
         controller.setAppearanceLightNavigationBars(true);
 
         setContentView(R.layout.activity_main);
+        //xd
 
         // Handle status bar and navigation bar insets
         View main = findViewById(R.id.main);
