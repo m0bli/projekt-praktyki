@@ -5,4 +5,10 @@
     <color name="red">#FF0000</color>
     <color name="gray">#808080</color>
     <color name="app_bg">#f6f6f6</color>
+    <color name="theme_primary">#2457C5</color>
+    <color name="theme_on_primary">#FFFFFF</color>
+    <color name="theme_accent">#527DE8</color>
+    <color name="theme_background">#F5F7FC</color>
+    <color name="theme_surface">#FFFFFF</color>
+    <color name="theme_text">#17243A</color>
 </resources>

@@ -1,4 +1,6 @@
 package com.example.bank3.ui.home;
+import com.example.bank3.ui.theme.ThemeManager;
+import com.example.bank3.ui.home.SettingsActivity;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -12,6 +14,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,6 +36,8 @@ public class MainMenuActivity extends AppCompatActivity {
 
     private TextView txtWelcome;
 
+    private TextView txtBalance;
+
     private LinearLayout navHome;
     private LinearLayout navPayments;
     private LinearLayout navCards;
@@ -44,6 +49,9 @@ public class MainMenuActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        ThemeManager.applyTheme(this);
+
         super.onCreate(savedInstanceState);
 
         EdgeToEdge.enable(this);
@@ -54,8 +62,10 @@ public class MainMenuActivity extends AppCompatActivity {
                         getWindow().getDecorView()
                 );
 
-        controller.setAppearanceLightStatusBars(true);
-        controller.setAppearanceLightNavigationBars(true);
+        boolean dark = ThemeManager.isBlack(this);
+
+        controller.setAppearanceLightStatusBars(!dark);
+        controller.setAppearanceLightNavigationBars(!dark);
 
         drawerLayout = findViewById(R.id.drawerLayout);
         contentFrame = findViewById(R.id.contentFrame);
@@ -67,6 +77,9 @@ public class MainMenuActivity extends AppCompatActivity {
         navMore = findViewById(R.id.navMore);
 
         txtWelcome = findViewById(R.id.txtWelcome);
+
+        txtBalance = findViewById(R.id.txtBalance);
+        txtBalance.setText("Ładowanie...");
 
         String nick = getIntent().getStringExtra("nick");
 
@@ -107,8 +120,13 @@ public class MainMenuActivity extends AppCompatActivity {
 
         findViewById(R.id.drawerSettings).setOnClickListener(v -> {
             drawerLayout.closeDrawer(GravityCompat.START);
-            showPlaceholder("Ustawienia",
-                    "Ustawienia aplikacji.");
+
+            Intent intent = new Intent(
+                    MainMenuActivity.this,
+                    SettingsActivity.class
+            );
+
+            startActivity(intent);
         });
 
         findViewById(R.id.drawerPrivacy).setOnClickListener(v -> {

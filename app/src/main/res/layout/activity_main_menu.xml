@@ -106,7 +106,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="14dp"
-                            android:text="12 450,80 zł"
+                            android:text="Ładowanie..."
                             android:textColor="#FFFFFF"
                             android:textSize="30sp"
                             android:textStyle="bold" />

@@ -26,6 +26,12 @@
 
         <activity android:name=".ui.auth.RegisterActivity" />
         <activity android:name=".ui.home.MainMenuActivity" />
+        <activity
+            android:name=".ui.home.SettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.home.ThemesActivity"
+            android:exported="false" />
 
 
     </application>
