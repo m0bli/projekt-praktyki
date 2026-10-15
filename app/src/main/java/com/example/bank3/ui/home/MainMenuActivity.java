@@ -1,10 +1,12 @@
 package com.example.bank3.ui.home;
-import com.example.bank3.ui.theme.ThemeManager;
-import com.example.bank3.ui.home.SettingsActivity;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -14,39 +16,38 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.net.Uri;
-import java.io.InputStream;
-
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.bank3.R;
 import com.example.bank3.ui.auth.MainActivity;
+import com.example.bank3.ui.theme.ThemeManager;
 
-public class MainMenuActivity extends AppCompatActivity {
+import java.io.InputStream;
+
+public class MainMenuActivity extends AppCompatActivity
+        implements ThemeManager.ThemeChangeListener {
 
     private DrawerLayout drawerLayout;
     private FrameLayout contentFrame;
     private View homeScroll;
 
     private TextView txtWelcome;
-
     private TextView txtBalance;
 
     private LinearLayout navHome;
     private LinearLayout navPayments;
     private LinearLayout navCards;
     private LinearLayout navMore;
+
+    private int selectedTab = 0;
+    private boolean isRefreshingTheme = false;
 
     private int getNavy() {
         return ThemeManager.getTextColor(this);
@@ -62,29 +63,15 @@ public class MainMenuActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         ThemeManager.applyTheme(this);
-
         super.onCreate(savedInstanceState);
 
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main_menu);
-        WindowInsetsControllerCompat controller =
-                new WindowInsetsControllerCompat(
-                        getWindow(),
-                        getWindow().getDecorView()
-                );
-
-        boolean dark = ThemeManager.isBlack(this);
-
-        controller.setAppearanceLightStatusBars(!dark);
-        controller.setAppearanceLightNavigationBars(!dark);
 
         drawerLayout = findViewById(R.id.drawerLayout);
         contentFrame = findViewById(R.id.contentFrame);
         homeScroll = findViewById(R.id.homeScroll);
-        applyHomeBackground();
-
 
         navHome = findViewById(R.id.navHome);
         navPayments = findViewById(R.id.navPayments);
@@ -92,26 +79,24 @@ public class MainMenuActivity extends AppCompatActivity {
         navMore = findViewById(R.id.navMore);
 
         txtWelcome = findViewById(R.id.txtWelcome);
-
         txtBalance = findViewById(R.id.txtBalance);
+
         txtBalance.setText("Waluta nie połączona z bazą!");
 
         String nick = getIntent().getStringExtra("nick");
-        //Synu co tu robi login :pray:
-
-        if (nick != null && !nick.trim().isEmpty()){
+        if (nick != null && !nick.trim().isEmpty()) {
             txtWelcome.setText("Witaj, " + nick + "!");
         }
 
-        // Edge-to-edge: bezpieczne odstępy dla systemowych pasków.
         View mainContent = drawerLayout.getChildAt(0);
 
         ViewCompat.setOnApplyWindowInsetsListener(
                 mainContent,
                 (view, windowInsets) -> {
-                    Insets bars = windowInsets.getInsets(
-                            WindowInsetsCompat.Type.systemBars()
-                    );
+                    androidx.core.graphics.Insets bars =
+                            windowInsets.getInsets(
+                                    WindowInsetsCompat.Type.systemBars()
+                            );
 
                     view.setPadding(
                             bars.left,
@@ -124,42 +109,43 @@ public class MainMenuActivity extends AppCompatActivity {
                 }
         );
 
-        // Panel profilu z lewej strony.
         findViewById(R.id.btnProfile).setOnClickListener(v ->
-                drawerLayout.openDrawer(GravityCompat.START));
+                drawerLayout.openDrawer(GravityCompat.START)
+        );
 
         findViewById(R.id.drawerProfile).setOnClickListener(v -> {
             drawerLayout.closeDrawer(GravityCompat.START);
-            showPlaceholder("Moje dane",
-                    "Tutaj wyświetlimy dane Twojego konta.");
+            showPlaceholder(
+                    "Moje dane",
+                    "Tutaj wyświetlimy dane Twojego konta."
+            );
         });
 
         findViewById(R.id.drawerSettings).setOnClickListener(v -> {
             drawerLayout.closeDrawer(GravityCompat.START);
 
-            Intent intent = new Intent(
+            startActivity(new Intent(
                     MainMenuActivity.this,
                     SettingsActivity.class
-            );
-
-            startActivity(intent);
+            ));
         });
 
         findViewById(R.id.drawerPrivacy).setOnClickListener(v -> {
             drawerLayout.closeDrawer(GravityCompat.START);
-            showPlaceholder("Bezpieczeństwo",
-                    "Ustawienia bezpieczeństwa konta.");
+            showPlaceholder(
+                    "Bezpieczeństwo",
+                    "Ustawienia bezpieczeństwa konta."
+            );
         });
 
-        // Powiadomienia.
         findViewById(R.id.btnNotifications).setOnClickListener(v ->
                 Toast.makeText(
                         this,
                         "Brak nowych powiadomień",
                         Toast.LENGTH_SHORT
-                ).show());
+                ).show()
+        );
 
-        // Wylogowanie.
         findViewById(R.id.btnLogout).setOnClickListener(v -> {
             Intent intent = new Intent(
                     MainMenuActivity.this,
@@ -175,50 +161,209 @@ public class MainMenuActivity extends AppCompatActivity {
             finish();
         });
 
-        // Dolna nawigacja.
         navHome.setOnClickListener(v -> selectTab(0));
         navPayments.setOnClickListener(v -> selectTab(1));
         navCards.setOnClickListener(v -> selectTab(2));
         navMore.setOnClickListener(v -> selectTab(3));
 
-        // Szybkie akcje.
         findViewById(R.id.actionTransfer).setOnClickListener(v ->
-                selectTab(1));
+                selectTab(1)
+        );
 
         findViewById(R.id.actionCards).setOnClickListener(v ->
-                selectTab(2));
+                selectTab(2)
+        );
 
         findViewById(R.id.actionHistory).setOnClickListener(v ->
                 showPlaceholder(
                         "Historia transakcji",
                         "Historia jest jeszcze w trakcie przygotowania."
-                ));
+                )
+        );
 
+        refreshTheme();
         selectTab(0);
     }
 
-    private void selectTab(int position) {
+    @Override
+    protected void onStart() {
+        super.onStart();
+        ThemeManager.registerThemeChangeListener(this);
+    }
+
+    @Override
+    protected void onStop() {
+        ThemeManager.unregisterThemeChangeListener(this);
+        super.onStop();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshTheme();
+    }
+
+    @Override
+    public void onThemeChanged() {
+        refreshTheme();
+    }
+
+    private void refreshTheme() {
+        if (drawerLayout == null || isRefreshingTheme) {
+            return;
+        }
+
+        isRefreshingTheme = true;
+
+        try {
+            boolean dark = ThemeManager.isBlack(this);
+
+            WindowInsetsControllerCompat controller =
+                    new WindowInsetsControllerCompat(
+                            getWindow(),
+                            getWindow().getDecorView()
+                    );
+
+            controller.setAppearanceLightStatusBars(!dark);
+            controller.setAppearanceLightNavigationBars(!dark);
+
+            applyHomeBackground();
+            applyDynamicColors();
+        } finally {
+            isRefreshingTheme = false;
+        }
+    }
+
+    private void applyDynamicColors() {
+        int background = ThemeManager.getBackgroundColor(this);
+        int surface = ThemeManager.getSurfaceColor(this);
+        int text = ThemeManager.getTextColor(this);
+        int secondary = ThemeManager.getSecondaryTextColor(this);
+        int accent = ThemeManager.getAccentColor(this);
+
+        View mainContent = drawerLayout.getChildAt(0);
+
+        if (mainContent instanceof ViewGroup) {
+            ViewGroup mainGroup = (ViewGroup) mainContent;
+            mainContent.setBackgroundColor(background);
+
+            if (mainGroup.getChildCount() > 0) {
+                View topBar = mainGroup.getChildAt(0);
+                topBar.setBackgroundColor(surface);
+
+                if (topBar instanceof ViewGroup) {
+                    applyTextColors(
+                            (ViewGroup) topBar,
+                            text,
+                            secondary
+                    );
+                }
+            }
+        }
+
+        contentFrame.setBackgroundColor(background);
+
+        View bottomNavigation = findViewById(R.id.bottomNavigation);
+        if (bottomNavigation != null) {
+            bottomNavigation.setBackgroundColor(surface);
+        }
+
+        if (txtWelcome != null) {
+            txtWelcome.setTextColor(text);
+        }
+
+        if (txtBalance != null) {
+            txtBalance.setTextColor(Color.WHITE);
+        }
+
+        View drawer = findViewById(R.id.profileDrawer);
+        if (drawer instanceof ViewGroup) {
+            drawer.setBackgroundColor(surface);
+            applyTextColors((ViewGroup) drawer, text, secondary);
+        }
+
+        colorQuickAction(R.id.actionTransfer, accent);
+        colorQuickAction(R.id.actionCards, accent);
+        colorQuickAction(R.id.actionHistory, accent);
+
+        updateNavigationColors();
+    }
+
+    private void applyTextColors(
+            ViewGroup parent,
+            int textColor,
+            int secondaryColor
+    ) {
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            View child = parent.getChildAt(i);
+
+            if (child instanceof TextView) {
+                TextView tv = (TextView) child;
+                int id = tv.getId();
+
+                if (id == R.id.btnLogout) {
+                    continue;
+                }
+
+                if (id == R.id.btnProfile
+                        || id == R.id.btnNotifications) {
+                    tv.setTextColor(ThemeManager.getAccentColor(this));
+                } else {
+                    tv.setTextColor(textColor);
+                }
+            } else if (child instanceof ViewGroup) {
+                applyTextColors(
+                        (ViewGroup) child,
+                        textColor,
+                        secondaryColor
+                );
+            }
+        }
+    }
+
+    private void colorQuickAction(int id, int accent) {
+        View view = findViewById(id);
+
+        if (view instanceof TextView) {
+            ((TextView) view).setTextColor(accent);
+        }
+    }
+
+    private void updateNavigationColors() {
         LinearLayout[] tabs = {
                 navHome, navPayments, navCards, navMore
         };
 
         for (int i = 0; i < tabs.length; i++) {
-            final LinearLayout tab = tabs[i];
-            boolean selected = i == position;
+            LinearLayout tab = tabs[i];
+
+            if (tab == null || tab.getChildCount() < 2) {
+                continue;
+            }
+
+            boolean selected = i == selectedTab;
 
             tab.setBackground(createRoundedBackground(
-                    selected ? getActiveBackground()
+                    selected
+                            ? getActiveBackground()
                             : ThemeManager.getSurfaceColor(this),
                     18
             ));
 
-            TextView icon = (TextView) tab.getChildAt(0);
-            TextView label = (TextView) tab.getChildAt(1);
+            int color = selected
+                    ? ThemeManager.getAccentColor(this)
+                    : getGray();
 
-            int color = selected ? ThemeManager.getAccentColor(this) : getGray();
+            View icon = tab.getChildAt(0);
+            View label = tab.getChildAt(1);
 
-            icon.setTextColor(color);
-            label.setTextColor(color);
+            if (icon instanceof TextView) {
+                ((TextView) icon).setTextColor(color);
+            }
+
+            if (label instanceof TextView) {
+                ((TextView) label).setTextColor(color);
+            }
 
             tab.animate().cancel();
 
@@ -233,29 +378,44 @@ public class MainMenuActivity extends AppCompatActivity {
                                         .scaleX(1f)
                                         .scaleY(1f)
                                         .setDuration(100)
-                                        .start())
+                                        .start()
+                        )
                         .start();
             } else {
                 tab.setScaleX(1f);
                 tab.setScaleY(1f);
             }
         }
+    }
+
+    private void selectTab(int position) {
+        selectedTab = position;
+        updateNavigationColors();
 
         switch (position) {
             case 0:
                 showHome();
                 break;
+
             case 1:
-                showPlaceholder("Płatności",
-                        "Tutaj dodamy funkcję przelewów.");
+                showPlaceholder(
+                        "Płatności",
+                        "Tutaj dodamy funkcję przelewów."
+                );
                 break;
+
             case 2:
-                showPlaceholder("Karty",
-                        "Tutaj pojawią się karty użytkownika.");
+                showPlaceholder(
+                        "Karty",
+                        "Tutaj pojawią się karty użytkownika."
+                );
                 break;
+
             case 3:
-                showPlaceholder("Więcej",
-                        "Dodatkowe funkcje aplikacji.");
+                showPlaceholder(
+                        "Więcej",
+                        "Dodatkowe funkcje aplikacji."
+                );
                 break;
         }
     }
@@ -264,7 +424,8 @@ public class MainMenuActivity extends AppCompatActivity {
         contentFrame.removeAllViews();
 
         if (homeScroll.getParent() instanceof ViewGroup) {
-            ((ViewGroup) homeScroll.getParent()).removeView(homeScroll);
+            ((ViewGroup) homeScroll.getParent())
+                    .removeView(homeScroll);
         }
 
         contentFrame.addView(
@@ -274,29 +435,40 @@ public class MainMenuActivity extends AppCompatActivity {
                         ViewGroup.LayoutParams.MATCH_PARENT
                 )
         );
+
+        applyHomeBackground();
     }
 
-    private void showPlaceholder(String title, String description) {
+    private void showPlaceholder(
+            String title,
+            String description
+    ) {
         contentFrame.removeAllViews();
 
         LinearLayout page = new LinearLayout(this);
         page.setOrientation(LinearLayout.VERTICAL);
         page.setGravity(Gravity.CENTER);
-        page.setPadding(28, 28, 28, 28);
+        page.setPadding(dp(28), dp(28), dp(28), dp(28));
+        page.setBackgroundColor(
+                ThemeManager.getBackgroundColor(this)
+        );
 
         TextView heading = new TextView(this);
         heading.setText(title);
         heading.setTextSize(25);
         heading.setTextColor(getNavy());
         heading.setGravity(Gravity.CENTER);
-        heading.setTypeface(null, android.graphics.Typeface.BOLD);
+        heading.setTypeface(
+                null,
+                android.graphics.Typeface.BOLD
+        );
 
         TextView info = new TextView(this);
         info.setText(description);
         info.setTextSize(15);
         info.setTextColor(getGray());
         info.setGravity(Gravity.CENTER);
-        info.setPadding(0, 12, 0, 0);
+        info.setPadding(0, dp(12), 0, 0);
 
         page.addView(heading);
         page.addView(info);
@@ -323,7 +495,12 @@ public class MainMenuActivity extends AppCompatActivity {
 
         return drawable;
     }
+
     private void applyHomeBackground() {
+        if (homeScroll == null) {
+            return;
+        }
+
         Uri imageUri = ThemeManager.getBackgroundImage(this);
 
         if (imageUri == null) {
@@ -337,13 +514,17 @@ public class MainMenuActivity extends AppCompatActivity {
                 .openInputStream(imageUri)) {
 
             if (stream == null) {
-                throw new IllegalStateException("Nie można otworzyć zdjęcia");
+                throw new IllegalStateException(
+                        "Nie można otworzyć zdjęcia"
+                );
             }
 
             Bitmap bitmap = BitmapFactory.decodeStream(stream);
 
             if (bitmap == null) {
-                throw new IllegalStateException("Nie można odczytać zdjęcia");
+                throw new IllegalStateException(
+                        "Nie można odczytać zdjęcia"
+                );
             }
 
             BitmapDrawable drawable = new BitmapDrawable(
@@ -352,7 +533,6 @@ public class MainMenuActivity extends AppCompatActivity {
             );
 
             drawable.setGravity(Gravity.FILL);
-
             homeScroll.setBackground(drawable);
 
         } catch (Exception e) {
@@ -362,5 +542,9 @@ public class MainMenuActivity extends AppCompatActivity {
             );
         }
     }
-}
 
+    private int dp(float value) {
+        return (int) (value * getResources()
+                .getDisplayMetrics().density + 0.5f);
+    }
+}

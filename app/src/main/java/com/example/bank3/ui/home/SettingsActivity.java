@@ -16,7 +16,8 @@ import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.example.bank3.ui.theme.ThemeManager;
 
-public class SettingsActivity extends AppCompatActivity {
+public class SettingsActivity extends AppCompatActivity
+        implements ThemeManager.ThemeChangeListener {
 
     private int navy;
     private int gray;
@@ -31,6 +32,40 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         ThemeManager.applyTheme(this);
         super.onCreate(savedInstanceState);
+
+        loadColors();
+        updateSystemBars();
+        createLayout();
+        setContentView(root);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        ThemeManager.registerThemeChangeListener(this);
+    }
+
+    @Override
+    protected void onStop() {
+        ThemeManager.unregisterThemeChangeListener(this);
+        super.onStop();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshSettingsTheme();
+    }
+
+    @Override
+    public void onThemeChanged() {
+        refreshSettingsTheme();
+    }
+
+    private void refreshSettingsTheme() {
+        if (root == null) {
+            return;
+        }
 
         loadColors();
         updateSystemBars();
@@ -73,6 +108,8 @@ public class SettingsActivity extends AppCompatActivity {
         controller.setAppearanceLightStatusBars(!dark);
         controller.setAppearanceLightNavigationBars(!dark);
     }
+
+
 
     private void createLayout() {
         root = new LinearLayout(this);
@@ -290,4 +327,6 @@ public class SettingsActivity extends AppCompatActivity {
         return (int) (value * getResources()
                 .getDisplayMetrics().density + 0.5f);
     }
+
+
 }

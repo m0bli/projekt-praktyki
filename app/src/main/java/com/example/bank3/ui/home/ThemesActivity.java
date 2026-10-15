@@ -17,7 +17,8 @@ import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.example.bank3.ui.theme.ThemeManager;
 
-public class ThemesActivity extends AppCompatActivity {
+public class ThemesActivity extends AppCompatActivity
+        implements ThemeManager.ThemeChangeListener {
 
     private LinearLayout root;
 
@@ -32,6 +33,30 @@ public class ThemesActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         ThemeManager.applyTheme(this);
         super.onCreate(savedInstanceState);
+
+        loadColors();
+        updateSystemBars();
+        createLayout();
+        setContentView(root);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        ThemeManager.registerThemeChangeListener(this);
+    }
+
+    @Override
+    protected void onStop() {
+        ThemeManager.unregisterThemeChangeListener(this);
+        super.onStop();
+    }
+
+    @Override
+    public void onThemeChanged() {
+        if (root == null) {
+            return;
+        }
 
         loadColors();
         updateSystemBars();
@@ -324,10 +349,6 @@ public class ThemesActivity extends AppCompatActivity {
 
         item.setOnClickListener(v -> {
             ThemeManager.setAccent(this, accentName);
-            loadColors();
-            updateSystemBars();
-            createLayout();
-            setContentView(root);
         });
     }
 

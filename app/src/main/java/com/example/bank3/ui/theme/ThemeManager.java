@@ -7,6 +7,11 @@ import android.net.Uri;
 
 import androidx.appcompat.app.AppCompatDelegate;
 
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 public final class ThemeManager {
 
     private static final String PREFS_NAME = "theme_preferences";
@@ -23,6 +28,13 @@ public final class ThemeManager {
     public static final String ACCENT_RED = "red";
     public static final String ACCENT_ORANGE = "orange";
 
+    public interface ThemeChangeListener {
+        void onThemeChanged();
+    }
+
+    private static final List<WeakReference<ThemeChangeListener>> listeners =
+            new ArrayList<>();
+
     private ThemeManager() {
     }
 
@@ -33,24 +45,98 @@ public final class ThemeManager {
         );
     }
 
+    public static synchronized void registerThemeChangeListener(
+            ThemeChangeListener listener
+    ) {
+        if (listener == null) {
+            return;
+        }
+
+        Iterator<WeakReference<ThemeChangeListener>> iterator =
+                listeners.iterator();
+
+        while (iterator.hasNext()) {
+            ThemeChangeListener existing = iterator.next().get();
+
+            if (existing == null) {
+                iterator.remove();
+            } else if (existing == listener) {
+                return;
+            }
+        }
+
+        listeners.add(new WeakReference<>(listener));
+    }
+
+    public static synchronized void unregisterThemeChangeListener(
+            ThemeChangeListener listener
+    ) {
+        Iterator<WeakReference<ThemeChangeListener>> iterator =
+                listeners.iterator();
+
+        while (iterator.hasNext()) {
+            ThemeChangeListener existing = iterator.next().get();
+
+            if (existing == null || existing == listener) {
+                iterator.remove();
+            }
+        }
+    }
+
+    private static void notifyThemeChanged() {
+        List<ThemeChangeListener> activeListeners = new ArrayList<>();
+
+        synchronized (ThemeManager.class) {
+            Iterator<WeakReference<ThemeChangeListener>> iterator =
+                    listeners.iterator();
+
+            while (iterator.hasNext()) {
+                ThemeChangeListener listener = iterator.next().get();
+
+                if (listener == null) {
+                    iterator.remove();
+                } else {
+                    activeListeners.add(listener);
+                }
+            }
+        }
+
+        for (ThemeChangeListener listener : activeListeners) {
+            listener.onThemeChanged();
+        }
+    }
+
     public static String getTheme(Context context) {
-        return getPreferences(context).getString(KEY_THEME, THEME_WHITE);
+        return getPreferences(context).getString(
+                KEY_THEME,
+                THEME_WHITE
+        );
     }
 
     public static String getAccent(Context context) {
-        return getPreferences(context).getString(KEY_ACCENT, ACCENT_BLUE);
+        return getPreferences(context).getString(
+                KEY_ACCENT,
+                ACCENT_BLUE
+        );
     }
 
     public static void setTheme(Context context, String theme) {
-        if (!THEME_WHITE.equals(theme) && !THEME_BLACK.equals(theme)) {
+        if (!THEME_WHITE.equals(theme)
+                && !THEME_BLACK.equals(theme)) {
             return;
         }
+
+        String oldTheme = getTheme(context);
 
         getPreferences(context).edit()
                 .putString(KEY_THEME, theme)
                 .apply();
 
         applyTheme(context);
+
+        if (!oldTheme.equals(theme)) {
+            notifyThemeChanged();
+        }
     }
 
     public static void setAccent(Context context, String accent) {
@@ -58,9 +144,15 @@ public final class ThemeManager {
             return;
         }
 
+        String oldAccent = getAccent(context);
+
         getPreferences(context).edit()
                 .putString(KEY_ACCENT, accent)
                 .apply();
+
+        if (!oldAccent.equals(accent)) {
+            notifyThemeChanged();
+        }
     }
 
     public static boolean isBlack(Context context) {
@@ -71,12 +163,16 @@ public final class ThemeManager {
         switch (getAccent(context)) {
             case ACCENT_GREEN:
                 return Color.rgb(16, 185, 129);
+
             case ACCENT_PURPLE:
                 return Color.rgb(139, 92, 246);
+
             case ACCENT_RED:
                 return Color.rgb(239, 68, 68);
+
             case ACCENT_ORANGE:
                 return Color.rgb(249, 115, 22);
+
             case ACCENT_BLUE:
             default:
                 return Color.rgb(52, 120, 246);
@@ -110,17 +206,8 @@ public final class ThemeManager {
     public static int getAccentSoftColor(Context context) {
         int accent = getAccentColor(context);
 
-        if (isBlack(context)) {
-            return Color.argb(
-                    65,
-                    Color.red(accent),
-                    Color.green(accent),
-                    Color.blue(accent)
-            );
-        }
-
         return Color.argb(
-                35,
+                isBlack(context) ? 65 : 35,
                 Color.red(accent),
                 Color.green(accent),
                 Color.blue(accent)
@@ -136,12 +223,19 @@ public final class ThemeManager {
     }
 
     public static void setBackgroundImage(Context context, Uri uri) {
-        getPreferences(context).edit()
-                .putString(
-                        KEY_BACKGROUND_IMAGE,
-                        uri == null ? null : uri.toString()
-                )
-                .apply();
+        SharedPreferences.Editor editor =
+                getPreferences(context).edit();
+
+        if (uri == null) {
+            editor.remove(KEY_BACKGROUND_IMAGE);
+        } else {
+            editor.putString(
+                    KEY_BACKGROUND_IMAGE,
+                    uri.toString()
+            );
+        }
+
+        editor.apply();
     }
 
     public static Uri getBackgroundImage(Context context) {
