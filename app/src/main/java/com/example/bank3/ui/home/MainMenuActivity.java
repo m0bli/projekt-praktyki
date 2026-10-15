@@ -79,7 +79,7 @@ public class MainMenuActivity extends AppCompatActivity {
         txtWelcome = findViewById(R.id.txtWelcome);
 
         txtBalance = findViewById(R.id.txtBalance);
-        txtBalance.setText("Ładowanie...");
+        txtBalance.setText("Waluta nie połączona z bazą!");
 
         String nick = getIntent().getStringExtra("nick");
 

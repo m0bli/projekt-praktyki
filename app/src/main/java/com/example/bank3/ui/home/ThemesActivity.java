@@ -1,5 +1,6 @@
 package com.example.bank3.ui.home;
 
+import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -99,6 +100,7 @@ public class ThemesActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private void createLayout() {
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
