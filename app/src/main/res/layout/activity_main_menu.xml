@@ -4,13 +4,14 @@
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F4F6FA">
+    android:background="@color/theme_background">
 
     <!-- Główna część aplikacji -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="@color/theme_background">
 
         <!-- Górny pasek -->
         <LinearLayout
@@ -18,7 +19,7 @@
             android:layout_height="64dp"
             android:gravity="center_vertical"
             android:paddingHorizontal="12dp"
-            android:background="#FFFFFF"
+            android:background="@color/theme_surface"
             android:elevation="4dp">
 
             <TextView
@@ -28,7 +29,7 @@
                 android:gravity="center"
                 android:text="☰"
                 android:textSize="25sp"
-                android:textColor="#173B70"
+                android:textColor="@color/theme_primary"
                 android:contentDescription="Otwórz panel profilu"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -38,7 +39,7 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="ANK"
-                android:textColor="#173B70"
+                android:textColor="@color/theme_primary"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.08" />
@@ -50,8 +51,9 @@
                 android:gravity="center"
                 android:text="♧"
                 android:textSize="25sp"
-                android:textColor="#173B70"
-                android:contentDescription="Powiadomienia" />
+                android:textColor="@color/theme_primary"
+                android:contentDescription="Powiadomienia"
+                android:background="?attr/selectableItemBackgroundBorderless" />
 
         </LinearLayout>
 
@@ -60,26 +62,30 @@
             android:id="@+id/contentFrame"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:background="@color/theme_background">
 
             <ScrollView
                 android:id="@+id/homeScroll"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:fillViewport="true">
+                android:fillViewport="true"
+                android:background="@color/theme_background">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="20dp"
+                    android:background="@color/theme_background">
 
+                    <!-- Powitanie -->
                     <TextView
                         android:id="@+id/txtWelcome"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Witaj!"
-                        android:textColor="#18243A"
+                        android:textColor="@color/theme_text"
                         android:textSize="26sp"
                         android:textStyle="bold" />
 
@@ -121,12 +127,13 @@
 
                     </LinearLayout>
 
+                    <!-- Szybkie akcje -->
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="28dp"
                         android:text="Szybkie akcje"
-                        android:textColor="#18243A"
+                        android:textColor="@color/theme_text"
                         android:textSize="20sp"
                         android:textStyle="bold" />
 
@@ -160,12 +167,13 @@
 
                     </LinearLayout>
 
+                    <!-- Ostatnie transakcje -->
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="28dp"
                         android:text="Ostatnie transakcje"
-                        android:textColor="#18243A"
+                        android:textColor="@color/theme_text"
                         android:textSize="20sp"
                         android:textStyle="bold" />
 
@@ -173,29 +181,30 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
-                        android:background="#FFFFFF"
+                        android:background="@color/theme_surface"
                         android:orientation="vertical"
-                        android:padding="14dp">
+                        android:padding="14dp"
+                        android:elevation="1dp">
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:padding="10dp"
                             android:text="Sklep spożywczy     −42,50 zł"
-                            android:textColor="#26334A"
+                            android:textColor="@color/theme_text"
                             android:textSize="14sp" />
 
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:background="#E8ECF2" />
+                            android:background="@color/theme_divider" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:padding="10dp"
                             android:text="Wynagrodzenie     +5 200,00 zł"
-                            android:textColor="#16845B"
+                            android:textColor="@color/theme_transaction_positive"
                             android:textSize="14sp" />
 
                     </LinearLayout>
@@ -212,7 +221,7 @@
             android:orientation="horizontal"
             android:gravity="center"
             android:padding="7dp"
-            android:background="#FFFFFF"
+            android:background="@color/theme_surface"
             android:elevation="8dp">
 
             <LinearLayout
@@ -286,9 +295,10 @@
         android:layout_gravity="start"
         android:orientation="vertical"
         android:padding="20dp"
-        android:background="#FFFFFF"
+        android:background="@color/theme_surface"
         android:elevation="16dp">
 
+        <!-- Nagłówek panelu profilu -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="155dp"
@@ -333,13 +343,13 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="12dp"
-            android:background="#E8ECF2" />
+            android:background="@color/theme_divider" />
 
         <TextView
             android:id="@+id/btnLogout"
             style="@style/DrawerItem"
             android:text="↪   Wyloguj się"
-            android:textColor="#C23A48" />
+            android:textColor="@color/theme_transaction_negative" />
 
     </LinearLayout>
 

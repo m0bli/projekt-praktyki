@@ -14,6 +14,11 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
+import java.io.InputStream;
 
 
 import androidx.activity.EdgeToEdge;
@@ -43,9 +48,17 @@ public class MainMenuActivity extends AppCompatActivity {
     private LinearLayout navCards;
     private LinearLayout navMore;
 
-    private final int navy = Color.rgb(23, 59, 112);
-    private final int activeBlue = Color.rgb(224, 237, 255);
-    private final int gray = Color.rgb(119, 132, 154);
+    private int getNavy() {
+        return ThemeManager.getTextColor(this);
+    }
+
+    private int getActiveBackground() {
+        return ThemeManager.getAccentSoftColor(this);
+    }
+
+    private int getGray() {
+        return ThemeManager.getSecondaryTextColor(this);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +83,8 @@ public class MainMenuActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawerLayout);
         contentFrame = findViewById(R.id.contentFrame);
         homeScroll = findViewById(R.id.homeScroll);
+        applyHomeBackground();
+
 
         navHome = findViewById(R.id.navHome);
         navPayments = findViewById(R.id.navPayments);
@@ -82,6 +97,7 @@ public class MainMenuActivity extends AppCompatActivity {
         txtBalance.setText("Waluta nie połączona z bazą!");
 
         String nick = getIntent().getStringExtra("nick");
+        //Synu co tu robi login :pray:
 
         if (nick != null && !nick.trim().isEmpty()){
             txtWelcome.setText("Witaj, " + nick + "!");
@@ -191,14 +207,16 @@ public class MainMenuActivity extends AppCompatActivity {
             boolean selected = i == position;
 
             tab.setBackground(createRoundedBackground(
-                    selected ? activeBlue : Color.WHITE,
+                    selected ? getActiveBackground()
+                            : ThemeManager.getSurfaceColor(this),
                     18
             ));
 
             TextView icon = (TextView) tab.getChildAt(0);
             TextView label = (TextView) tab.getChildAt(1);
 
-            int color = selected ? navy : gray;
+            int color = selected ? ThemeManager.getAccentColor(this) : getGray();
+
             icon.setTextColor(color);
             label.setTextColor(color);
 
@@ -269,14 +287,14 @@ public class MainMenuActivity extends AppCompatActivity {
         TextView heading = new TextView(this);
         heading.setText(title);
         heading.setTextSize(25);
-        heading.setTextColor(navy);
+        heading.setTextColor(getNavy());
         heading.setGravity(Gravity.CENTER);
         heading.setTypeface(null, android.graphics.Typeface.BOLD);
 
         TextView info = new TextView(this);
         info.setText(description);
         info.setTextSize(15);
-        info.setTextColor(gray);
+        info.setTextColor(getGray());
         info.setGravity(Gravity.CENTER);
         info.setPadding(0, 12, 0, 0);
 
@@ -305,4 +323,44 @@ public class MainMenuActivity extends AppCompatActivity {
 
         return drawable;
     }
+    private void applyHomeBackground() {
+        Uri imageUri = ThemeManager.getBackgroundImage(this);
+
+        if (imageUri == null) {
+            homeScroll.setBackgroundColor(
+                    ThemeManager.getBackgroundColor(this)
+            );
+            return;
+        }
+
+        try (InputStream stream = getContentResolver()
+                .openInputStream(imageUri)) {
+
+            if (stream == null) {
+                throw new IllegalStateException("Nie można otworzyć zdjęcia");
+            }
+
+            Bitmap bitmap = BitmapFactory.decodeStream(stream);
+
+            if (bitmap == null) {
+                throw new IllegalStateException("Nie można odczytać zdjęcia");
+            }
+
+            BitmapDrawable drawable = new BitmapDrawable(
+                    getResources(),
+                    bitmap
+            );
+
+            drawable.setGravity(Gravity.FILL);
+
+            homeScroll.setBackground(drawable);
+
+        } catch (Exception e) {
+            ThemeManager.clearBackgroundImage(this);
+            homeScroll.setBackgroundColor(
+                    ThemeManager.getBackgroundColor(this)
+            );
+        }
+    }
 }
+

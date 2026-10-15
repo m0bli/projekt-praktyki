@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="app_bg">#111827</color>
+    <color name="theme_primary">#8BAEFF</color>
+    <color name="theme_on_primary">#111827</color>
+    <color name="theme_accent">#8BAEFF</color>
+    <color name="theme_background">#111827</color>
+    <color name="theme_surface">#1E293B</color>
+    <color name="theme_text">#E8EEF9</color>
+    <color name="theme_text_secondary">#A5B2C8</color>
+    <color name="theme_divider">#374151</color>
+    <color name="theme_transaction_positive">#34D399</color>
+    <color name="theme_transaction_negative">#F87171</color>
+</resources>
