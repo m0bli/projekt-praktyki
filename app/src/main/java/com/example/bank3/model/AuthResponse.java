@@ -4,6 +4,7 @@ public class AuthResponse {
 
     public boolean sukces;
     public String komunikat;
+    public Long uzytkownikId;
 
     public boolean isSukces() {
         return sukces;
@@ -11,5 +12,9 @@ public class AuthResponse {
 
     public String getKomunikat() {
         return komunikat;
+    }
+
+    public Long getUzytkownikId() {
+        return uzytkownikId;
     }
 }
