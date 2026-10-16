@@ -145,6 +145,9 @@ public class MainActivity extends AppCompatActivity {
                     );
 
                     intent.putExtra("nick", login);
+                    if (body.getUzytkownikId() != null) {
+                        intent.putExtra("uzytkownikId", body.getUzytkownikId());
+                    }
                     startActivity(intent);
 
                 } else if (response.code() == 401) {
