@@ -12,6 +12,10 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.Button;
+import android.widget.EditText;
+import android.text.InputType;
+import android.widget.ScrollView;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -27,14 +31,18 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.bank3.R;
 import com.example.bank3.data.repository.KontoRepository;
+import com.example.bank3.data.repository.TransakcjaRepository;
 import com.example.bank3.model.SaldoResponse;
+import com.example.bank3.model.TransakcjaRequest;
 
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import okhttp3.ResponseBody;
 import com.example.bank3.ui.auth.MainActivity;
 import com.example.bank3.ui.theme.ThemeManager;
 
@@ -51,6 +59,9 @@ public class MainMenuActivity extends AppCompatActivity
     private TextView txtBalance;
     private KontoRepository kontoRepository;
     private long uzytkownikId = -1L;
+    private long kontoZrodloweId = -1L;
+    private String walutaKonta = "PLN";
+    private final TransakcjaRepository transakcjaRepository = new TransakcjaRepository();
 
     private LinearLayout navHome;
     private LinearLayout navPayments;
@@ -224,8 +235,9 @@ public class MainMenuActivity extends AppCompatActivity
                             );
                             format.setMinimumFractionDigits(2);
                             format.setMaximumFractionDigits(2);
-                            String waluta = saldoResponse.getWaluta() == null
-                                    ? "PLN" : saldoResponse.getWaluta();
+                            kontoZrodloweId = saldoResponse.getKontoId() == null ? -1L : saldoResponse.getKontoId();
+                            walutaKonta = saldoResponse.getWaluta() == null ? "PLN" : saldoResponse.getWaluta();
+                            String waluta = walutaKonta;
                             txtBalance.setText(
                                     format.format(saldoResponse.getSaldo()) + " " + waluta
                             );
@@ -459,10 +471,7 @@ public class MainMenuActivity extends AppCompatActivity
                 break;
 
             case 1:
-                showPlaceholder(
-                        "Płatności",
-                        "Tutaj dodamy funkcję przelewów."
-                );
+                showTransferForm();
                 break;
 
             case 2:
@@ -479,6 +488,155 @@ public class MainMenuActivity extends AppCompatActivity
                 );
                 break;
         }
+    }
+
+
+    private void showTransferForm() {
+        contentFrame.removeAllViews();
+        ScrollView scroll = new ScrollView(this);
+        LinearLayout page = new LinearLayout(this);
+        page.setOrientation(LinearLayout.VERTICAL);
+        page.setPadding(dp(22), dp(22), dp(22), dp(28));
+        page.setBackgroundColor(ThemeManager.getBackgroundColor(this));
+        scroll.addView(page);
+
+        TextView heading = new TextView(this);
+        heading.setText("Nowy przelew");
+        heading.setTextSize(25);
+        heading.setTypeface(null, android.graphics.Typeface.BOLD);
+        heading.setTextColor(getNavy());
+        page.addView(heading);
+
+        TextView subtitle = new TextView(this);
+        subtitle.setText("Przelew krajowy · bez przewalutowania");
+        subtitle.setTextSize(14);
+        subtitle.setTextColor(getGray());
+        LinearLayout.LayoutParams subtitleParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        subtitleParams.topMargin = dp(6);
+        page.addView(subtitle, subtitleParams);
+
+        TextView currencyInfo = new TextView(this);
+        currencyInfo.setText("Waluta konta: " + walutaKonta);
+        currencyInfo.setTextColor(getGray());
+        currencyInfo.setTextSize(14);
+        LinearLayout.LayoutParams infoParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        infoParams.topMargin = dp(18);
+        page.addView(currencyInfo, infoParams);
+
+        EditText accountInput = addTransferInput(page, "Numer konta odbiorcy (26 cyfr)", InputType.TYPE_CLASS_NUMBER);
+        EditText nameInput = addTransferInput(page, "Imię odbiorcy", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+        EditText amountInput = addTransferInput(page, "Kwota", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        EditText titleInput = addTransferInput(page, "Tytuł przelewu", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+
+        Button sendButton = new Button(this);
+        sendButton.setText("Sprawdź i wykonaj przelew");
+        sendButton.setTextColor(Color.WHITE);
+        sendButton.setBackground(createRoundedBackground(ThemeManager.getAccentColor(this), 14));
+        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        buttonParams.topMargin = dp(20);
+        page.addView(sendButton, buttonParams);
+
+        TextView hint = new TextView(this);
+        hint.setText("Backend sprawdzi odbiorcę, saldo i zgodność waluty przed wykonaniem przelewu.");
+        hint.setTextColor(getGray());
+        hint.setTextSize(12);
+        LinearLayout.LayoutParams hintParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        hintParams.topMargin = dp(12);
+        page.addView(hint, hintParams);
+
+        sendButton.setOnClickListener(v -> {
+            String numer = accountInput.getText().toString().replaceAll("\\s+", "");
+            String imie = nameInput.getText().toString().trim();
+            String kwotaText = amountInput.getText().toString().trim().replace(',', '.');
+            String tytul = titleInput.getText().toString().trim();
+
+            if (uzytkownikId <= 0 || kontoZrodloweId <= 0) {
+                Toast.makeText(this, "Nie udało się pobrać konta źródłowego. Odśwież aplikację.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            if (!numer.matches("\\d{26}")) {
+                accountInput.setError("Wpisz 26 cyfr numeru konta");
+                return;
+            }
+            if (imie.isEmpty()) {
+                nameInput.setError("Wpisz imię odbiorcy");
+                return;
+            }
+            if (kwotaText.isEmpty()) {
+                amountInput.setError("Wpisz kwotę");
+                return;
+            }
+            final BigDecimal kwota;
+            try {
+                kwota = new BigDecimal(kwotaText);
+            } catch (NumberFormatException ex) {
+                amountInput.setError("Nieprawidłowa kwota");
+                return;
+            }
+            if (kwota.compareTo(BigDecimal.ZERO) <= 0 || kwota.scale() > 2) {
+                amountInput.setError("Kwota musi być dodatnia i mieć maksymalnie 2 miejsca po przecinku");
+                return;
+            }
+            if (tytul.isEmpty()) {
+                titleInput.setError("Wpisz tytuł przelewu");
+                return;
+            }
+            if (tytul.length() > 140) {
+                titleInput.setError("Maksymalnie 140 znaków");
+                return;
+            }
+
+            sendButton.setEnabled(false);
+            sendButton.setText("Wysyłanie...");
+            TransakcjaRequest request = new TransakcjaRequest(
+                    uzytkownikId, kontoZrodloweId, numer, imie, kwota, walutaKonta, tytul);
+            transakcjaRepository.wykonajPrzelew(request).enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    if (isFinishing() || isDestroyed()) return;
+                    if (response.isSuccessful()) {
+                        Toast.makeText(MainMenuActivity.this, "Przelew wykonany", Toast.LENGTH_LONG).show();
+                        pobierzSaldo();
+                        showTransferForm();
+                    } else {
+                        sendButton.setEnabled(true);
+                        sendButton.setText("Sprawdź i wykonaj przelew");
+                        Toast.makeText(MainMenuActivity.this,
+                                "Przelew odrzucony (HTTP " + response.code() + "). Sprawdź dane, saldo i walutę.",
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable throwable) {
+                    if (isFinishing() || isDestroyed()) return;
+                    sendButton.setEnabled(true);
+                    sendButton.setText("Sprawdź i wykonaj przelew");
+                    Toast.makeText(MainMenuActivity.this, "Błąd połączenia z backendem", Toast.LENGTH_LONG).show();
+                }
+            });
+        });
+
+        contentFrame.addView(scroll, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+    }
+
+    private EditText addTransferInput(LinearLayout parent, String label, int inputType) {
+        EditText input = new EditText(this);
+        input.setSingleLine(true);
+        input.setHint(label);
+        input.setTextColor(ThemeManager.getTextColor(this));
+        input.setHintTextColor(ThemeManager.getSecondaryTextColor(this));
+        input.setInputType(inputType);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.topMargin = dp(12);
+        parent.addView(input, params);
+        return input;
     }
 
     private void showHome() {
