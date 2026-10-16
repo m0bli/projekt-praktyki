@@ -26,6 +26,15 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.bank3.R;
+import com.example.bank3.data.repository.KontoRepository;
+import com.example.bank3.model.SaldoResponse;
+
+import java.text.NumberFormat;
+import java.util.Locale;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import com.example.bank3.ui.auth.MainActivity;
 import com.example.bank3.ui.theme.ThemeManager;
 
@@ -40,6 +49,8 @@ public class MainMenuActivity extends AppCompatActivity
 
     private TextView txtWelcome;
     private TextView txtBalance;
+    private KontoRepository kontoRepository;
+    private long uzytkownikId = -1L;
 
     private LinearLayout navHome;
     private LinearLayout navPayments;
@@ -81,7 +92,9 @@ public class MainMenuActivity extends AppCompatActivity
         txtWelcome = findViewById(R.id.txtWelcome);
         txtBalance = findViewById(R.id.txtBalance);
 
-        txtBalance.setText("Waluta nie połączona z bazą!");
+        txtBalance.setText("Ładowanie salda...");
+        kontoRepository = new KontoRepository();
+        uzytkownikId = getIntent().getLongExtra("uzytkownikId", -1L);
 
         String nick = getIntent().getStringExtra("nick");
         if (nick != null && !nick.trim().isEmpty()) {
@@ -183,6 +196,54 @@ public class MainMenuActivity extends AppCompatActivity
 
         refreshTheme();
         selectTab(0);
+        pobierzSaldo();
+    }
+
+    private void pobierzSaldo() {
+        if (uzytkownikId <= 0) {
+            txtBalance.setText("Nie udało się ustalić użytkownika");
+            return;
+        }
+
+        kontoRepository.getSaldoUzytkownika(uzytkownikId).enqueue(
+                new Callback<SaldoResponse>() {
+                    @Override
+                    public void onResponse(
+                            Call<SaldoResponse> call,
+                            Response<SaldoResponse> response
+                    ) {
+                        if (isFinishing() || isDestroyed()) {
+                            return;
+                        }
+
+                        SaldoResponse saldoResponse = response.body();
+                        if (response.isSuccessful() && saldoResponse != null
+                                && saldoResponse.getSaldo() != null) {
+                            NumberFormat format = NumberFormat.getNumberInstance(
+                                    new Locale("pl", "PL")
+                            );
+                            format.setMinimumFractionDigits(2);
+                            format.setMaximumFractionDigits(2);
+                            String waluta = saldoResponse.getWaluta() == null
+                                    ? "PLN" : saldoResponse.getWaluta();
+                            txtBalance.setText(
+                                    format.format(saldoResponse.getSaldo()) + " " + waluta
+                            );
+                        } else if (response.code() == 404) {
+                            txtBalance.setText("Nie znaleziono konta");
+                        } else {
+                            txtBalance.setText("Nie udało się pobrać salda");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<SaldoResponse> call, Throwable throwable) {
+                        if (!isFinishing() && !isDestroyed()) {
+                            txtBalance.setText("Błąd połączenia z serwerem");
+                        }
+                    }
+                }
+        );
     }
 
     @Override
