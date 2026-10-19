@@ -2,6 +2,8 @@ package com.example.bank3.data.repository;
 
 import com.example.bank3.data.api.KontoAPI;
 import com.example.bank3.model.SaldoResponse;
+import com.example.bank3.model.KontoResponse;
+import java.util.List;
 import com.example.bank3.network.RetrofitClient;
 
 import retrofit2.Call;
@@ -16,5 +18,9 @@ public class KontoRepository {
 
     public Call<SaldoResponse> getSaldoUzytkownika(long uzytkownikId) {
         return kontoAPI.getSaldoUzytkownika(uzytkownikId);
+    }
+
+    public Call<List<KontoResponse>> getKontaUzytkownika(long uzytkownikId) {
+        return kontoAPI.getKontaUzytkownika(uzytkownikId);
     }
 }
