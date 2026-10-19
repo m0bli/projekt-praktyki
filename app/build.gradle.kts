@@ -21,7 +21,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "BANK_API_BASE_URL", "\\"$bankApiBaseUrl\\"")
+        buildConfigField("String", "BANK_API_BASE_URL", "\"$bankApiBaseUrl\"")
     }
 
     buildTypes {
