@@ -2,7 +2,7 @@ package com.example.bank3.data.api;
 
 import com.example.bank3.model.TransakcjaHistoriaResponse;
 import com.example.bank3.model.TransakcjaRequest;
-import com.example.bank3.model.TransakcjaHistoriaResponse;
+import com.example.bank3.model.TransakcjaResponse;
 
 import java.util.List;
 import retrofit2.Call;
@@ -16,5 +16,5 @@ public interface TransakcjaAPI {
     Call<List<TransakcjaHistoriaResponse>> getHistoriaKonta(@Path("kontoId") long kontoId);
 
     @POST("api/transakcje")
-    Call<TransakcjaHistoriaResponse> wykonajPrzelew(@Body TransakcjaRequest request);
+    Call<TransakcjaResponse> wykonajPrzelew(@Body TransakcjaRequest request);
 }
