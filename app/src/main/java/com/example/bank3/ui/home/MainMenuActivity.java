@@ -206,12 +206,7 @@ public class MainMenuActivity extends AppCompatActivity
                 selectTab(2)
         );
 
-        findViewById(R.id.actionHistory).setOnClickListener(v ->
-                showPlaceholder(
-                        "Historia transakcji",
-                        "Historia jest jeszcze w trakcie przygotowania."
-                )
-        );
+        findViewById(R.id.actionHistory).setOnClickListener(v -> openTransfers());
 
         refreshTheme();
         selectTab(0);
@@ -512,10 +507,7 @@ public class MainMenuActivity extends AppCompatActivity
                 break;
 
             case 1:
-                showPlaceholder(
-                        "Płatności",
-                        "Tutaj dodamy funkcję przelewów."
-                );
+                openTransfers();
                 break;
 
             case 2:
@@ -532,6 +524,12 @@ public class MainMenuActivity extends AppCompatActivity
                 );
                 break;
         }
+    }
+
+    private void openTransfers() {
+        Intent intent = new Intent(MainMenuActivity.this, TransferActivity.class);
+        intent.putExtra("uzytkownikId", uzytkownikId);
+        startActivity(intent);
     }
 
     private void showHome() {
