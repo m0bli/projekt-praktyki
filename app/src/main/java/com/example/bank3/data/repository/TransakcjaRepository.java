@@ -2,6 +2,7 @@ package com.example.bank3.data.repository;
 
 import com.example.bank3.data.api.TransakcjaAPI;
 import com.example.bank3.model.TransakcjaHistoriaResponse;
+import com.example.bank3.model.TransakcjaResponse;
 import com.example.bank3.model.TransakcjaRequest;
 import com.example.bank3.network.RetrofitClient;
 
@@ -15,7 +16,7 @@ public class TransakcjaRepository {
         return api.getHistoriaKonta(kontoId);
     }
 
-    public Call<TransakcjaHistoriaResponse> wykonajPrzelew(TransakcjaRequest request) {
+    public Call<TransakcjaResponse> wykonajPrzelew(TransakcjaRequest request) {
         return api.wykonajPrzelew(request);
     }
 }
