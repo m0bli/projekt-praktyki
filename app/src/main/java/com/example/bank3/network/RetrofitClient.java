@@ -1,21 +1,22 @@
 package com.example.bank3.network;
 
-import com.example.bank3.BuildConfig;
-
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public final class RetrofitClient {
+public class RetrofitClient {
 
-    private static final Retrofit RETROFIT = new Retrofit.Builder()
-            .baseUrl(BuildConfig.BANK_API_BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build();
+    private static final String BASE_URL =
+            "http://127.0.0.1:13308/";
 
-    private RetrofitClient() {
-    }
+    private static final Retrofit retrofit =
+            new Retrofit.Builder()
+                    .baseUrl(BASE_URL)
+                    .addConverterFactory(
+                            GsonConverterFactory.create()
+                    )
+                    .build();
 
     public static Retrofit getInstance() {
-        return RETROFIT;
+        return retrofit;
     }
 }
