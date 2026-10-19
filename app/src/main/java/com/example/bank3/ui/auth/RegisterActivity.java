@@ -46,6 +46,8 @@ public class RegisterActivity extends AppCompatActivity {
 
     private CheckBox checkboxRegister;
     private Button btnRegister;
+    private Call<UserResponse> registerCall;
+    private boolean isRegistering;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,6 +125,20 @@ public class RegisterActivity extends AppCompatActivity {
         btnRegister = findViewById(R.id.btnRegister);
 
         btnRegister.setOnClickListener(v -> registerUser());
+    }
+
+    private void setRegistering(boolean registering) {
+        isRegistering = registering;
+        btnRegister.setEnabled(!registering);
+        btnRegister.setText(registering ? "Tworzenie konta..." : "Utwórz konto");
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (registerCall != null && !registerCall.isCanceled()) {
+            registerCall.cancel();
+        }
+        super.onDestroy();
     }
 
     private void clearErrors() {
@@ -213,8 +229,10 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        btnRegister.setEnabled(false);
-        btnRegister.setText("Jesteś Rejestrowany...");
+        if (isRegistering) {
+            return;
+        }
+        setRegistering(true);
 
         UserRequest request = new UserRequest(
                 imie,
@@ -226,15 +244,18 @@ public class RegisterActivity extends AppCompatActivity {
 
         UserAPI userAPI = RetrofitClient.getInstance().create(UserAPI.class);
 
-        userAPI.createUser(request).enqueue(new Callback<UserResponse>() {
+        registerCall = userAPI.createUser(request);
+        registerCall.enqueue(new Callback<UserResponse>() {
 
             @Override
             public void onResponse(
                     Call<UserResponse> call,
                     Response<UserResponse> response
             ) {
-                btnRegister.setEnabled(true);
-                btnRegister.setText("Utwórz konto");
+                if (isFinishing() || isDestroyed() || call.isCanceled()) {
+                    return;
+                }
+                setRegistering(false);
 
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(
@@ -248,6 +269,7 @@ public class RegisterActivity extends AppCompatActivity {
                     return;
                 }
 
+                btnRegister.setText("Spróbuj ponownie");
                 if (response.code() == 409) {
                     loginLayout.setError(
                             "Ten login jest już zajęty."
@@ -274,8 +296,11 @@ public class RegisterActivity extends AppCompatActivity {
                     Call<UserResponse> call,
                     Throwable throwable
             ) {
-                btnRegister.setEnabled(true);
-                btnRegister.setText("Utwórz konto");
+                if (call.isCanceled() || isFinishing() || isDestroyed()) {
+                    return;
+                }
+                setRegistering(false);
+                btnRegister.setText("Spróbuj ponownie");
 
                 Toast.makeText(
                         RegisterActivity.this,
