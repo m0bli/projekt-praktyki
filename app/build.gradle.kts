@@ -2,6 +2,11 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+// Override with -PbankApiBaseUrl=http://YOUR_COMPUTER_LAN_IP:13308/ for a physical device.
+val bankApiBaseUrl = providers.gradleProperty("bankApiBaseUrl")
+    .orElse("http://10.0.2.2:13308/")
+    .get()
+
 android {
     namespace = "com.example.bank3"
     compileSdk {
@@ -16,6 +21,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "BANK_API_BASE_URL", "\"$bankApiBaseUrl\"")
     }
 
     buildTypes {
@@ -25,6 +31,9 @@ android {
                 packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
             }
         }
+    }
+    buildFeatures {
+        buildConfig = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
