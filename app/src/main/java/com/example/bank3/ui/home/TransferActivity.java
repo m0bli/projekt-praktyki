@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bank3.data.api.KontoAPI;
 import com.example.bank3.data.repository.TransakcjaRepository;
+import com.example.bank3.data.repository.KontoRepository;
 import com.example.bank3.model.KontoResponse;
 import com.example.bank3.model.TransakcjaHistoriaResponse;
 import com.example.bank3.model.TransakcjaRequest;
@@ -47,6 +48,7 @@ public class TransferActivity extends AppCompatActivity {
     private ProgressBar progress;
     private final List<KontoResponse> accounts = new ArrayList<>();
     private TransakcjaRepository transactions;
+    private KontoRepository accountRepository;
     private Call<?> activeCall;
 
     @Override
@@ -54,6 +56,7 @@ public class TransferActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         userId = getIntent().getLongExtra("uzytkownikId", -1L);
         transactions = new TransakcjaRepository();
+        accountRepository = new KontoRepository();
         buildUi();
         if (userId <= 0) {
             status.setText("Nie udało się ustalić użytkownika. Zaloguj się ponownie.");
@@ -148,7 +151,7 @@ public class TransferActivity extends AppCompatActivity {
 
     private void loadAccounts() {
         progress.setVisibility(View.VISIBLE);
-        Call<List<KontoResponse>> call = RetrofitClient.getInstance().create(KontoAPI.class).getKontaUzytkownika(userId);
+        Call<List<KontoResponse>> call = accountRepository.getKontaUzytkownika(userId);
         activeCall = call;
         call.enqueue(new Callback<List<KontoResponse>>() {
             @Override public void onResponse(Call<List<KontoResponse>> call, Response<List<KontoResponse>> response) {
