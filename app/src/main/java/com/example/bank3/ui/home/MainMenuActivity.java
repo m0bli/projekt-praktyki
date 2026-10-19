@@ -51,6 +51,9 @@ public class MainMenuActivity extends AppCompatActivity
     private TextView txtBalance;
     private KontoRepository kontoRepository;
     private long uzytkownikId = -1L;
+    private Call<SaldoResponse> saldoCall;
+    private boolean saldoLoading;
+    private boolean saldoCanRetry;
 
     private LinearLayout navHome;
     private LinearLayout navPayments;
@@ -93,6 +96,11 @@ public class MainMenuActivity extends AppCompatActivity
         txtBalance = findViewById(R.id.txtBalance);
 
         txtBalance.setText("Ładowanie salda...");
+        txtBalance.setOnClickListener(v -> {
+            if (saldoCanRetry && !saldoLoading) {
+                pobierzSaldo();
+            }
+        });
         kontoRepository = new KontoRepository();
         uzytkownikId = getIntent().getLongExtra("uzytkownikId", -1L);
 
@@ -200,50 +208,82 @@ public class MainMenuActivity extends AppCompatActivity
     }
 
     private void pobierzSaldo() {
+        if (saldoLoading) {
+            return;
+        }
         if (uzytkownikId <= 0) {
+            saldoCanRetry = false;
             txtBalance.setText("Nie udało się ustalić użytkownika");
+            txtBalance.setContentDescription("Nie udało się ustalić użytkownika");
             return;
         }
 
-        kontoRepository.getSaldoUzytkownika(uzytkownikId).enqueue(
-                new Callback<SaldoResponse>() {
-                    @Override
-                    public void onResponse(
-                            Call<SaldoResponse> call,
-                            Response<SaldoResponse> response
-                    ) {
-                        if (isFinishing() || isDestroyed()) {
-                            return;
-                        }
+        saldoLoading = true;
+        saldoCanRetry = false;
+        txtBalance.setText("Ładowanie salda...");
+        txtBalance.setContentDescription("Ładowanie salda");
 
-                        SaldoResponse saldoResponse = response.body();
-                        if (response.isSuccessful() && saldoResponse != null
-                                && saldoResponse.getSaldo() != null) {
-                            NumberFormat format = NumberFormat.getNumberInstance(
-                                    new Locale("pl", "PL")
-                            );
-                            format.setMinimumFractionDigits(2);
-                            format.setMaximumFractionDigits(2);
-                            String waluta = saldoResponse.getWaluta() == null
-                                    ? "PLN" : saldoResponse.getWaluta();
-                            txtBalance.setText(
-                                    format.format(saldoResponse.getSaldo()) + " " + waluta
-                            );
-                        } else if (response.code() == 404) {
-                            txtBalance.setText("Nie znaleziono konta");
-                        } else {
-                            txtBalance.setText("Nie udało się pobrać salda");
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<SaldoResponse> call, Throwable throwable) {
-                        if (!isFinishing() && !isDestroyed()) {
-                            txtBalance.setText("Błąd połączenia z serwerem");
-                        }
-                    }
+        saldoCall = kontoRepository.getSaldoUzytkownika(uzytkownikId);
+        saldoCall.enqueue(new Callback<SaldoResponse>() {
+            @Override
+            public void onResponse(
+                    Call<SaldoResponse> call,
+                    Response<SaldoResponse> response
+            ) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) {
+                    return;
                 }
-        );
+                saldoLoading = false;
+
+                SaldoResponse saldoResponse = response.body();
+                if (response.isSuccessful() && saldoResponse != null
+                        && saldoResponse.getSaldo() != null) {
+                    NumberFormat format = NumberFormat.getNumberInstance(
+                            new Locale("pl", "PL")
+                    );
+                    format.setMinimumFractionDigits(2);
+                    format.setMaximumFractionDigits(2);
+                    String waluta = saldoResponse.getWaluta() == null
+                            ? "PLN" : saldoResponse.getWaluta();
+                    txtBalance.setText(
+                            format.format(saldoResponse.getSaldo()) + " " + waluta
+                    );
+                    txtBalance.setContentDescription("Dostępne saldo: " + txtBalance.getText());
+                    saldoCanRetry = false;
+                } else if (response.code() == 404) {
+                    txtBalance.setText("Nie znaleziono konta");
+                    txtBalance.setContentDescription("Nie znaleziono konta");
+                    saldoCanRetry = false;
+                } else {
+                    showSaldoRetryState(response.code() >= 500
+                            ? "Serwer chwilowo niedostępny."
+                            : "Nie udało się pobrać salda.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<SaldoResponse> call, Throwable throwable) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) {
+                    return;
+                }
+                saldoLoading = false;
+                showSaldoRetryState("Błąd połączenia z serwerem.");
+            }
+        });
+    }
+
+    private void showSaldoRetryState(String message) {
+        saldoCanRetry = true;
+        txtBalance.setText(message + " Dotknij, aby ponowić.");
+        txtBalance.setContentDescription(message + " Dotknij, aby ponowić pobieranie salda.");
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (saldoCall != null && !saldoCall.isCanceled()) {
+            saldoCall.cancel();
+        }
+        super.onDestroy();
     }
 
     @Override

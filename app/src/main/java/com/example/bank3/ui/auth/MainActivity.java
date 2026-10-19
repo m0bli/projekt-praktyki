@@ -38,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
     private Button btnLogin;
 
     private AuthRepository authRepository;
+    private Call<AuthResponse> loginCall;
+    private boolean isLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +100,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void login() {
+        if (isLoading) {
+            return;
+        }
+
         String login = loginInput.getText() != null
                 ? loginInput.getText().toString().trim()
                 : "";
@@ -124,13 +130,17 @@ public class MainActivity extends AppCompatActivity {
 
         LoginRequest request = new LoginRequest(login, haslo);
 
-        authRepository.login(request).enqueue(new Callback<AuthResponse>() {
+        loginCall = authRepository.login(request);
+        loginCall.enqueue(new Callback<AuthResponse>() {
 
             @Override
             public void onResponse(
                     Call<AuthResponse> call,
                     Response<AuthResponse> response
             ) {
+                if (isFinishing() || isDestroyed() || call.isCanceled()) {
+                    return;
+                }
                 setLoading(false);
 
                 AuthResponse body = response.body();
@@ -152,17 +162,20 @@ public class MainActivity extends AppCompatActivity {
 
                 } else if (response.code() == 401) {
                     showError("Nieprawidłowy login lub hasło.");
+                    btnLogin.setText("Spróbuj ponownie");
 
                 } else if (body != null
                         && body.getKomunikat() != null
                         && !body.getKomunikat().isEmpty()) {
 
                     showError(body.getKomunikat());
+                    btnLogin.setText("Spróbuj ponownie");
 
                 } else {
-                    showError(
-                            "Błąd serwera. Kod HTTP: " + response.code()
-                    );
+                    showError(response.code() >= 500
+                            ? "Serwer chwilowo niedostępny. Spróbuj ponownie."
+                            : "Nie udało się zalogować (HTTP " + response.code() + ").");
+                    btnLogin.setText("Spróbuj ponownie");
                 }
             }
 
@@ -171,10 +184,22 @@ public class MainActivity extends AppCompatActivity {
                     Call<AuthResponse> call,
                     Throwable throwable
             ) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) {
+                    return;
+                }
                 setLoading(false);
-                showError("Nie można połączyć się z serwerem.");
+                showError("Nie można połączyć się z serwerem. Sprawdź połączenie i spróbuj ponownie.");
+                btnLogin.setText("Spróbuj ponownie");
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (loginCall != null && !loginCall.isCanceled()) {
+            loginCall.cancel();
+        }
+        super.onDestroy();
     }
 
     private void clearErrors() {
@@ -191,6 +216,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setLoading(boolean loading) {
+        isLoading = loading;
         btnLogin.setEnabled(!loading);
         btnRegister.setEnabled(!loading);
 
