@@ -24,6 +24,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.bank3.R;
 import com.example.bank3.data.repository.KontoRepository;
@@ -46,6 +47,7 @@ public class MainMenuActivity extends AppCompatActivity
     private DrawerLayout drawerLayout;
     private FrameLayout contentFrame;
     private View homeScroll;
+    private SwipeRefreshLayout homeSwipeRefresh;
 
     private TextView txtWelcome;
     private TextView txtBalance;
@@ -85,7 +87,16 @@ public class MainMenuActivity extends AppCompatActivity
 
         drawerLayout = findViewById(R.id.drawerLayout);
         contentFrame = findViewById(R.id.contentFrame);
-        homeScroll = findViewById(R.id.homeScroll);
+        homeScroll = findViewById(R.id.homeSwipeRefresh);
+        homeSwipeRefresh = findViewById(R.id.homeSwipeRefresh);
+        homeSwipeRefresh.setColorSchemeResources(R.color.theme_primary);
+        homeSwipeRefresh.setOnRefreshListener(() -> {
+            if (saldoLoading) {
+                homeSwipeRefresh.setRefreshing(false);
+            } else {
+                pobierzSaldo();
+            }
+        });
 
         navHome = findViewById(R.id.navHome);
         navPayments = findViewById(R.id.navPayments);
@@ -234,6 +245,7 @@ public class MainMenuActivity extends AppCompatActivity
                     return;
                 }
                 saldoLoading = false;
+                homeSwipeRefresh.setRefreshing(false);
 
                 SaldoResponse saldoResponse = response.body();
                 if (response.isSuccessful() && saldoResponse != null
@@ -267,6 +279,7 @@ public class MainMenuActivity extends AppCompatActivity
                     return;
                 }
                 saldoLoading = false;
+                homeSwipeRefresh.setRefreshing(false);
                 showSaldoRetryState("Błąd połączenia z serwerem.");
             }
         });

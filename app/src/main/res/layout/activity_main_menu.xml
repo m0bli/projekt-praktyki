@@ -65,6 +65,11 @@
             android:layout_weight="1"
             android:background="@color/theme_background">
 
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/homeSwipeRefresh"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
             <ScrollView
                 android:id="@+id/homeScroll"
                 android:layout_width="match_parent"
@@ -211,6 +216,7 @@
 
                 </LinearLayout>
             </ScrollView>
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
         </FrameLayout>
 
         <!-- Dolna nawigacja -->
