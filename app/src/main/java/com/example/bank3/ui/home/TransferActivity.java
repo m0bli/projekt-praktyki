@@ -78,6 +78,7 @@ public class TransferActivity extends AppCompatActivity
     private Call<?> transferCall;
     private boolean accountSpinnerReady;
     private boolean transferInProgress;
+    private boolean statusIsError;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -332,7 +333,10 @@ public class TransferActivity extends AppCompatActivity
         } else if ("text".equals(tag)) {
             if (view instanceof TextView) ((TextView) view).setTextColor(ThemeManager.getTextColor(this));
         } else if ("secondary".equals(tag)) {
-            if (view instanceof TextView) ((TextView) view).setTextColor(ThemeManager.getSecondaryTextColor(this));
+            if (view instanceof TextView) {
+                int color = view == status && statusIsError ? 0xFFCF4545 : ThemeManager.getSecondaryTextColor(this);
+                ((TextView) view).setTextColor(color);
+            }
         } else if ("field".equals(tag)) {
             EditText edit = (EditText) view;
             edit.setTextColor(ThemeManager.getTextColor(this));
@@ -557,7 +561,7 @@ public class TransferActivity extends AppCompatActivity
                 setBusy(false);
                 sendButton.setEnabled(!accounts.isEmpty());
                 setStatus("Nie otrzymano potwierdzenia serwera. Nie wysyłaj ponownie w ciemno — odśwież historię, aby sprawdzić, czy przelew został zapisany.", true);
-                loadHistory();
+                loadAccounts();
             }
         });
     }
@@ -602,10 +606,10 @@ public class TransferActivity extends AppCompatActivity
                     if (i < items.size() - 1) {
                         View divider = new View(TransferActivity.this);
                         divider.setBackgroundColor(ThemeManager.getAccentSoftColor(TransferActivity.this));
-                        LinearLayout.LayoutParams dp = new LinearLayout.LayoutParams(-1, dp(1));
-                        dp.topMargin = dp(10);
-                        dp.bottomMargin = dp(10);
-                        historyList.addView(divider, dp);
+                        LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(-1, dp(1));
+                        dividerParams.topMargin = dp(10);
+                        dividerParams.bottomMargin = dp(10);
+                        historyList.addView(divider, dividerParams);
                     }
                 }
             }
@@ -671,6 +675,7 @@ public class TransferActivity extends AppCompatActivity
 
     private void setStatus(String message, boolean error) {
         status.setText(message);
+        statusIsError = error;
         status.setTextColor(error ? 0xFFCF4545 : ThemeManager.getSecondaryTextColor(this));
     }
 
