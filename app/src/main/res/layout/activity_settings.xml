@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/settingsScroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/theme_background"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:paddingStart="20dp"
+    android:paddingTop="18dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="20dp"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:id="@+id/settingsRoot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/btnBackSettings"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_nav_inactive"
+                android:contentDescription="Wróć"
+                android:gravity="center"
+                android:text="‹"
+                android:textColor="@color/theme_text"
+                android:textSize="36sp" />
+
+            <TextView
+                android:id="@+id/txtSettingsTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:text="Ustawienia"
+                android:textColor="@color/theme_text"
+                android:textSize="25sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txtSettingsSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:paddingBottom="24dp"
+            android:text="Dostosuj aplikację do swoich potrzeb"
+            android:textColor="@color/theme_text_secondary"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/sectionAppearance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="4dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="10dp"
+            android:text="WYGLĄD"
+            android:textColor="@color/theme_text_secondary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/settingThemes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_nav_inactive"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="14dp">
+
+            <TextView
+                android:id="@+id/iconThemes"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_quick_action"
+                android:gravity="center"
+                android:text="◐"
+                android:textColor="@color/theme_accent"
+                android:textSize="23sp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/titleThemes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Themes"
+                    android:textColor="@color/theme_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/descriptionThemes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="4dp"
+                    android:text="Zmień motyw i kolorystykę aplikacji"
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="24dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="›"
+                android:textColor="@color/theme_text_secondary"
+                android:textSize="28sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/sectionAccount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="4dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="10dp"
+            android:text="KONTO"
+            android:textColor="@color/theme_text_secondary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/settingProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_nav_inactive"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="14dp">
+
+            <TextView
+                android:id="@+id/iconProfile"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_quick_action"
+                android:gravity="center"
+                android:text="♙"
+                android:textColor="@color/theme_accent"
+                android:textSize="23sp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/titleProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Moje dane"
+                    android:textColor="@color/theme_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/descriptionProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="4dp"
+                    android:text="Informacje o Twoim koncie"
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="24dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="›"
+                android:textColor="@color/theme_text_secondary"
+                android:textSize="28sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/settingSecurity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_nav_inactive"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="14dp">
+
+            <TextView
+                android:id="@+id/iconSecurity"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_quick_action"
+                android:gravity="center"
+                android:text="⌑"
+                android:textColor="@color/theme_accent"
+                android:textSize="23sp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/titleSecurity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Bezpieczeństwo"
+                    android:textColor="@color/theme_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/descriptionSecurity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="4dp"
+                    android:text="Ustawienia bezpieczeństwa konta"
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="24dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="›"
+                android:textColor="@color/theme_text_secondary"
+                android:textSize="28sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/sectionApp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="4dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="10dp"
+            android:text="APLIKACJA"
+            android:textColor="@color/theme_text_secondary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/settingNotifications"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_nav_inactive"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="14dp">
+
+            <TextView
+                android:id="@+id/iconNotifications"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_quick_action"
+                android:gravity="center"
+                android:text="♧"
+                android:textColor="@color/theme_accent"
+                android:textSize="23sp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/titleNotifications"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Powiadomienia"
+                    android:textColor="@color/theme_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/descriptionNotifications"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="4dp"
+                    android:text="Zarządzanie powiadomieniami"
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="24dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="›"
+                android:textColor="@color/theme_text_secondary"
+                android:textSize="28sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txtSettingsVersion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingTop="28dp"
+            android:paddingBottom="8dp"
+            android:text="Bank3 • Ustawienia"
+            android:textColor="@color/theme_text_secondary"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+</ScrollView>
