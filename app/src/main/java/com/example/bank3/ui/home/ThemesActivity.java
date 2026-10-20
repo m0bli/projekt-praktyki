@@ -292,13 +292,6 @@ public class ThemesActivity extends AppCompatActivity
 
         item.setOnClickListener(v -> {
             ThemeManager.setTheme(this, theme);
-
-            Toast.makeText(
-                    this,
-                    "Wybrano motyw " + title,
-                    Toast.LENGTH_SHORT
-            ).show();
-
             recreate();
         });
     }
