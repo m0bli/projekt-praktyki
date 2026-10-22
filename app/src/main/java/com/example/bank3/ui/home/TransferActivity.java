@@ -121,7 +121,7 @@ public class TransferActivity extends AppCompatActivity {
         addLabel(card, "Waluta");
         currencySpinner = addSpinner(card, new String[]{"PLN", "EUR", "USD", "GBP"});
         addLabel(card, "Typ przelewu");
-        typeSpinner = addSpinner(card, new String[]{"zwykly", "natychmiastowy", "wlasny"});
+        typeSpinner = addSpinner(card, new String[]{"przelew"});
         titleInput = addInput(card, "Tytuł przelewu", "Np. Rachunki za październik",
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
 
@@ -295,8 +295,8 @@ public class TransferActivity extends AppCompatActivity {
         String amountText = amountInput.getText().toString().trim().replace(',', '.');
         String title = titleInput.getText().toString().trim();
 
-        if (destination.isEmpty() || recipientName.isEmpty() || amountText.isEmpty()) {
-            toast("Uzupełnij numer konta odbiorcy, imię odbiorcy i kwotę.");
+        if (destination.isEmpty() || recipientName.isEmpty() || amountText.isEmpty() || titleInput.getText().toString().trim().isEmpty()) {
+            toast("Uzupełnij numer konta odbiorcy, imię odbiorcy, kwotę i tytuł.");
             return;
         }
 
@@ -332,7 +332,7 @@ public class TransferActivity extends AppCompatActivity {
 
         String currency = currencySpinner.getSelectedItem().toString();
         String type = "PRZELEW";
-        String transferTitle = title.isEmpty() ? "Przelew" : title;
+        String transferTitle = title;
         String summary = "Z konta: " + sourceId
                 + "\nOdbiorca: " + recipientName
                 + "\nNumer konta: " + destination
