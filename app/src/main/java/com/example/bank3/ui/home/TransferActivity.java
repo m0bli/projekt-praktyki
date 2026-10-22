@@ -32,11 +32,18 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.http.Body;
-import retrofit2.http.POST;\nimport retrofit2.http.GET;\nimport retrofit2.http.Path;\n\nimport java.util.ArrayList;\nimport java.util.List;
+import retrofit2.http.POST;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TransferActivity extends AppCompatActivity {
 
-    private Spinner sourceAccountSpinner;\n    private final List<Long> sourceAccountIds = new ArrayList<>();\n    private long uzytkownikId = -1L;
+    private Spinner sourceAccountSpinner;
+    private final List<Long> sourceAccountIds = new ArrayList<>();
+    private long uzytkownikId = -1L;
     private EditText destinationAccountInput;
     private EditText amountInput;
     private EditText titleInput;
@@ -58,7 +65,8 @@ public class TransferActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        applyColors();\n        uzytkownikId = getIntent().getLongExtra("uzytkownikId", -1L);
+        applyColors();
+        uzytkownikId = getIntent().getLongExtra("uzytkownikId", -1L);
 
         ScrollView scrollView = new ScrollView(this);
         scrollView.setFillViewport(true);
@@ -131,7 +139,8 @@ public class TransferActivity extends AppCompatActivity {
         page.addView(submitButton, buttonParams);
         submitButton.setOnClickListener(v -> confirmTransfer());
 
-        setContentView(scrollView);\n        pobierzKontaUzytkownika();
+        setContentView(scrollView);
+        pobierzKontaUzytkownika();
     }
 
     private void applyColors() {
@@ -274,14 +283,14 @@ public class TransferActivity extends AppCompatActivity {
             }
         });
     }
-\n    private void confirmTransfer() {
-        String source = sourceAccountInput.getText().toString().trim();
+
+    private void confirmTransfer() {
         String destination = destinationAccountInput.getText().toString().trim();
         String amountText = amountInput.getText().toString().trim().replace(',', '.');
         String title = titleInput.getText().toString().trim();
 
-        if (source.isEmpty() || destination.isEmpty() || amountText.isEmpty()) {
-            toast("Uzupełnij konto źródłowe, konto docelowe i kwotę.");
+        if (destination.isEmpty() || amountText.isEmpty()) {
+            toast("Uzupełnij konto docelowe i kwotę.");
             return;
         }
 
@@ -289,7 +298,14 @@ public class TransferActivity extends AppCompatActivity {
         final long destinationId;
         final double amount;
         try {
-            sourceId = Long.parseLong(source);
+            if (sourceAccountIds.isEmpty()
+                    || sourceAccountSpinner.getSelectedItemPosition() < 0) {
+                toast("Nie znaleziono konta źródłowego przypisanego do Twojego użytkownika.");
+                return;
+            }
+            sourceId = sourceAccountIds.get(
+                    sourceAccountSpinner.getSelectedItemPosition()
+            );
             destinationId = Long.parseLong(destination);
             amount = Double.parseDouble(amountText);
         } catch (NumberFormatException e) {
@@ -314,10 +330,14 @@ public class TransferActivity extends AppCompatActivity {
         String type = typeSpinner.getSelectedItem().toString();
         String transferTitle = title.isEmpty() ? "Przelew" : title;
         String summary = "Z konta: " + sourceId
-                + "\nNa konto: " + destinationId
-                + "\nKwota: " + String.format(Locale.getDefault(), "%.2f %s", amount, currency)
-                + "\nTyp: " + type
-                + "\nTytuł: " + transferTitle;
+                + "
+Na konto: " + destinationId
+                + "
+Kwota: " + String.format(Locale.getDefault(), "%.2f %s", amount, currency)
+                + "
+Typ: " + type
+                + "
+Tytuł: " + transferTitle;
 
         new AlertDialog.Builder(this)
                 .setTitle("Potwierdź przelew")
@@ -357,7 +377,15 @@ public class TransferActivity extends AppCompatActivity {
                             .setPositiveButton("Gotowe", (dialog, which) -> finish())
                             .show();
                 } else {
-                    String details = "";\n                    try {\n                        if (response.errorBody() != null) {\n                            details = response.errorBody().string();\n                        }\n                    } catch (java.io.IOException ignored) {\n                    }\n                    toast("Nie udało się wykonać przelewu (HTTP "\n                            + response.code() + "). " + details);
+                    String details = "";
+                    try {
+                        if (response.errorBody() != null) {
+                            details = response.errorBody().string();
+                        }
+                    } catch (java.io.IOException ignored) {
+                    }
+                    toast("Nie udało się wykonać przelewu (HTTP "
+                            + response.code() + "). " + details);
                 }
             }
 
