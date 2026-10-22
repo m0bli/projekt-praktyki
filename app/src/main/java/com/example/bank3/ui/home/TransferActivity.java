@@ -58,7 +58,7 @@ public class TransferActivity extends AppCompatActivity {
     private int accentColor;
 
     private interface TransakcjeAPI {
-        @GET("api/konta/uzytkownik/{uzytkownikId}")
+        @GET("api/konta/{uzytkownikId}")
         Call<List<Map<String, Object>>> getAccounts(
                 @Path("uzytkownikId") long uzytkownikId
         );
