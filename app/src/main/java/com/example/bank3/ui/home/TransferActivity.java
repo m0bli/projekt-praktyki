@@ -114,7 +114,7 @@ public class TransferActivity extends AppCompatActivity {
         addLabel(card, "Konto źródłowe");
         sourceAccountSpinner = addSpinner(card, new String[]{"Pobieranie Twoich kont..."});
         sourceAccountSpinner.setEnabled(false);
-        destinationAccountInput = addInput(card, "ID konta odbiorcy", "Wpisz ID konta odbiorcy", InputType.TYPE_CLASS_NUMBER);
+        destinationAccountInput = addInput(card, "ID konta odbiorcy", "Np. 9 — numer konta pobierzemy automatycznie", InputType.TYPE_CLASS_NUMBER);
         recipientNameInput = addInput(card, "Imię odbiorcy", "Imię właściciela konta", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         amountInput = addInput(card, "Kwota przelewu", "0,00", InputType.TYPE_CLASS_NUMBER
                 | InputType.TYPE_NUMBER_FLAG_DECIMAL);
