@@ -512,10 +512,7 @@ public class MainMenuActivity extends AppCompatActivity
                 break;
 
             case 1:
-                showPlaceholder(
-                        "Płatności",
-                        "Tutaj dodamy funkcję przelewów."
-                );
+                startActivity(new Intent(this, TransferActivity.class));
                 break;
 
             case 2:
