@@ -32,11 +32,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.http.Body;
-import retrofit2.http.POST;
+import retrofit2.http.POST;\nimport retrofit2.http.GET;\nimport retrofit2.http.Path;\n\nimport java.util.ArrayList;\nimport java.util.List;
 
 public class TransferActivity extends AppCompatActivity {
 
-    private EditText sourceAccountInput;
+    private Spinner sourceAccountSpinner;\n    private final List<Long> sourceAccountIds = new ArrayList<>();\n    private long uzytkownikId = -1L;
     private EditText destinationAccountInput;
     private EditText amountInput;
     private EditText titleInput;
@@ -58,7 +58,7 @@ public class TransferActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        applyColors();
+        applyColors();\n        uzytkownikId = getIntent().getLongExtra("uzytkownikId", -1L);
 
         ScrollView scrollView = new ScrollView(this);
         scrollView.setFillViewport(true);
@@ -99,7 +99,9 @@ public class TransferActivity extends AppCompatActivity {
         card.setBackground(roundRect(surfaceColor, dp(22)));
         page.addView(card, params(-1, -2));
 
-        sourceAccountInput = addInput(card, "Konto źródłowe (ID)", "Np. 1", InputType.TYPE_CLASS_NUMBER);
+        addLabel(card, "Konto źródłowe");
+        sourceAccountSpinner = addSpinner(card, new String[]{"Pobieranie Twoich kont..."});
+        sourceAccountSpinner.setEnabled(false);
         destinationAccountInput = addInput(card, "Konto docelowe (ID)", "Np. 2", InputType.TYPE_CLASS_NUMBER);
         amountInput = addInput(card, "Kwota przelewu", "0,00", InputType.TYPE_CLASS_NUMBER
                 | InputType.TYPE_NUMBER_FLAG_DECIMAL);
@@ -129,7 +131,7 @@ public class TransferActivity extends AppCompatActivity {
         page.addView(submitButton, buttonParams);
         submitButton.setOnClickListener(v -> confirmTransfer());
 
-        setContentView(scrollView);
+        setContentView(scrollView);\n        pobierzKontaUzytkownika();
     }
 
     private void applyColors() {
@@ -196,7 +198,83 @@ public class TransferActivity extends AppCompatActivity {
         return spinner;
     }
 
-    private void confirmTransfer() {
+
+    private void pobierzKontaUzytkownika() {
+        if (uzytkownikId <= 0) {
+            sourceAccountSpinner.setEnabled(false);
+            toast("Nie udało się ustalić zalogowanego użytkownika. Zaloguj się ponownie.");
+            return;
+        }
+
+        TransakcjeAPI api = RetrofitClient.getInstance().create(TransakcjeAPI.class);
+        api.getAccounts(uzytkownikId).enqueue(new Callback<List<Map<String, Object>>>() {
+            @Override
+            public void onResponse(
+                    Call<List<Map<String, Object>>> call,
+                    Response<List<Map<String, Object>>> response
+            ) {
+                if (!response.isSuccessful() || response.body() == null) {
+                    sourceAccountSpinner.setEnabled(false);
+                    toast("Nie udało się pobrać Twoich kont (HTTP " + response.code()
+                            + "). Sprawdź endpoint GET /api/konta/uzytkownik/{id}.");
+                    return;
+                }
+
+                List<String> labels = new ArrayList<>();
+                sourceAccountIds.clear();
+
+                for (Map<String, Object> account : response.body()) {
+                    Object idValue = account.get("id");
+                    if (!(idValue instanceof Number)) {
+                        continue;
+                    }
+
+                    long accountId = ((Number) idValue).longValue();
+                    sourceAccountIds.add(accountId);
+
+                    Object number = account.get("numer_konta");
+                    Object currency = account.get("waluta");
+                    Object balance = account.get("saldo");
+
+                    String label = "Konto " + (number != null ? number : ("#" + accountId));
+                    if (balance != null || currency != null) {
+                        label += "  ·  " + (balance != null ? balance : "")
+                                + " " + (currency != null ? currency : "");
+                    }
+                    labels.add(label);
+                }
+
+                if (labels.isEmpty()) {
+                    sourceAccountIds.clear();
+                    labels.add("Brak kont przypisanych do użytkownika");
+                    sourceAccountSpinner.setEnabled(false);
+                    toast("Nie znaleziono kont dla zalogowanego użytkownika.");
+                } else {
+                    sourceAccountSpinner.setEnabled(true);
+                }
+
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                        TransferActivity.this,
+                        android.R.layout.simple_spinner_item,
+                        labels
+                );
+                adapter.setDropDownViewResource(
+                        android.R.layout.simple_spinner_dropdown_item
+                );
+                sourceAccountSpinner.setAdapter(adapter);
+            }
+
+            @Override
+            public void onFailure(
+                    Call<List<Map<String, Object>>> call,
+                    Throwable t
+            ) {
+                sourceAccountSpinner.setEnabled(false);
+                toast("Nie udało się pobrać kont. Sprawdź połączenie z serwerem.");
+            }
+        });
+    }
+\n    private void confirmTransfer() {
         String source = sourceAccountInput.getText().toString().trim();
         String destination = destinationAccountInput.getText().toString().trim();
         String amountText = amountInput.getText().toString().trim().replace(',', '.');
