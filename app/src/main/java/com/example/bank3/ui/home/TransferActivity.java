@@ -256,7 +256,7 @@ public class TransferActivity extends AppCompatActivity {
         submitButton.setText("Wysyłanie…");
 
         Map<String, Object> transaction = new HashMap<>();
-        transaction.put("konto_zrodlowe_id", sourceId);
+        transaction.put("kontro_zrodlowe_id", sourceId);
         transaction.put("konto_docelowe_id", destinationId);
         transaction.put("typ", type);
         transaction.put("kwota", amount);
@@ -279,7 +279,7 @@ public class TransferActivity extends AppCompatActivity {
                             .setPositiveButton("Gotowe", (dialog, which) -> finish())
                             .show();
                 } else {
-                    toast("Nie udało się wykonać przelewu (HTTP " + response.code() + ").");
+                    String details = "";\n                    try {\n                        if (response.errorBody() != null) {\n                            details = response.errorBody().string();\n                        }\n                    } catch (java.io.IOException ignored) {\n                    }\n                    toast("Nie udało się wykonać przelewu (HTTP "\n                            + response.code() + "). " + details);
                 }
             }
 
