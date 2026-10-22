@@ -512,7 +512,9 @@ public class MainMenuActivity extends AppCompatActivity
                 break;
 
             case 1:
-                startActivity(new Intent(this, TransferActivity.class));
+                Intent transferIntent = new Intent(this, TransferActivity.class);
+                transferIntent.putExtra("uzytkownikId", uzytkownikId);
+                startActivity(transferIntent);
                 break;
 
             case 2:
