@@ -27,6 +27,10 @@
         <activity android:name=".ui.auth.RegisterActivity" />
         <activity android:name=".ui.home.MainMenuActivity" />
         <activity
+            android:name=".ui.home.TransferActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".ui.home.SettingsActivity"
             android:exported="false" />
         <activity
