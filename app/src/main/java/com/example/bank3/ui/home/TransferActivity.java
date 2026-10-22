@@ -22,8 +22,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.bank3.network.RetrofitClient;
 import com.example.bank3.ui.theme.ThemeManager;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -45,6 +43,7 @@ public class TransferActivity extends AppCompatActivity {
     private final List<Long> sourceAccountIds = new ArrayList<>();
     private long uzytkownikId = -1L;
     private EditText destinationAccountInput;
+    private EditText recipientNameInput;
     private EditText amountInput;
     private EditText titleInput;
     private Spinner currencySpinner;
@@ -58,7 +57,7 @@ public class TransferActivity extends AppCompatActivity {
     private int accentColor;
 
     private interface TransakcjeAPI {
-        @GET("api/konta/{uzytkownikId}")
+        @GET("api/konta/uzytkownik/{uzytkownikId}")
         Call<List<Map<String, Object>>> getAccounts(
                 @Path("uzytkownikId") long uzytkownikId
         );
@@ -115,7 +114,8 @@ public class TransferActivity extends AppCompatActivity {
         addLabel(card, "Konto źródłowe");
         sourceAccountSpinner = addSpinner(card, new String[]{"Pobieranie Twoich kont..."});
         sourceAccountSpinner.setEnabled(false);
-        destinationAccountInput = addInput(card, "Konto docelowe (ID)", "Np. 2", InputType.TYPE_CLASS_NUMBER);
+        destinationAccountInput = addInput(card, "Numer konta odbiorcy (26 cyfr)", "Wpisz 26 cyfr numeru konta", InputType.TYPE_CLASS_NUMBER);
+        recipientNameInput = addInput(card, "Imię odbiorcy", "Imię właściciela konta", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         amountInput = addInput(card, "Kwota przelewu", "0,00", InputType.TYPE_CLASS_NUMBER
                 | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         addLabel(card, "Waluta");
@@ -246,7 +246,7 @@ public class TransferActivity extends AppCompatActivity {
                     long accountId = ((Number) idValue).longValue();
                     sourceAccountIds.add(accountId);
 
-                    Object number = account.get("numer_konta");
+                    Object number = account.get("numerKonta");
                     Object currency = account.get("waluta");
                     Object balance = account.get("saldo");
 
@@ -290,18 +290,18 @@ public class TransferActivity extends AppCompatActivity {
     }
 
     private void confirmTransfer() {
-        String destination = destinationAccountInput.getText().toString().trim();
+        String destination = destinationAccountInput.getText().toString().replaceAll("\\s+", "");
+        String recipientName = recipientNameInput.getText().toString().trim();
         String amountText = amountInput.getText().toString().trim().replace(',', '.');
         String title = titleInput.getText().toString().trim();
 
-        if (destination.isEmpty() || amountText.isEmpty()) {
-            toast("Uzupełnij konto docelowe i kwotę.");
+        if (destination.isEmpty() || recipientName.isEmpty() || amountText.isEmpty()) {
+            toast("Uzupełnij numer konta odbiorcy, imię odbiorcy i kwotę.");
             return;
         }
 
         final long sourceId;
-        final long destinationId;
-        final double amount;
+         final double amount;
         try {
             if (sourceAccountIds.isEmpty()
                     || sourceAccountSpinner.getSelectedItemPosition() < 0) {
@@ -311,19 +311,18 @@ public class TransferActivity extends AppCompatActivity {
             sourceId = sourceAccountIds.get(
                     sourceAccountSpinner.getSelectedItemPosition()
             );
-            destinationId = Long.parseLong(destination);
+            if (!destination.matches("\\d{26}")) {
+                toast("Numer konta odbiorcy musi zawierać dokładnie 26 cyfr.");
+                return;
+            }
             amount = Double.parseDouble(amountText);
         } catch (NumberFormatException e) {
             toast("Wprowadź poprawne numery kont i kwotę.");
             return;
         }
 
-        if (sourceId <= 0 || destinationId <= 0) {
-            toast("ID kont musi być większe od zera.");
-            return;
-        }
-        if (sourceId == destinationId) {
-            toast("Konto źródłowe i docelowe muszą być różne.");
+        if (sourceId <= 0) {
+            toast("Nieprawidłowe konto źródłowe.");
             return;
         }
         if (!Double.isFinite(amount) || amount <= 0) {
@@ -332,42 +331,39 @@ public class TransferActivity extends AppCompatActivity {
         }
 
         String currency = currencySpinner.getSelectedItem().toString();
-        String type = typeSpinner.getSelectedItem().toString();
+        String type = "PRZELEW";
         String transferTitle = title.isEmpty() ? "Przelew" : title;
         String summary = "Z konta: " + sourceId
-                + "
-Na konto: " + destinationId
-                + "
-Kwota: " + String.format(Locale.getDefault(), "%.2f %s", amount, currency)
-                + "
-Typ: " + type
-                + "
-Tytuł: " + transferTitle;
+                + "\nOdbiorca: " + recipientName
+                + "\nNumer konta: " + destination
+                + "\nKwota: " + String.format(Locale.getDefault(), "%.2f %s", amount, currency)
+                + "\nTyp: przelew"
+                + "\nTytuł: " + transferTitle;
 
         new AlertDialog.Builder(this)
                 .setTitle("Potwierdź przelew")
                 .setMessage(summary)
                 .setNegativeButton("Popraw", (dialog, which) -> dialog.dismiss())
                 .setPositiveButton("Wyślij", (dialog, which) ->
-                        sendTransfer(sourceId, destinationId, amount, currency, type, transferTitle))
+                        sendTransfer(sourceId, destination, recipientName, amount, currency, type, transferTitle))
                 .show();
     }
 
-    private void sendTransfer(long sourceId, long destinationId, double amount,
-                              String currency, String type, String title) {
+    private void sendTransfer(long sourceId, String destinationAccountNumber, String recipientName,
+                              double amount, String currency, String type, String title) {
         submitButton.setEnabled(false);
         submitButton.setText("Wysyłanie…");
 
         Map<String, Object> transaction = new HashMap<>();
-        transaction.put("kontro_zrodlowe_id", sourceId);
-        transaction.put("konto_docelowe_id", destinationId);
-        transaction.put("typ", type);
+        transaction.put("uzytkownikId", uzytkownikId);
+        transaction.put("kontoZrodloweId", sourceId);
+        transaction.put("numerKontaOdbiorcy", destinationAccountNumber);
+        transaction.put("imieOdbiorcy", recipientName);
+        transaction.put("typ", "PRZELEW");
         transaction.put("kwota", amount);
         transaction.put("waluta", currency);
         transaction.put("tytul", title);
-        transaction.put("data_operacji", new SimpleDateFormat(
-                "yyyy-MM-dd'T'HH:mm:ss", Locale.US).format(new Date()));
-
+ 
         TransakcjeAPI api = RetrofitClient.getInstance().create(TransakcjeAPI.class);
         api.createTransaction(transaction).enqueue(new Callback<Map<String, Object>>() {
             @Override
