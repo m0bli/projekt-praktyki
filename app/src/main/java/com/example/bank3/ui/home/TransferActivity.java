@@ -34,13 +34,10 @@ import retrofit2.http.POST;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class TransferActivity extends AppCompatActivity {
 
     private Spinner sourceAccountSpinner;
-    private final List<Long> sourceAccountIds = new ArrayList<>();
     private long uzytkownikId = -1L;
     private long sourceAccountId = -1L;
     private String sourceAccountCurrency = null;
@@ -59,11 +56,6 @@ public class TransferActivity extends AppCompatActivity {
     private int accentColor;
 
     private interface TransakcjeAPI {
-        @GET("api/konta/uzytkownik/{uzytkownikId}")
-        Call<List<Map<String, Object>>> getAccounts(
-                @Path("uzytkownikId") long uzytkownikId
-        );
-
         @GET("api/konta/{id}")
         Call<Map<String, Object>> getAccount(@Path("id") long accountId);
 
@@ -117,7 +109,7 @@ public class TransferActivity extends AppCompatActivity {
         page.addView(card, params(-1, -2));
 
         addLabel(card, "Konto źródłowe");
-        sourceAccountSpinner = addSpinner(card, new String[]{"Pobieranie Twoich kont..."});
+        sourceAccountSpinner = addSpinner(card, new String[]{"Pobieranie Twojego konta..."});
         sourceAccountSpinner.setEnabled(false);
         destinationAccountInput = addInput(card, "ID konta odbiorcy", "Np. 9 — numer konta pobierzemy automatycznie", InputType.TYPE_CLASS_NUMBER);
         recipientNameInput = addInput(card, "Imię odbiorcy", "Imię właściciela konta", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
@@ -225,97 +217,92 @@ public class TransferActivity extends AppCompatActivity {
             return;
         }
 
+        // W aktualnej bazie ID konta źródłowego jest takie samo jak ID użytkownika.
+        // Pobieramy tylko to jedno konto, zamiast listy kont wszystkich użytkowników.
         TransakcjeAPI api = RetrofitClient.getInstance().create(TransakcjeAPI.class);
-        api.getAccounts(uzytkownikId).enqueue(new Callback<List<Map<String, Object>>>() {
+        api.getAccount(uzytkownikId).enqueue(new Callback<Map<String, Object>>() {
             @Override
             public void onResponse(
-                    Call<List<Map<String, Object>>> call,
-                    Response<List<Map<String, Object>>> response
+                    Call<Map<String, Object>> call,
+                    Response<Map<String, Object>> response
             ) {
-                if (!response.isSuccessful() || response.body() == null) {
-                    sourceAccountSpinner.setEnabled(false);
-                    ArrayAdapter<String> errorAdapter = new ArrayAdapter<>(
-                            TransferActivity.this,
-                            android.R.layout.simple_spinner_item,
-                            new String[]{"Nie udało się pobrać kont (HTTP " + response.code() + ")"}
-                    );
-                    errorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    sourceAccountSpinner.setAdapter(errorAdapter);
+                if (isFinishing() || isDestroyed()) return;
 
-                    String details = "";
-                    try {
-                        if (response.errorBody() != null) {
-                            details = response.errorBody().string();
-                        }
-                    } catch (java.io.IOException ignored) {
-                    }
-                    toast("Pobieranie kont nie powiodło się. HTTP " + response.code()
-                            + ", użytkownik ID=" + uzytkownikId
-                            + (details.isEmpty() ? "" : ". " + details));
+                if (!response.isSuccessful() || response.body() == null) {
+                    pokazBladKontaZrodlowego("Nie udało się pobrać konta źródłowego (HTTP "
+                            + response.code() + ").");
                     return;
                 }
 
-                List<String> labels = new ArrayList<>();
-                sourceAccountIds.clear();
-
-                for (Map<String, Object> account : response.body()) {
-                    Object idValue = account.get("id");
-                    if (!(idValue instanceof Number)) {
-                        continue;
-                    }
-
-                    long accountId = ((Number) idValue).longValue();
-                    sourceAccountIds.add(accountId);
-
-                    Object number = account.get("numerKonta");
-                    Object currency = account.get("waluta");
-                    Object balance = account.get("saldo");
-
-                    String label = "Konto " + (number != null ? number : ("#" + accountId));
-                    if (balance != null || currency != null) {
-                        label += "  ·  " + (balance != null ? balance : "")
-                                + " " + (currency != null ? currency : "");
-                    }
-                    labels.add(label);
+                Map<String, Object> account = response.body();
+                Object idValue = account.get("id");
+                if (!(idValue instanceof Number)) {
+                    pokazBladKontaZrodlowego("Odpowiedź API nie zawiera poprawnego ID konta.");
+                    return;
                 }
 
-                if (labels.isEmpty()) {
-                    sourceAccountIds.clear();
-                    labels.add("Brak kont przypisanych do użytkownika");
-                    sourceAccountSpinner.setEnabled(false);
-                    toast("Nie znaleziono kont dla zalogowanego użytkownika.");
-                } else {
-                    sourceAccountSpinner.setEnabled(true);
+                long accountId = ((Number) idValue).longValue();
+                if (accountId != uzytkownikId) {
+                    pokazBladKontaZrodlowego("ID pobranego konta nie zgadza się z ID użytkownika. "
+                            + "Nie można bezpiecznie wykonać przelewu.");
+                    return;
+                }
+
+                Object numberValue = account.get("numerKonta");
+                Object currencyValue = account.get("waluta");
+                Object balanceValue = account.get("saldo");
+
+                sourceAccountId = accountId;
+                sourceAccountCurrency = currencyValue == null ? null : currencyValue.toString();
+
+                String label = "Konto " + (numberValue == null ? ("#" + accountId) : numberValue);
+                if (balanceValue != null || sourceAccountCurrency != null) {
+                    label += "  ·  " + (balanceValue == null ? "" : balanceValue)
+                            + " " + (sourceAccountCurrency == null ? "" : sourceAccountCurrency);
                 }
 
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(
                         TransferActivity.this,
                         android.R.layout.simple_spinner_item,
-                        labels
+                        new String[]{label}
                 );
-                adapter.setDropDownViewResource(
-                        android.R.layout.simple_spinner_dropdown_item
-                );
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 sourceAccountSpinner.setAdapter(adapter);
+                sourceAccountSpinner.setEnabled(false);
+
+                if (sourceAccountCurrency != null) {
+                    for (int i = 0; i < currencySpinner.getCount(); i++) {
+                        if (sourceAccountCurrency.equalsIgnoreCase(
+                                currencySpinner.getItemAtPosition(i).toString())) {
+                            currencySpinner.setSelection(i);
+                            break;
+                        }
+                    }
+                }
             }
 
             @Override
-            public void onFailure(
-                    Call<List<Map<String, Object>>> call,
-                    Throwable t
-            ) {
-                sourceAccountSpinner.setEnabled(false);
-                ArrayAdapter<String> errorAdapter = new ArrayAdapter<>(
-                        TransferActivity.this,
-                        android.R.layout.simple_spinner_item,
-                        new String[]{"Błąd połączenia — nie pobrano kont"}
-                );
-                errorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                sourceAccountSpinner.setAdapter(errorAdapter);
-                toast("Nie udało się pobrać kont: " + t.getClass().getSimpleName()
+            public void onFailure(Call<Map<String, Object>> call, Throwable t) {
+                if (isFinishing() || isDestroyed()) return;
+                pokazBladKontaZrodlowego("Nie udało się pobrać konta źródłowego: "
+                        + t.getClass().getSimpleName()
                         + (t.getMessage() == null ? "" : " — " + t.getMessage()));
             }
         });
+    }
+
+    private void pokazBladKontaZrodlowego(String message) {
+        sourceAccountId = -1L;
+        sourceAccountCurrency = null;
+        sourceAccountSpinner.setEnabled(false);
+        ArrayAdapter<String> errorAdapter = new ArrayAdapter<>(
+                TransferActivity.this,
+                android.R.layout.simple_spinner_item,
+                new String[]{"Nie udało się pobrać konta źródłowego"}
+        );
+        errorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sourceAccountSpinner.setAdapter(errorAdapter);
+        toast(message);
     }
 
     private void confirmTransfer() {
