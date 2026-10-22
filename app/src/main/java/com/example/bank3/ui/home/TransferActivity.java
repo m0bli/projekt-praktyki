@@ -64,6 +64,9 @@ public class TransferActivity extends AppCompatActivity {
                 @Path("uzytkownikId") long uzytkownikId
         );
 
+        @GET("api/konta/{id}")
+        Call<Map<String, Object>> getAccount(@Path("id") long accountId);
+
         @POST("api/transakcje")
         Call<Map<String, Object>> createTransaction(@Body Map<String, Object> transaction);
     }
