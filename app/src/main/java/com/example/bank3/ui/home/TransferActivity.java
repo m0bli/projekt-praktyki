@@ -229,8 +229,24 @@ public class TransferActivity extends AppCompatActivity {
             ) {
                 if (!response.isSuccessful() || response.body() == null) {
                     sourceAccountSpinner.setEnabled(false);
-                    toast("Nie udało się pobrać Twoich kont (HTTP " + response.code()
-                            + "). Sprawdź endpoint GET /api/konta/uzytkownik/{id}.");
+                    ArrayAdapter<String> errorAdapter = new ArrayAdapter<>(
+                            TransferActivity.this,
+                            android.R.layout.simple_spinner_item,
+                            new String[]{"Nie udało się pobrać kont (HTTP " + response.code() + ")"}
+                    );
+                    errorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    sourceAccountSpinner.setAdapter(errorAdapter);
+
+                    String details = "";
+                    try {
+                        if (response.errorBody() != null) {
+                            details = response.errorBody().string();
+                        }
+                    } catch (java.io.IOException ignored) {
+                    }
+                    toast("Pobieranie kont nie powiodło się. HTTP " + response.code()
+                            + ", użytkownik ID=" + uzytkownikId
+                            + (details.isEmpty() ? "" : ". " + details));
                     return;
                 }
 
@@ -284,7 +300,15 @@ public class TransferActivity extends AppCompatActivity {
                     Throwable t
             ) {
                 sourceAccountSpinner.setEnabled(false);
-                toast("Nie udało się pobrać kont. Sprawdź połączenie z serwerem.");
+                ArrayAdapter<String> errorAdapter = new ArrayAdapter<>(
+                        TransferActivity.this,
+                        android.R.layout.simple_spinner_item,
+                        new String[]{"Błąd połączenia — nie pobrano kont"}
+                );
+                errorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                sourceAccountSpinner.setAdapter(errorAdapter);
+                toast("Nie udało się pobrać kont: " + t.getClass().getSimpleName()
+                        + (t.getMessage() == null ? "" : " — " + t.getMessage()));
             }
         });
     }
