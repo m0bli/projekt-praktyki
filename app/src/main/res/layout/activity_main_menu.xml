@@ -183,36 +183,14 @@
                         android:textStyle="bold" />
 
                     <LinearLayout
+                        android:id="@+id/recentTransactionsContainer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
                         android:background="@color/theme_surface"
                         android:orientation="vertical"
                         android:padding="14dp"
-                        android:elevation="1dp">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:padding="10dp"
-                            android:text="Sklep spożywczy     −42,50 zł"
-                            android:textColor="@color/theme_text"
-                            android:textSize="14sp" />
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:background="@color/theme_divider" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:padding="10dp"
-                            android:text="Wynagrodzenie     +5 200,00 zł"
-                            android:textColor="@color/theme_transaction_positive"
-                            android:textSize="14sp" />
-
-                    </LinearLayout>
+                        android:elevation="1dp" />
 
                 </LinearLayout>
             </ScrollView>
