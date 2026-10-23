@@ -4,8 +4,10 @@ import android.app.AlertDialog;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -79,10 +81,10 @@ public class TransferActivity extends AppCompatActivity {
     private static class SourceAccount {
         final long id;
         final String number;
-        final String balance;
+        final BigDecimal balance;
         final String currency;
 
-        SourceAccount(long id, String number, String balance, String currency) {
+        SourceAccount(long id, String number, BigDecimal balance, String currency) {
             this.id = id;
             this.number = number;
             this.balance = balance;
@@ -203,6 +205,18 @@ public class TransferActivity extends AppCompatActivity {
                 card, "Kwota przelewu", "0,00",
                 InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL
         );
+        amountInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                walidujKwoteWzgledemSalda(false);
+            }
+        });
 
         addLabel(card, "Waluta konta źródłowego");
         currencySpinner = addSpinner(card, new String[]{"Najpierw pobierz konto"});
@@ -333,10 +347,8 @@ public class TransferActivity extends AppCompatActivity {
                     long accountId = account.id;
                     String number = account.numerKonta.trim();
                     String currency = account.waluta.trim().toUpperCase(Locale.ROOT);
-                    String balance = account.saldo == null ? "—" : account.saldo.toPlainString();
-
                     if (accountId > 0 && !number.isEmpty() && currency.matches("[A-Z]{3}")) {
-                        sourceAccounts.add(new SourceAccount(accountId, number, balance, currency));
+                        sourceAccounts.add(new SourceAccount(accountId, number, account.saldo, currency));
                     }
                 }
 
@@ -444,7 +456,16 @@ public class TransferActivity extends AppCompatActivity {
             return;
         }
         if (amount.scale() > 2) {
-            toast("Kwota może mieć maksymalnie dwa miejsca po przecinku.");
+            amountInput.setError("Kwota może mieć maksymalnie dwa miejsca po przecinku.");
+            amountInput.requestFocus();
+            return;
+        }
+        if (selectedSourceAccount.balance != null
+                && amount.compareTo(selectedSourceAccount.balance) > 0) {
+            amountInput.setError("Kwota przekracza dostępne saldo: "
+                    + selectedSourceAccount.balance.toPlainString() + " "
+                    + selectedSourceAccount.currency + ".");
+            amountInput.requestFocus();
             return;
         }
 
@@ -583,8 +604,20 @@ public class TransferActivity extends AppCompatActivity {
                             .setPositiveButton("Gotowe", (dialog, which) -> finish())
                             .show();
                 } else {
-                    toast("Backend odrzucił przelew (HTTP " + response.code() + "). "
-                            + odczytajBlad(response));
+                    String backendError = odczytajBlad(response);
+                    String normalizedError = backendError == null
+                            ? "" : backendError.toLowerCase(Locale.ROOT);
+                    if (response.code() == 400 && (
+                            normalizedError.contains("saldo")
+                                    || normalizedError.contains("środk")
+                                    || normalizedError.contains("srodk")
+                                    || normalizedError.contains("balance")
+                                    || normalizedError.contains("insufficient"))) {
+                        amountInput.setError("Brak wystarczających środków na koncie. Zmniejsz kwotę przelewu.");
+                        amountInput.requestFocus();
+                    } else {
+                        toast("Nie udało się wykonać przelewu. Sprawdź dane i spróbuj ponownie.");
+                    }
                 }
             }
 
@@ -596,6 +629,32 @@ public class TransferActivity extends AppCompatActivity {
                         + (t.getMessage() == null ? t.getClass().getSimpleName() : t.getMessage()));
             }
         });
+    }
+
+    private void walidujKwoteWzgledemSalda(boolean focusOnError) {
+        if (amountInput == null) return;
+
+        String value = amountInput.getText().toString().trim().replace(',', '.');
+        if (value.isEmpty() || selectedSourceAccount == null
+                || selectedSourceAccount.balance == null) {
+            amountInput.setError(null);
+            return;
+        }
+
+        try {
+            BigDecimal amount = new BigDecimal(value);
+            if (amount.compareTo(selectedSourceAccount.balance) > 0) {
+                amountInput.setError("Kwota przekracza dostępne saldo: "
+                        + selectedSourceAccount.balance.toPlainString() + " "
+                        + selectedSourceAccount.currency + ".");
+                if (focusOnError) amountInput.requestFocus();
+            } else {
+                amountInput.setError(null);
+            }
+        } catch (NumberFormatException ignored) {
+            // Pole jest w trakcie edycji; pełna walidacja nastąpi po zatwierdzeniu.
+            amountInput.setError(null);
+        }
     }
 
     private String odczytajBlad(Response<?> response) {
@@ -614,7 +673,7 @@ public class TransferActivity extends AppCompatActivity {
         submitButton.setEnabled(!value);
         submitButton.setText(value
                 ? (label == null ? "Przetwarzanie…" : label)
-                : "Dalej — podsumowanie przelewu");
+                : "PRZELEJ");
     }
 
     private GradientDrawable roundRect(int color, int radius) {
