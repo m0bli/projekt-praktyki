@@ -51,7 +51,7 @@ public class TransferActivity extends AppCompatActivity {
     private final List<SourceAccount> sourceAccounts = new ArrayList<>();
     private long uzytkownikId = -1L;
     private SourceAccount selectedSourceAccount;
-    private Call<List<Map<String, Object>>> accountsCall;
+    private Call<List<KontoApiResponse>> accountsCall;
     private Call<Map<String, Object>> destinationCall;
     private Call<Map<String, Object>> transactionCall;
     private boolean submitting;
@@ -61,6 +61,15 @@ public class TransferActivity extends AppCompatActivity {
     private int textColor;
     private int secondaryTextColor;
     private int accentColor;
+
+    // Odpowiedź API konta zawiera ID KONTA, numer konta, saldo i walutę.
+    // Nie używamy pola uzytkownik_id z tabeli konta.
+    private static class KontoApiResponse {
+        Long id;
+        String numerKonta;
+        BigDecimal saldo;
+        String waluta;
+    }
 
     private static class SourceAccount {
         final long id;
@@ -82,7 +91,7 @@ public class TransferActivity extends AppCompatActivity {
 
     private interface TransakcjeAPI {
         @GET("api/konta/uzytkownik/{uzytkownikId}")
-        Call<List<Map<String, Object>>> getAccountsForUser(
+        Call<List<KontoApiResponse>> getAccountsForUser(
                 @Path("uzytkownikId") long uzytkownikId
         );
 
@@ -275,11 +284,11 @@ public class TransferActivity extends AppCompatActivity {
 
         TransakcjeAPI api = RetrofitClient.getInstance().create(TransakcjeAPI.class);
         accountsCall = api.getAccountsForUser(uzytkownikId);
-        accountsCall.enqueue(new Callback<List<Map<String, Object>>>() {
+        accountsCall.enqueue(new Callback<List<KontoApiResponse>>() {
             @Override
             public void onResponse(
-                    Call<List<Map<String, Object>>> call,
-                    Response<List<Map<String, Object>>> response
+                    Call<List<KontoApiResponse>> call,
+                    Response<List<KontoApiResponse>> response
             ) {
                 if (call.isCanceled() || isFinishing() || isDestroyed()) return;
 
@@ -290,21 +299,20 @@ public class TransferActivity extends AppCompatActivity {
                 }
 
                 sourceAccounts.clear();
-                for (Map<String, Object> account : response.body()) {
-                    Object idValue = account.get("id");
-                    Object numberValue = account.get("numerKonta");
-                    Object currencyValue = account.get("waluta");
-                    if (!(idValue instanceof Number) || numberValue == null || currencyValue == null) {
+                for (KontoApiResponse account : response.body()) {
+                    if (account == null || account.id == null
+                            || account.numerKonta == null || account.waluta == null) {
                         continue;
                     }
 
-                    long id = ((Number) idValue).longValue();
-                    String number = numberValue.toString().trim();
-                    String currency = currencyValue.toString().trim().toUpperCase(Locale.ROOT);
-                    String balance = account.get("saldo") == null ? "—" : account.get("saldo").toString();
+                    // To jest konto.id zwrócone przez API, a nie uzytkownik_id.
+                    long accountId = account.id;
+                    String number = account.numerKonta.trim();
+                    String currency = account.waluta.trim().toUpperCase(Locale.ROOT);
+                    String balance = account.saldo == null ? "—" : account.saldo.toPlainString();
 
-                    if (id > 0 && !number.isEmpty() && currency.matches("[A-Z]{3}")) {
-                        sourceAccounts.add(new SourceAccount(id, number, balance, currency));
+                    if (accountId > 0 && !number.isEmpty() && currency.matches("[A-Z]{3}")) {
+                        sourceAccounts.add(new SourceAccount(accountId, number, balance, currency));
                     }
                 }
 
@@ -329,7 +337,7 @@ public class TransferActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) {
+            public void onFailure(Call<List<KontoApiResponse>> call, Throwable t) {
                 if (call.isCanceled() || isFinishing() || isDestroyed()) return;
                 pokazBladKontaZrodlowego("Błąd połączenia podczas pobierania Twoich kont: "
                         + (t.getMessage() == null ? t.getClass().getSimpleName() : t.getMessage()));
