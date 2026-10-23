@@ -5,9 +5,9 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.InputType;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,7 +22,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.bank3.network.RetrofitClient;
 import com.example.bank3.ui.theme.ThemeManager;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -30,24 +34,27 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.http.Body;
-import retrofit2.http.POST;
 import retrofit2.http.GET;
+import retrofit2.http.POST;
 import retrofit2.http.Path;
-
 
 public class TransferActivity extends AppCompatActivity {
 
     private Spinner sourceAccountSpinner;
-    private long uzytkownikId = -1L;
-    private long sourceAccountId = -1L;
-    private String sourceAccountCurrency = null;
+    private Spinner currencySpinner;
     private EditText destinationAccountInput;
     private EditText recipientNameInput;
     private EditText amountInput;
     private EditText titleInput;
-    private Spinner currencySpinner;
-    private Spinner typeSpinner;
     private Button submitButton;
+
+    private final List<SourceAccount> sourceAccounts = new ArrayList<>();
+    private long uzytkownikId = -1L;
+    private SourceAccount selectedSourceAccount;
+    private Call<List<Map<String, Object>>> accountsCall;
+    private Call<Map<String, Object>> destinationCall;
+    private Call<Map<String, Object>> transactionCall;
+    private boolean submitting;
 
     private int backgroundColor;
     private int surfaceColor;
@@ -55,7 +62,30 @@ public class TransferActivity extends AppCompatActivity {
     private int secondaryTextColor;
     private int accentColor;
 
+    private static class SourceAccount {
+        final long id;
+        final String number;
+        final String balance;
+        final String currency;
+
+        SourceAccount(long id, String number, String balance, String currency) {
+            this.id = id;
+            this.number = number;
+            this.balance = balance;
+            this.currency = currency;
+        }
+
+        String label() {
+            return "Konto " + number + "  ·  " + balance + " " + currency;
+        }
+    }
+
     private interface TransakcjeAPI {
+        @GET("api/konta/uzytkownik/{uzytkownikId}")
+        Call<List<Map<String, Object>>> getAccountsForUser(
+                @Path("uzytkownikId") long uzytkownikId
+        );
+
         @GET("api/konta/{id}")
         Call<Map<String, Object>> getAccount(@Path("id") long accountId);
 
@@ -94,7 +124,7 @@ public class TransferActivity extends AppCompatActivity {
         page.addView(heading);
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("Wypełnij dane odbiorcy i szczegóły płatności.");
+        subtitle.setText("Wybierz swoje konto i podaj dane odbiorcy.");
         subtitle.setTextSize(14);
         subtitle.setTextColor(secondaryTextColor);
         LinearLayout.LayoutParams subtitleParams = params(-1, -2);
@@ -108,22 +138,50 @@ public class TransferActivity extends AppCompatActivity {
         card.setBackground(roundRect(surfaceColor, dp(22)));
         page.addView(card, params(-1, -2));
 
-        addLabel(card, "Konto źródłowe");
-        sourceAccountSpinner = addSpinner(card, new String[]{"Pobieranie Twojego konta..."});
+        addLabel(card, "Konto źródłowe — tylko Twoje konta");
+        sourceAccountSpinner = addSpinner(card, new String[]{"Pobieranie kont..."});
         sourceAccountSpinner.setEnabled(false);
-        destinationAccountInput = addInput(card, "ID konta odbiorcy", "Np. 9 — numer konta pobierzemy automatycznie", InputType.TYPE_CLASS_NUMBER);
-        recipientNameInput = addInput(card, "Imię odbiorcy", "Imię właściciela konta", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
-        amountInput = addInput(card, "Kwota przelewu", "0,00", InputType.TYPE_CLASS_NUMBER
-                | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        addLabel(card, "Waluta");
-        currencySpinner = addSpinner(card, new String[]{"PLN", "EUR", "USD", "GBP"});
-        addLabel(card, "Typ przelewu");
-        typeSpinner = addSpinner(card, new String[]{"przelew"});
-        titleInput = addInput(card, "Tytuł przelewu", "Np. Rachunki za październik",
-                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        sourceAccountSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position >= 0 && position < sourceAccounts.size()) {
+                    selectedSourceAccount = sourceAccounts.get(position);
+                    ustawWaluteZrodla();
+                } else {
+                    selectedSourceAccount = null;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                selectedSourceAccount = null;
+            }
+        });
+
+        destinationAccountInput = addInput(
+                card, "ID konta odbiorcy", "Np. 9 — numer konta pobierzemy z API",
+                InputType.TYPE_CLASS_NUMBER
+        );
+        recipientNameInput = addInput(
+                card, "Imię odbiorcy", "Imię właściciela konta",
+                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS
+        );
+        amountInput = addInput(
+                card, "Kwota przelewu", "0,00",
+                InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL
+        );
+
+        addLabel(card, "Waluta konta źródłowego");
+        currencySpinner = addSpinner(card, new String[]{"Najpierw pobierz konto"});
+        currencySpinner.setEnabled(false);
+
+        titleInput = addInput(
+                card, "Tytuł przelewu", "Np. Rachunki za październik",
+                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        );
 
         TextView hint = new TextView(this);
-        hint.setText("Sprawdź numer konta i kwotę przed zatwierdzeniem.");
+        hint.setText("Odbiorca musi mieć konto w tej samej walucie. Backend wymaga 26-cyfrowego numeru konta.");
         hint.setTextSize(12);
         hint.setTextColor(secondaryTextColor);
         LinearLayout.LayoutParams hintParams = params(-1, -2);
@@ -139,7 +197,7 @@ public class TransferActivity extends AppCompatActivity {
         LinearLayout.LayoutParams buttonParams = params(-1, dp(54));
         buttonParams.topMargin = dp(20);
         page.addView(submitButton, buttonParams);
-        submitButton.setOnClickListener(v -> confirmTransfer());
+        submitButton.setOnClickListener(v -> sprawdzOdbiorce());
 
         setContentView(scrollView);
         pobierzKontaUzytkownika();
@@ -209,103 +267,109 @@ public class TransferActivity extends AppCompatActivity {
         return spinner;
     }
 
-
     private void pobierzKontaUzytkownika() {
         if (uzytkownikId <= 0) {
-            sourceAccountSpinner.setEnabled(false);
-            toast("Nie udało się ustalić zalogowanego użytkownika. Zaloguj się ponownie.");
+            pokazBladKontaZrodlowego("Brak ID zalogowanego użytkownika. Zaloguj się ponownie.");
             return;
         }
 
-        // W aktualnej bazie ID konta źródłowego jest takie samo jak ID użytkownika.
-        // Pobieramy tylko to jedno konto, zamiast listy kont wszystkich użytkowników.
         TransakcjeAPI api = RetrofitClient.getInstance().create(TransakcjeAPI.class);
-        api.getAccount(uzytkownikId).enqueue(new Callback<Map<String, Object>>() {
+        accountsCall = api.getAccountsForUser(uzytkownikId);
+        accountsCall.enqueue(new Callback<List<Map<String, Object>>>() {
             @Override
             public void onResponse(
-                    Call<Map<String, Object>> call,
-                    Response<Map<String, Object>> response
+                    Call<List<Map<String, Object>>> call,
+                    Response<List<Map<String, Object>>> response
             ) {
-                if (isFinishing() || isDestroyed()) return;
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
 
                 if (!response.isSuccessful() || response.body() == null) {
-                    pokazBladKontaZrodlowego("Nie udało się pobrać konta źródłowego (HTTP "
-                            + response.code() + ").");
+                    pokazBladKontaZrodlowego("Nie udało się pobrać kont użytkownika (HTTP "
+                            + response.code() + "). " + odczytajBlad(response));
                     return;
                 }
 
-                Map<String, Object> account = response.body();
-                Object idValue = account.get("id");
-                if (!(idValue instanceof Number)) {
-                    pokazBladKontaZrodlowego("Odpowiedź API nie zawiera poprawnego ID konta.");
+                sourceAccounts.clear();
+                for (Map<String, Object> account : response.body()) {
+                    Object idValue = account.get("id");
+                    Object numberValue = account.get("numerKonta");
+                    Object currencyValue = account.get("waluta");
+                    if (!(idValue instanceof Number) || numberValue == null || currencyValue == null) {
+                        continue;
+                    }
+
+                    long id = ((Number) idValue).longValue();
+                    String number = numberValue.toString().trim();
+                    String currency = currencyValue.toString().trim().toUpperCase(Locale.ROOT);
+                    String balance = account.get("saldo") == null ? "—" : account.get("saldo").toString();
+
+                    if (id > 0 && !number.isEmpty() && currency.matches("[A-Z]{3}")) {
+                        sourceAccounts.add(new SourceAccount(id, number, balance, currency));
+                    }
+                }
+
+                if (sourceAccounts.isEmpty()) {
+                    pokazBladKontaZrodlowego("API nie zwróciło żadnego konta przypisanego do tego użytkownika.");
                     return;
                 }
 
-                long accountId = ((Number) idValue).longValue();
-                if (accountId != uzytkownikId) {
-                    pokazBladKontaZrodlowego("ID pobranego konta nie zgadza się z ID użytkownika. "
-                            + "Nie można bezpiecznie wykonać przelewu.");
-                    return;
-                }
-
-                Object numberValue = account.get("numerKonta");
-                Object currencyValue = account.get("waluta");
-                Object balanceValue = account.get("saldo");
-
-                sourceAccountId = accountId;
-                sourceAccountCurrency = currencyValue == null ? null : currencyValue.toString();
-
-                String label = "Konto " + (numberValue == null ? ("#" + accountId) : numberValue);
-                if (balanceValue != null || sourceAccountCurrency != null) {
-                    label += "  ·  " + (balanceValue == null ? "" : balanceValue)
-                            + " " + (sourceAccountCurrency == null ? "" : sourceAccountCurrency);
+                String[] labels = new String[sourceAccounts.size()];
+                for (int i = 0; i < sourceAccounts.size(); i++) {
+                    labels[i] = sourceAccounts.get(i).label();
                 }
 
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                        TransferActivity.this,
-                        android.R.layout.simple_spinner_item,
-                        new String[]{label}
-                );
+                        TransferActivity.this, android.R.layout.simple_spinner_item, labels);
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 sourceAccountSpinner.setAdapter(adapter);
-                sourceAccountSpinner.setEnabled(false);
-
-                if (sourceAccountCurrency != null) {
-                    for (int i = 0; i < currencySpinner.getCount(); i++) {
-                        if (sourceAccountCurrency.equalsIgnoreCase(
-                                currencySpinner.getItemAtPosition(i).toString())) {
-                            currencySpinner.setSelection(i);
-                            break;
-                        }
-                    }
-                }
+                sourceAccountSpinner.setEnabled(sourceAccounts.size() > 1);
+                sourceAccountSpinner.setSelection(0);
+                selectedSourceAccount = sourceAccounts.get(0);
+                ustawWaluteZrodla();
             }
 
             @Override
-            public void onFailure(Call<Map<String, Object>> call, Throwable t) {
-                if (isFinishing() || isDestroyed()) return;
-                pokazBladKontaZrodlowego("Nie udało się pobrać konta źródłowego: "
-                        + t.getClass().getSimpleName()
-                        + (t.getMessage() == null ? "" : " — " + t.getMessage()));
+            public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                pokazBladKontaZrodlowego("Błąd połączenia podczas pobierania Twoich kont: "
+                        + (t.getMessage() == null ? t.getClass().getSimpleName() : t.getMessage()));
             }
         });
     }
 
-    private void pokazBladKontaZrodlowego(String message) {
-        sourceAccountId = -1L;
-        sourceAccountCurrency = null;
-        sourceAccountSpinner.setEnabled(false);
-        ArrayAdapter<String> errorAdapter = new ArrayAdapter<>(
-                TransferActivity.this,
+    private void ustawWaluteZrodla() {
+        if (selectedSourceAccount == null) return;
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
                 android.R.layout.simple_spinner_item,
-                new String[]{"Nie udało się pobrać konta źródłowego"}
+                new String[]{selectedSourceAccount.currency}
         );
-        errorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        sourceAccountSpinner.setAdapter(errorAdapter);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        currencySpinner.setAdapter(adapter);
+        currencySpinner.setEnabled(false);
+    }
+
+    private void pokazBladKontaZrodlowego(String message) {
+        selectedSourceAccount = null;
+        sourceAccounts.clear();
+        sourceAccountSpinner.setEnabled(false);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                new String[]{"Nie udało się pobrać kont źródłowych"}
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sourceAccountSpinner.setAdapter(adapter);
         toast(message);
     }
 
-    private void confirmTransfer() {
+    private void sprawdzOdbiorce() {
+        if (submitting) return;
+        if (selectedSourceAccount == null) {
+            toast("Najpierw pobierz konto źródłowe. Nie można bezpiecznie wykonać przelewu.");
+            return;
+        }
+
         String destinationIdText = destinationAccountInput.getText().toString().trim();
         String recipientName = recipientNameInput.getText().toString().trim();
         String amountText = amountInput.getText().toString().trim().replace(',', '.');
@@ -316,17 +380,16 @@ public class TransferActivity extends AppCompatActivity {
             toast("Uzupełnij ID konta odbiorcy, imię odbiorcy, kwotę i tytuł.");
             return;
         }
-
-        if (sourceAccountId <= 0) {
-            toast("Konto źródłowe nie zostało poprawnie pobrane.");
+        if (title.length() > 140) {
+            toast("Tytuł przelewu może mieć maksymalnie 140 znaków.");
             return;
         }
 
         final long destinationAccountId;
-        final double amount;
+        final BigDecimal amount;
         try {
             destinationAccountId = Long.parseLong(destinationIdText);
-            amount = Double.parseDouble(amountText);
+            amount = new BigDecimal(amountText);
         } catch (NumberFormatException e) {
             toast("Wprowadź poprawne ID konta i kwotę.");
             return;
@@ -336,148 +399,186 @@ public class TransferActivity extends AppCompatActivity {
             toast("ID konta odbiorcy musi być większe od zera.");
             return;
         }
-        if (destinationAccountId == sourceAccountId) {
+        if (destinationAccountId == selectedSourceAccount.id) {
             toast("Konto odbiorcy musi być inne niż konto źródłowe.");
             return;
         }
-        if (!Double.isFinite(amount) || amount <= 0) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             toast("Kwota musi być większa od zera.");
             return;
         }
-
-        String currency = currencySpinner.getSelectedItem().toString();
-        if (sourceAccountCurrency != null && !sourceAccountCurrency.equalsIgnoreCase(currency)) {
-            toast("Waluta przelewu musi być zgodna z walutą konta źródłowego: "
-                    + sourceAccountCurrency + ".");
+        if (amount.scale() > 2) {
+            toast("Kwota może mieć maksymalnie dwa miejsca po przecinku.");
             return;
         }
 
-        submitButton.setEnabled(false);
-        submitButton.setText("Sprawdzanie konta odbiorcy…");
-
+        setSubmitting(true, "Sprawdzanie konta odbiorcy…");
         TransakcjeAPI api = RetrofitClient.getInstance().create(TransakcjeAPI.class);
-        api.getAccount(destinationAccountId).enqueue(new Callback<Map<String, Object>>() {
+        destinationCall = api.getAccount(destinationAccountId);
+        destinationCall.enqueue(new Callback<Map<String, Object>>() {
             @Override
-            public void onResponse(Call<Map<String, Object>> call,
-                                   Response<Map<String, Object>> response) {
-                if (isFinishing() || isDestroyed()) return;
+            public void onResponse(
+                    Call<Map<String, Object>> call,
+                    Response<Map<String, Object>> response
+            ) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
 
                 if (!response.isSuccessful() || response.body() == null) {
-                    submitButton.setEnabled(true);
-                    submitButton.setText("Dalej — podsumowanie przelewu");
-                    toast("Nie znaleziono konta odbiorcy (HTTP " + response.code() + ").");
+                    setSubmitting(false, null);
+                    toast("Nie znaleziono konta odbiorcy (HTTP " + response.code() + "). "
+                            + odczytajBlad(response));
                     return;
                 }
 
-                Map<String, Object> destinationAccount = response.body();
-                Object idValue = destinationAccount.get("id");
-                Object accountNumberValue = destinationAccount.get("numerKonta");
-                Object destinationCurrencyValue = destinationAccount.get("waluta");
+                Map<String, Object> account = response.body();
+                Object idValue = account.get("id");
+                Object numberValue = account.get("numerKonta");
+                Object currencyValue = account.get("waluta");
 
-                if (!(idValue instanceof Number) || accountNumberValue == null) {
-                    submitButton.setEnabled(true);
-                    submitButton.setText("Dalej — podsumowanie przelewu");
-                    toast("Odpowiedź API nie zawiera ID lub numeru konta odbiorcy.");
+                if (!(idValue instanceof Number) || numberValue == null || currencyValue == null) {
+                    setSubmitting(false, null);
+                    toast("API nie zwróciło pełnych danych konta odbiorcy.");
                     return;
                 }
 
-                long resolvedDestinationId = ((Number) idValue).longValue();
-                String destinationAccountNumber = accountNumberValue.toString();
-                String destinationCurrency = destinationCurrencyValue == null
-                        ? null : destinationCurrencyValue.toString();
+                long resolvedId = ((Number) idValue).longValue();
+                String accountNumber = numberValue.toString().replaceAll("\\s+", "");
+                String destinationCurrency = currencyValue.toString().trim().toUpperCase(Locale.ROOT);
 
-                if (resolvedDestinationId != destinationAccountId) {
-                    submitButton.setEnabled(true);
-                    submitButton.setText("Dalej — podsumowanie przelewu");
+                if (resolvedId != destinationAccountId) {
+                    setSubmitting(false, null);
                     toast("API zwróciło inne konto niż wskazane.");
                     return;
                 }
-                if (destinationCurrency != null && !destinationCurrency.equalsIgnoreCase(currency)) {
-                    submitButton.setEnabled(true);
-                    submitButton.setText("Dalej — podsumowanie przelewu");
-                    toast("Waluta konta odbiorcy to " + destinationCurrency
-                            + ", a wybrana waluta przelewu to " + currency + ".");
+                if (!accountNumber.matches("\\d{26}")) {
+                    setSubmitting(false, null);
+                    toast("Numer tego konta w bazie nie ma 26 cyfr. Backend odrzuci taki przelew; sprawdź konto odbiorcy.");
+                    return;
+                }
+                if (!selectedSourceAccount.currency.equals(destinationCurrency)) {
+                    setSubmitting(false, null);
+                    toast("Konta mają różne waluty. Źródło: " + selectedSourceAccount.currency
+                            + ", odbiorca: " + destinationCurrency + ".");
                     return;
                 }
 
-                submitButton.setEnabled(true);
-                submitButton.setText("Dalej — podsumowanie przelewu");
-                String summary = "Konto źródłowe ID: " + sourceAccountId
-                        + "\nOdbiorca: " + recipientName
-                        + "\nKonto odbiorcy ID: " + resolvedDestinationId
-                        + "\nNumer konta odbiorcy: " + destinationAccountNumber
-                        + "\nKwota: " + String.format(Locale.getDefault(), "%.2f %s", amount, currency)
-                        + "\nTyp: przelew"
-                        + "\nTytuł: " + title;
-
-                new AlertDialog.Builder(TransferActivity.this)
-                        .setTitle("Potwierdź przelew")
-                        .setMessage(summary)
-                        .setNegativeButton("Popraw", (dialog, which) -> dialog.dismiss())
-                        .setPositiveButton("Wyślij", (dialog, which) ->
-                                sendTransfer(sourceAccountId, destinationAccountNumber,
-                                        recipientName, amount, currency, "PRZELEW", title))
-                        .show();
+                setSubmitting(false, null);
+                pokazPodsumowanie(resolvedId, accountNumber, recipientName, amount, title,
+                        selectedSourceAccount.id, selectedSourceAccount.currency);
             }
 
             @Override
             public void onFailure(Call<Map<String, Object>> call, Throwable t) {
-                if (isFinishing() || isDestroyed()) return;
-                submitButton.setEnabled(true);
-                submitButton.setText("Dalej — podsumowanie przelewu");
-                toast("Nie udało się sprawdzić konta odbiorcy: " + t.getMessage());
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                setSubmitting(false, null);
+                toast("Nie udało się sprawdzić konta odbiorcy: "
+                        + (t.getMessage() == null ? t.getClass().getSimpleName() : t.getMessage()));
             }
         });
     }
 
-    private void sendTransfer(long sourceId, String destinationAccountNumber, String recipientName,
-                              double amount, String currency, String type, String title) {
-        submitButton.setEnabled(false);
-        submitButton.setText("Wysyłanie…");
+    private void pokazPodsumowanie(
+            long destinationId,
+            String destinationNumber,
+            String recipientName,
+            BigDecimal amount,
+            String title,
+            long sourceId,
+            String currency
+    ) {
+        String summary = "Konto źródłowe ID: " + sourceId
+                + "\nOdbiorca: " + recipientName
+                + "\nKonto odbiorcy ID: " + destinationId
+                + "\nNumer konta odbiorcy: " + destinationNumber
+                + "\nKwota: " + String.format(Locale.getDefault(), "%.2f %s", amount, currency)
+                + "\nTyp: przelew"
+                + "\nTytuł: " + title;
+
+        new AlertDialog.Builder(this)
+                .setTitle("Potwierdź przelew")
+                .setMessage(summary)
+                .setNegativeButton("Popraw", (dialog, which) -> dialog.dismiss())
+                .setPositiveButton("Wyślij", (dialog, which) ->
+                        wyslijPrzelew(sourceId, destinationNumber, recipientName, amount, currency, title))
+                .show();
+    }
+
+    private void wyslijPrzelew(
+            long sourceId,
+            String destinationNumber,
+            String recipientName,
+            BigDecimal amount,
+            String currency,
+            String title
+    ) {
+        if (submitting) return;
+        setSubmitting(true, "Wysyłanie przelewu…");
 
         Map<String, Object> transaction = new HashMap<>();
         transaction.put("uzytkownikId", uzytkownikId);
         transaction.put("kontoZrodloweId", sourceId);
-        transaction.put("numerKontaOdbiorcy", destinationAccountNumber);
+        transaction.put("numerKontaOdbiorcy", destinationNumber);
         transaction.put("imieOdbiorcy", recipientName);
         transaction.put("typ", "PRZELEW");
         transaction.put("kwota", amount);
         transaction.put("waluta", currency);
         transaction.put("tytul", title);
- 
+
         TransakcjeAPI api = RetrofitClient.getInstance().create(TransakcjeAPI.class);
-        api.createTransaction(transaction).enqueue(new Callback<Map<String, Object>>() {
+        transactionCall = api.createTransaction(transaction);
+        transactionCall.enqueue(new Callback<Map<String, Object>>() {
             @Override
-            public void onResponse(Call<Map<String, Object>> call,
-                                   Response<Map<String, Object>> response) {
-                submitButton.setEnabled(true);
-                submitButton.setText("Dalej — podsumowanie przelewu");
+            public void onResponse(
+                    Call<Map<String, Object>> call,
+                    Response<Map<String, Object>> response
+            ) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                setSubmitting(false, null);
+
                 if (response.isSuccessful()) {
+                    Map<String, Object> result = response.body();
+                    String message = "Przelew został wykonany.";
+                    if (result != null && result.get("id") != null) {
+                        message += "\nNumer transakcji: " + result.get("id");
+                    }
                     new AlertDialog.Builder(TransferActivity.this)
-                            .setTitle("Przelew wysłany")
-                            .setMessage("Żądanie przelewu zostało przekazane do systemu.")
+                            .setTitle("Przelew wykonany")
+                            .setMessage(message)
                             .setPositiveButton("Gotowe", (dialog, which) -> finish())
                             .show();
                 } else {
-                    String details = "";
-                    try {
-                        if (response.errorBody() != null) {
-                            details = response.errorBody().string();
-                        }
-                    } catch (java.io.IOException ignored) {
-                    }
-                    toast("Nie udało się wykonać przelewu (HTTP "
-                            + response.code() + "). " + details);
+                    toast("Backend odrzucił przelew (HTTP " + response.code() + "). "
+                            + odczytajBlad(response));
                 }
             }
 
             @Override
             public void onFailure(Call<Map<String, Object>> call, Throwable t) {
-                submitButton.setEnabled(true);
-                submitButton.setText("Dalej — podsumowanie przelewu");
-                toast("Błąd połączenia z serwerem. Sprawdź adres API i spróbuj ponownie.");
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                setSubmitting(false, null);
+                toast("Błąd połączenia podczas wysyłania przelewu: "
+                        + (t.getMessage() == null ? t.getClass().getSimpleName() : t.getMessage()));
             }
         });
+    }
+
+    private String odczytajBlad(Response<?> response) {
+        try {
+            if (response.errorBody() != null) {
+                String error = response.errorBody().string();
+                return error == null || error.trim().isEmpty() ? "" : error;
+            }
+        } catch (IOException ignored) {
+        }
+        return "";
+    }
+
+    private void setSubmitting(boolean value, String label) {
+        submitting = value;
+        submitButton.setEnabled(!value);
+        submitButton.setText(value
+                ? (label == null ? "Przetwarzanie…" : label)
+                : "Dalej — podsumowanie przelewu");
     }
 
     private GradientDrawable roundRect(int color, int radius) {
@@ -497,5 +598,13 @@ public class TransferActivity extends AppCompatActivity {
 
     private void toast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (accountsCall != null) accountsCall.cancel();
+        if (destinationCall != null) destinationCall.cancel();
+        if (transactionCall != null) transactionCall.cancel();
+        super.onDestroy();
     }
 }
