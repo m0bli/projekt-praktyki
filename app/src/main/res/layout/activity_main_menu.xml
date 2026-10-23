@@ -147,7 +147,7 @@
                         android:layout_marginTop="8dp"
                         android:paddingHorizontal="4dp"
                         android:text="Aby wysłać przelew, wybierz Płatności i podaj ID konta odbiorcy."
-                        android:textColor="@color/theme_secondary_text"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="12sp" />
 
                     <!-- Szybkie akcje -->
