@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
@@ -168,9 +169,12 @@ public class TransferActivity extends AppCompatActivity {
         });
 
         destinationAccountInput = addInput(
-                card, "ID konta odbiorcy", "Np. 9 — numer konta pobierzemy z API",
+                card, "ID konta odbiorcy", "Wpisz ID od 1 do 99 999 999",
                 InputType.TYPE_CLASS_NUMBER
         );
+        destinationAccountInput.setFilters(new InputFilter[]{
+                new InputFilter.LengthFilter(8)
+        });
         recipientNameInput = addInput(
                 card, "Imię odbiorcy", "Imię właściciela konta",
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS
@@ -386,6 +390,10 @@ public class TransferActivity extends AppCompatActivity {
         if (destinationIdText.isEmpty() || recipientName.isEmpty()
                 || amountText.isEmpty() || title.isEmpty()) {
             toast("Uzupełnij ID konta odbiorcy, imię odbiorcy, kwotę i tytuł.");
+            return;
+        }
+        if (!destinationIdText.matches("[1-9][0-9]{0,7}")) {
+            toast("ID konta odbiorcy musi być liczbą od 1 do 99 999 999 (maksymalnie 8 cyfr).");
             return;
         }
         if (title.length() > 140) {
