@@ -31,11 +31,18 @@ import com.example.bank3.data.repository.KontoRepository;
 import com.example.bank3.model.SaldoResponse;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
 import com.example.bank3.ui.auth.MainActivity;
 import com.example.bank3.ui.theme.ThemeManager;
 
@@ -44,6 +51,14 @@ import java.io.InputStream;
 public class MainMenuActivity extends AppCompatActivity
         implements ThemeManager.ThemeChangeListener {
 
+    private interface HistoriaAPI {
+        @GET("api/konta/uzytkownik/{uzytkownikId}")
+        Call<List<Map<String, Object>>> getAccounts(@Path("uzytkownikId") long userId);
+
+        @GET("api/transakcje/konto/{kontoId}")
+        Call<List<Map<String, Object>>> getHistory(@Path("kontoId") long accountId);
+    }
+
     private DrawerLayout drawerLayout;
     private FrameLayout contentFrame;
     private View homeScroll;
@@ -51,6 +66,9 @@ public class MainMenuActivity extends AppCompatActivity
 
     private TextView txtWelcome;
     private TextView txtBalance;
+    private LinearLayout recentTransactionsContainer;
+    private Call<List<Map<String, Object>>> recentAccountsCall;
+    private final List<Call<List<Map<String, Object>>>> recentHistoryCalls = new ArrayList<>();
     private KontoRepository kontoRepository;
     private long uzytkownikId = -1L;
     private Call<SaldoResponse> saldoCall;
@@ -105,6 +123,7 @@ public class MainMenuActivity extends AppCompatActivity
 
         txtWelcome = findViewById(R.id.txtWelcome);
         txtBalance = findViewById(R.id.txtBalance);
+        recentTransactionsContainer = findViewById(R.id.recentTransactionsContainer);
 
         txtBalance.setText("Ładowanie salda...");
         txtBalance.setOnClickListener(v -> {
@@ -206,16 +225,211 @@ public class MainMenuActivity extends AppCompatActivity
                 selectTab(2)
         );
 
-        findViewById(R.id.actionHistory).setOnClickListener(v ->
-                showPlaceholder(
-                        "Historia transakcji",
-                        "Historia jest jeszcze w trakcie przygotowania."
-                )
-        );
+        findViewById(R.id.actionHistory).setOnClickListener(v -> {
+            selectTab(0);
+            loadRecentTransactions();
+            if (recentTransactionsContainer != null) {
+                recentTransactionsContainer.requestFocus();
+            }
+        });
 
         refreshTheme();
         selectTab(0);
         pobierzSaldo();
+        loadRecentTransactions();
+    }
+
+    private void loadRecentTransactions() {
+        if (recentTransactionsContainer == null) return;
+        recentTransactionsContainer.removeAllViews();
+        addTransactionMessage("Ładowanie ostatnich transakcji…");
+
+        if (uzytkownikId <= 0) {
+            showRecentTransactionsMessage("Nie udało się ustalić zalogowanego użytkownika.");
+            return;
+        }
+
+        HistoriaAPI api = com.example.bank3.network.RetrofitClient.getInstance()
+                .create(HistoriaAPI.class);
+        if (recentAccountsCall != null) recentAccountsCall.cancel();
+        for (Call<List<Map<String, Object>>> call : recentHistoryCalls) call.cancel();
+        recentHistoryCalls.clear();
+
+        recentAccountsCall = api.getAccounts(uzytkownikId);
+        recentAccountsCall.enqueue(new Callback<List<Map<String, Object>>>() {
+            @Override
+            public void onResponse(Call<List<Map<String, Object>>> call,
+                                   Response<List<Map<String, Object>>> response) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                if (!response.isSuccessful() || response.body() == null) {
+                    showRecentTransactionsMessage("Nie udało się pobrać kont (HTTP "
+                            + response.code() + ").");
+                    return;
+                }
+
+                List<Long> accountIds = new ArrayList<>();
+                for (Map<String, Object> account : response.body()) {
+                    Object id = account == null ? null : account.get("id");
+                    if (id instanceof Number && ((Number) id).longValue() > 0) {
+                        accountIds.add(((Number) id).longValue());
+                    }
+                }
+                if (accountIds.isEmpty()) {
+                    showRecentTransactionsMessage("Brak kont do wyświetlenia historii.");
+                    return;
+                }
+
+                List<Map<String, Object>> all = Collections.synchronizedList(new ArrayList<>());
+                int[] remaining = {accountIds.size()};
+                boolean[] anySuccess = {false};
+                for (Long accountId : accountIds) {
+                    Call<List<Map<String, Object>>> historyCall = api.getHistory(accountId);
+                    recentHistoryCalls.add(historyCall);
+                    historyCall.enqueue(new Callback<List<Map<String, Object>>>() {
+                        @Override
+                        public void onResponse(Call<List<Map<String, Object>>> history,
+                                               Response<List<Map<String, Object>>> result) {
+                            if (history.isCanceled() || isFinishing() || isDestroyed()) return;
+                            if (result.isSuccessful() && result.body() != null) {
+                                anySuccess[0] = true;
+                                all.addAll(result.body());
+                            }
+                            if (--remaining[0] == 0) {
+                                if (!anySuccess[0]) {
+                                    showRecentTransactionsMessage("Nie udało się pobrać historii. Spróbuj ponownie.");
+                                } else {
+                                    renderRecentTransactions(all);
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<List<Map<String, Object>>> history, Throwable t) {
+                            if (history.isCanceled() || isFinishing() || isDestroyed()) return;
+                            if (--remaining[0] == 0) {
+                                if (!anySuccess[0]) {
+                                    showRecentTransactionsMessage("Błąd połączenia podczas pobierania historii.");
+                                } else {
+                                    renderRecentTransactions(all);
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                showRecentTransactionsMessage("Błąd połączenia. Dotknij odświeżania ekranu, aby spróbować ponownie.");
+            }
+        });
+    }
+
+    private void renderRecentTransactions(List<Map<String, Object>> transactions) {
+        Collections.sort(transactions, (a, b) -> {
+            String dateA = String.valueOf(a.get("dataOperacji"));
+            String dateB = String.valueOf(b.get("dataOperacji"));
+            return dateB.compareTo(dateA);
+        });
+
+        recentTransactionsContainer.removeAllViews();
+        if (transactions.isEmpty()) {
+            addTransactionMessage("Nie masz jeszcze żadnych transakcji.");
+            return;
+        }
+
+        int count = Math.min(3, transactions.size());
+        for (int i = 0; i < count; i++) {
+            Map<String, Object> transaction = transactions.get(i);
+            String direction = String.valueOf(transaction.get("kierunek"));
+            String title = String.valueOf(transaction.get("tytul"));
+            String currency = transaction.get("waluta") == null ? "PLN" : String.valueOf(transaction.get("waluta"));
+            String amountText = formatTransactionAmount(transaction.get("kwota"));
+            boolean income = "WPLYW".equalsIgnoreCase(direction);
+            String sign = income ? "+" : "−";
+            String counterparty = transaction.get("numerKontaKontrahenta") == null
+                    ? "" : String.valueOf(transaction.get("numerKontaKontrahenta"));
+            String date = formatTransactionDate(transaction.get("dataOperacji"));
+
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.VERTICAL);
+            row.setPadding(dp(10), dp(12), dp(10), dp(12));
+
+            LinearLayout top = new LinearLayout(this);
+            top.setOrientation(LinearLayout.HORIZONTAL);
+            top.setGravity(Gravity.CENTER_VERTICAL);
+
+            TextView titleView = new TextView(this);
+            titleView.setText(title == null || "null".equals(title) || title.trim().isEmpty()
+                    ? "Przelew" : title);
+            titleView.setTextColor(ThemeManager.getTextColor(this));
+            titleView.setTextSize(14);
+            titleView.setTypeface(null, android.graphics.Typeface.BOLD);
+            titleView.setMaxLines(2);
+            titleView.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1));
+
+            TextView amountView = new TextView(this);
+            amountView.setText(sign + amountText + " " + currency);
+            amountView.setTextColor(income ? Color.rgb(35, 150, 90) : ThemeManager.getTextColor(this));
+            amountView.setTextSize(14);
+            amountView.setTypeface(null, android.graphics.Typeface.BOLD);
+            top.addView(titleView);
+            top.addView(amountView);
+            row.addView(top);
+
+            TextView details = new TextView(this);
+            details.setText((income ? "Wpływ" : "Wydatek")
+                    + (counterparty.isEmpty() ? "" : " · konto: " + counterparty)
+                    + (date.isEmpty() ? "" : " · " + date));
+            details.setTextColor(ThemeManager.getSecondaryTextColor(this));
+            details.setTextSize(12);
+            LinearLayout.LayoutParams detailsParams = new LinearLayout.LayoutParams(-1, -2);
+            detailsParams.topMargin = dp(5);
+            row.addView(details, detailsParams);
+            recentTransactionsContainer.addView(row);
+
+            if (i < count - 1) {
+                View divider = new View(this);
+                divider.setBackgroundColor(ThemeManager.getDividerColor(this));
+                recentTransactionsContainer.addView(divider, new LinearLayout.LayoutParams(-1, dp(1)));
+            }
+        }
+    }
+
+    private String formatTransactionAmount(Object amount) {
+        try {
+            NumberFormat format = NumberFormat.getNumberInstance(new Locale("pl", "PL"));
+            format.setMinimumFractionDigits(2);
+            format.setMaximumFractionDigits(2);
+            return format.format(amount instanceof Number
+                    ? ((Number) amount).doubleValue() : Double.parseDouble(String.valueOf(amount)));
+        } catch (Exception ignored) {
+            return String.valueOf(amount);
+        }
+    }
+
+    private String formatTransactionDate(Object value) {
+        if (value == null) return "";
+        String raw = String.valueOf(value);
+        if (raw.length() >= 16) {
+            return raw.substring(0, 10) + " " + raw.substring(11, 16);
+        }
+        return raw;
+    }
+
+    private void showRecentTransactionsMessage(String message) {
+        recentTransactionsContainer.removeAllViews();
+        addTransactionMessage(message);
+    }
+
+    private void addTransactionMessage(String message) {
+        TextView view = new TextView(this);
+        view.setText(message);
+        view.setTextColor(ThemeManager.getSecondaryTextColor(this));
+        view.setTextSize(14);
+        view.setPadding(dp(10), dp(12), dp(10), dp(12));
+        recentTransactionsContainer.addView(view);
     }
 
     private void pobierzSaldo() {
@@ -296,6 +510,8 @@ public class MainMenuActivity extends AppCompatActivity
         if (saldoCall != null && !saldoCall.isCanceled()) {
             saldoCall.cancel();
         }
+        if (recentAccountsCall != null) recentAccountsCall.cancel();
+        for (Call<List<Map<String, Object>>> call : recentHistoryCalls) call.cancel();
         super.onDestroy();
     }
 
