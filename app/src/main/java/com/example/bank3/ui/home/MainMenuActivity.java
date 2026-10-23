@@ -748,10 +748,9 @@ public class MainMenuActivity extends AppCompatActivity
                 break;
 
             case 2:
-                showPlaceholder(
-                        "Karty",
-                        "Tutaj pojawią się karty użytkownika."
-                );
+                Intent cardsIntent = new Intent(this, CardsActivity.class);
+                cardsIntent.putExtra("uzytkownikId", uzytkownikId);
+                startActivity(cardsIntent);
                 break;
 
             case 3:
