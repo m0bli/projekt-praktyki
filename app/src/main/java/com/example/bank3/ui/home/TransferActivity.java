@@ -117,7 +117,12 @@ public class TransferActivity extends AppCompatActivity {
         setContentView(R.layout.activity_transfer);
 
         View transferScrollView = findViewById(R.id.transferScrollView);
-        ViewCompat.setOnApplyWindowInsetsListener(transferScrollView, (view, windowInsets) -> {
+        // Fallback for builds where the root layout ID is stale or unavailable.
+        if (transferScrollView == null) {
+            transferScrollView = findViewById(android.R.id.content);
+        }
+        final View insetsTarget = transferScrollView;
+        ViewCompat.setOnApplyWindowInsetsListener(insetsTarget, (view, windowInsets) -> {
             androidx.core.graphics.Insets bars = windowInsets.getInsets(
                     WindowInsetsCompat.Type.systemBars()
             );
