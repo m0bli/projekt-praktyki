@@ -33,7 +33,6 @@ import com.example.bank3.model.SaldoResponse;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -113,6 +112,7 @@ public class MainMenuActivity extends AppCompatActivity
                 homeSwipeRefresh.setRefreshing(false);
             } else {
                 pobierzSaldo();
+                loadRecentTransactions();
             }
         });
 
@@ -391,7 +391,7 @@ public class MainMenuActivity extends AppCompatActivity
 
             if (i < count - 1) {
                 View divider = new View(this);
-                divider.setBackgroundColor(ThemeManager.getDividerColor(this));
+                divider.setBackgroundColor(ThemeManager.getSecondaryTextColor(this));
                 recentTransactionsContainer.addView(divider, new LinearLayout.LayoutParams(-1, dp(1)));
             }
         }
