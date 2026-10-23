@@ -18,7 +18,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.example.bank3.network.RetrofitClient;
 import com.example.bank3.ui.theme.ThemeManager;
@@ -106,10 +109,20 @@ public class TransferActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         applyColors();
         uzytkownikId = getIntent().getLongExtra("uzytkownikId", -1L);
 
         setContentView(R.layout.activity_transfer);
+
+        View transferScrollView = findViewById(R.id.transferScrollView);
+        ViewCompat.setOnApplyWindowInsetsListener(transferScrollView, (view, windowInsets) -> {
+            androidx.core.graphics.Insets bars = windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+            );
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+            return windowInsets;
+        });
 
         View back = findViewById(R.id.transferBack);
         back.setOnClickListener(v -> finish());
