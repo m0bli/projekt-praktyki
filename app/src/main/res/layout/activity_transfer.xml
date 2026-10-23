@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/transferScrollView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/theme_background">
+
+    <LinearLayout
+        android:id="@+id/transferPage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="22dp"
+        android:paddingTop="18dp"
+        android:paddingEnd="22dp"
+        android:paddingBottom="28dp"
+        android:background="@color/theme_background">
+
+        <TextView
+            android:id="@+id/transferBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:paddingBottom="18dp"
+            android:text="‹  Wróć"
+            android:textColor="@color/theme_accent"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/transferHeading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nowy przelew"
+            android:textColor="@color/theme_text"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/transferSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:layout_marginBottom="22dp"
+            android:text="Wybierz swoje konto i podaj dane odbiorcy."
+            android:textColor="@color/theme_text_secondary"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:id="@+id/transferFormCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="18dp"
+            android:paddingTop="20dp"
+            android:paddingEnd="18dp"
+            android:paddingBottom="20dp"
+            android:background="@color/theme_surface">
+
+            <TextView
+                android:id="@+id/sourceAccountLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="13dp"
+                android:layout_marginBottom="7dp"
+                android:text="Konto źródłowe — tylko Twoje konta"
+                android:textColor="@color/theme_text"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <Spinner
+                android:id="@+id/sourceAccountSpinner"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:paddingStart="8dp"
+                android:paddingTop="3dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="3dp"
+                android:background="@color/theme_background"
+                android:enabled="false" />
+
+            <TextView
+                android:id="@+id/destinationAccountLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="13dp"
+                android:layout_marginBottom="7dp"
+                android:text="ID konta odbiorcy"
+                android:textColor="@color/theme_text"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/destinationAccountInput"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@color/theme_background"
+                android:hint="Wpisz ID od 1 do 99 999 999"
+                android:inputType="number"
+                android:maxLength="8"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:singleLine="true"
+                android:textColor="@color/theme_text"
+                android:textColorHint="@color/theme_text_secondary"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/recipientNameLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="13dp"
+                android:layout_marginBottom="7dp"
+                android:text="Imię odbiorcy"
+                android:textColor="@color/theme_text"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/recipientNameInput"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@color/theme_background"
+                android:hint="Imię właściciela konta"
+                android:inputType="textCapWords"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:singleLine="true"
+                android:textColor="@color/theme_text"
+                android:textColorHint="@color/theme_text_secondary"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/amountLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="13dp"
+                android:layout_marginBottom="7dp"
+                android:text="Kwota przelewu"
+                android:textColor="@color/theme_text"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/amountInput"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@color/theme_background"
+                android:hint="0,00"
+                android:inputType="numberDecimal"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:singleLine="true"
+                android:textColor="@color/theme_text"
+                android:textColorHint="@color/theme_text_secondary"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/currencyLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="13dp"
+                android:layout_marginBottom="7dp"
+                android:text="Waluta konta źródłowego"
+                android:textColor="@color/theme_text"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <Spinner
+                android:id="@+id/currencySpinner"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:paddingStart="8dp"
+                android:paddingTop="3dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="3dp"
+                android:background="@color/theme_background"
+                android:enabled="false" />
+
+            <TextView
+                android:id="@+id/titleLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="13dp"
+                android:layout_marginBottom="7dp"
+                android:text="Tytuł przelewu"
+                android:textColor="@color/theme_text"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/titleInput"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@color/theme_background"
+                android:hint="Np. Rachunki za październik"
+                android:inputType="textCapSentences"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:singleLine="true"
+                android:textColor="@color/theme_text"
+                android:textColorHint="@color/theme_text_secondary"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/transferHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="Odbiorca musi mieć konto w tej samej walucie. Backend wymaga 26-cyfrowego numeru konta."
+                android:textColor="@color/theme_text_secondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/submitTransferButton"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginTop="20dp"
+            android:background="@color/theme_accent"
+            android:allCaps="false"
+            android:text="Dalej — podsumowanie przelewu"
+            android:textColor="@color/white"
+            android:textSize="15sp" />
+
+    </LinearLayout>
+</ScrollView>
