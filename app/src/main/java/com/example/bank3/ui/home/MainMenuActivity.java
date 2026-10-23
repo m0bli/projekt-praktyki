@@ -348,8 +348,8 @@ public class MainMenuActivity extends AppCompatActivity
             String amountText = formatTransactionAmount(transaction.get("kwota"));
             boolean income = "WPLYW".equalsIgnoreCase(direction);
             String sign = income ? "+" : "−";
-            String counterparty = transaction.get("numerKontaKontrahenta") == null
-                    ? "" : String.valueOf(transaction.get("numerKontaKontrahenta"));
+            String counterparty = transaction.get("imieKontrahenta") == null
+                    ? "" : String.valueOf(transaction.get("imieKontrahenta"));
             String date = formatTransactionDate(transaction.get("dataOperacji"));
 
             LinearLayout row = new LinearLayout(this);
