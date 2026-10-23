@@ -65,6 +65,7 @@ public class MainMenuActivity extends AppCompatActivity
 
     private TextView txtWelcome;
     private TextView txtBalance;
+    private TextView txtAccountId;
     private LinearLayout recentTransactionsContainer;
     private Call<List<Map<String, Object>>> recentAccountsCall;
     private final List<Call<List<Map<String, Object>>>> recentHistoryCalls = new ArrayList<>();
@@ -123,6 +124,7 @@ public class MainMenuActivity extends AppCompatActivity
 
         txtWelcome = findViewById(R.id.txtWelcome);
         txtBalance = findViewById(R.id.txtBalance);
+        txtAccountId = findViewById(R.id.txtAccountId);
         recentTransactionsContainer = findViewById(R.id.recentTransactionsContainer);
 
         txtBalance.setText("Ładowanie salda...");
@@ -267,6 +269,17 @@ public class MainMenuActivity extends AppCompatActivity
                     return;
                 }
 
+                if (txtAccountId != null && !response.body().isEmpty()) {
+                    Object firstAccountId = response.body().get(0) == null
+                            ? null : response.body().get(0).get("id");
+                    if (firstAccountId instanceof Number
+                            && ((Number) firstAccountId).longValue() > 0) {
+                        txtAccountId.setText("#" + ((Number) firstAccountId).longValue());
+                    } else {
+                        txtAccountId.setText("#—");
+                    }
+                }
+
                 List<Long> accountIds = new ArrayList<>();
                 for (Map<String, Object> account : response.body()) {
                     Object id = account == null ? null : account.get("id");
@@ -275,6 +288,7 @@ public class MainMenuActivity extends AppCompatActivity
                     }
                 }
                 if (accountIds.isEmpty()) {
+                    if (txtAccountId != null) txtAccountId.setText("#—");
                     showRecentTransactionsMessage("Brak kont do wyświetlenia historii.");
                     return;
                 }
