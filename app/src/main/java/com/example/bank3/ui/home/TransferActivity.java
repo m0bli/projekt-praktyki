@@ -86,7 +86,7 @@ public class TransferActivity extends AppCompatActivity {
         }
 
         String label() {
-            return "Konto " + number + "  ·  " + balance + " " + currency;
+            return "ID konta: " + id;
         }
     }
 
