@@ -130,7 +130,25 @@
                             android:textColor="#DCE8FF"
                             android:textSize="14sp" />
 
+                        <TextView
+                            android:id="@+id/txtAccountId"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:text="#—"
+                            android:textColor="#DCE8FF"
+                            android:textSize="12sp" />
+
                     </LinearLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:paddingHorizontal="4dp"
+                        android:text="Aby wysłać przelew, wybierz Płatności i podaj ID konta odbiorcy."
+                        android:textColor="@color/theme_secondary_text"
+                        android:textSize="12sp" />
 
                     <!-- Szybkie akcje -->
                     <TextView
