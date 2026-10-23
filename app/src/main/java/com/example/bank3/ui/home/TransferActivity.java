@@ -23,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.bank3.R;
 import com.example.bank3.network.RetrofitClient;
 import com.example.bank3.ui.theme.ThemeManager;
 
@@ -114,7 +115,9 @@ public class TransferActivity extends AppCompatActivity {
         applyColors();
         uzytkownikId = getIntent().getLongExtra("uzytkownikId", -1L);
 
-        setContentView(R.layout.activity_transfer);
+        ScrollView scrollView = new ScrollView(this);
+        scrollView.setFillViewport(true);
+        scrollView.setBackgroundColor(backgroundColor);
 
         View transferScrollView = findViewById(R.id.transferScrollView);
         // Fallback for builds where the root layout ID is stale or unavailable.
@@ -130,17 +133,44 @@ public class TransferActivity extends AppCompatActivity {
             return windowInsets;
         });
 
-        View back = findViewById(R.id.transferBack);
+        LinearLayout page = new LinearLayout(this);
+        page.setOrientation(LinearLayout.VERTICAL);
+        page.setPadding(dp(22), dp(18), dp(22), dp(28));
+        scrollView.addView(page);
+
+        TextView back = new TextView(this);
+        back.setText("‹  Wróć");
+        back.setTextSize(16);
+        back.setTextColor(accentColor);
+        back.setPadding(0, dp(4), 0, dp(18));
         back.setOnClickListener(v -> finish());
+        page.addView(back);
 
-        sourceAccountSpinner = findViewById(R.id.sourceAccountSpinner);
-        currencySpinner = findViewById(R.id.currencySpinner);
-        destinationAccountInput = findViewById(R.id.destinationAccountInput);
-        recipientNameInput = findViewById(R.id.recipientNameInput);
-        amountInput = findViewById(R.id.amountInput);
-        titleInput = findViewById(R.id.titleInput);
-        submitButton = findViewById(R.id.submitTransferButton);
+        TextView heading = new TextView(this);
+        heading.setText("Nowy przelew");
+        heading.setTextSize(28);
+        heading.setTypeface(null, android.graphics.Typeface.BOLD);
+        heading.setTextColor(textColor);
+        page.addView(heading);
 
+        TextView subtitle = new TextView(this);
+        subtitle.setText("Wybierz swoje konto i podaj dane odbiorcy.");
+        subtitle.setTextSize(14);
+        subtitle.setTextColor(secondaryTextColor);
+        LinearLayout.LayoutParams subtitleParams = params(-1, -2);
+        subtitleParams.topMargin = dp(7);
+        subtitleParams.bottomMargin = dp(22);
+        page.addView(subtitle, subtitleParams);
+
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(18), dp(20), dp(18), dp(20));
+        card.setBackground(roundRect(surfaceColor, dp(22)));
+        page.addView(card, params(-1, -2));
+
+        addLabel(card, "Konto źródłowe");
+        sourceAccountSpinner = addSpinner(card, new String[]{"Pobieranie kont..."});
+        sourceAccountSpinner.setEnabled(false);
         sourceAccountSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -158,42 +188,51 @@ public class TransferActivity extends AppCompatActivity {
             }
         });
 
+        destinationAccountInput = addInput(
+                card, "ID konta odbiorcy", "ID konta odbiorcy (todo: numer telefonu)",
+                InputType.TYPE_CLASS_NUMBER
+        );
         destinationAccountInput.setFilters(new InputFilter[]{
                 new InputFilter.LengthFilter(8)
         });
+        recipientNameInput = addInput(
+                card, "Imię odbiorcy", "Imię właściciela konta",
+                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS
+        );
+        amountInput = addInput(
+                card, "Kwota przelewu", "0,00",
+                InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL
+        );
 
-        findViewById(R.id.transferPage).setBackgroundColor(backgroundColor);
-        findViewById(R.id.transferScrollView).setBackgroundColor(backgroundColor);
-        findViewById(R.id.transferFormCard).setBackground(roundRect(surfaceColor, dp(22)));
+        addLabel(card, "Waluta konta źródłowego");
+        currencySpinner = addSpinner(card, new String[]{"Najpierw pobierz konto"});
+        currencySpinner.setEnabled(false);
+
+        titleInput = addInput(
+                card, "Tytuł przelewu", "",
+                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        );
+
+        TextView hint = new TextView(this);
+        hint.setText("Odbiorca musi mieć konto w tej samej walucie. Backend wymaga 26-cyfrowego numeru konta.");
+        hint.setTextSize(12);
+        hint.setTextColor(secondaryTextColor);
+        LinearLayout.LayoutParams hintParams = params(-1, -2);
+        hintParams.topMargin = dp(14);
+        card.addView(hint, hintParams);
+
+        submitButton = new Button(this);
+        submitButton.setText("PRZELEJ");
+        submitButton.setAllCaps(false);
         submitButton.setTextColor(Color.WHITE);
+        submitButton.setTextSize(15);
         submitButton.setBackground(roundRect(accentColor, dp(16)));
-
-        int[] labelIds = {
-                R.id.transferHeading, R.id.sourceAccountLabel,
-                R.id.destinationAccountLabel, R.id.recipientNameLabel,
-                R.id.amountLabel, R.id.currencyLabel, R.id.titleLabel
-        };
-        for (int id : labelIds) {
-            TextView label = findViewById(id);
-            label.setTextColor(textColor);
-        }
-        ((TextView) findViewById(R.id.transferBack)).setTextColor(accentColor);
-        ((TextView) findViewById(R.id.transferSubtitle)).setTextColor(secondaryTextColor);
-        ((TextView) findViewById(R.id.transferHint)).setTextColor(secondaryTextColor);
-
-        EditText[] inputs = {
-                destinationAccountInput, recipientNameInput, amountInput, titleInput
-        };
-        for (EditText input : inputs) {
-            input.setTextColor(textColor);
-            input.setHintTextColor(secondaryTextColor);
-            input.setBackground(roundRect(backgroundColor, dp(12)));
-        }
-        sourceAccountSpinner.setBackground(roundRect(backgroundColor, dp(12)));
-        currencySpinner.setBackground(roundRect(backgroundColor, dp(12)));
-
+        LinearLayout.LayoutParams buttonParams = params(-1, dp(54));
+        buttonParams.topMargin = dp(20);
+        page.addView(submitButton, buttonParams);
         submitButton.setOnClickListener(v -> sprawdzOdbiorce());
 
+        setContentView(scrollView);
         pobierzKontaUzytkownika();
     }
 

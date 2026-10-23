@@ -218,8 +218,7 @@
             android:layout_height="54dp"
             android:layout_marginTop="20dp"
             android:background="@color/theme_accent"
-            android:allCaps="false"
-            android:text="Dalej — podsumowanie przelewu"
+            android:text="PRZELEJ"
             android:textColor="@color/white"
             android:textSize="15sp" />
 
