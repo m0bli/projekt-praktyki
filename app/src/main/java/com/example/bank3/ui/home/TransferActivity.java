@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.InputFilter;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.View;
@@ -26,6 +25,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.bank3.R;
+import com.example.bank3.model.UserResponse;
 import com.example.bank3.network.RetrofitClient;
 import com.example.bank3.ui.theme.ThemeManager;
 
@@ -44,6 +44,7 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public class TransferActivity extends AppCompatActivity {
 
@@ -102,8 +103,14 @@ public class TransferActivity extends AppCompatActivity {
                 @Path("uzytkownikId") long uzytkownikId
         );
 
-        @GET("api/konta/{id}")
-        Call<Map<String, Object>> getAccount(@Path("id") long accountId);
+        @GET("api/konta/email/{email}")
+        Call<Map<String, Object>> getAccountByEmailPath(@Path("email") String email);
+
+        @GET("api/konta/email")
+        Call<Map<String, Object>> getAccountByEmailQuery(@Query("email") String email);
+
+        @GET("api/uzytkownicy")
+        Call<List<UserResponse>> getAllUsers();
 
         @POST("api/transakcje")
         Call<Map<String, Object>> createTransaction(@Body Map<String, Object> transaction);
@@ -191,12 +198,9 @@ public class TransferActivity extends AppCompatActivity {
         });
 
         destinationAccountInput = addInput(
-                card, "ID konta odbiorcy", "ID konta odbiorcy (todo: numer telefonu)",
-                InputType.TYPE_CLASS_NUMBER
+                card, "E-mail odbiorcy", "np. jan.kowalski@example.com",
+                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
         );
-        destinationAccountInput.setFilters(new InputFilter[]{
-                new InputFilter.LengthFilter(8)
-        });
         recipientNameInput = addInput(
                 card, "Imię odbiorcy", "Imię właściciela konta",
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS
@@ -414,18 +418,26 @@ public class TransferActivity extends AppCompatActivity {
             return;
         }
 
-        String destinationIdText = destinationAccountInput.getText().toString().trim();
+        // Sprawdź czy konto jest zablokowane w ustawieniach Karty
+        android.content.SharedPreferences cardPrefs =
+                getSharedPreferences("demo_card_settings_" + uzytkownikId, MODE_PRIVATE);
+        if (cardPrefs.getBoolean("blocked", false)) {
+            toast("Twoje konto jest zablokowane. Zmień ustawienia w zakładce Karty, aby odblokować przelewy.");
+            return;
+        }
+
+        String recipientEmail = destinationAccountInput.getText().toString().trim();
         String recipientName = recipientNameInput.getText().toString().trim();
         String amountText = amountInput.getText().toString().trim().replace(',', '.');
         String title = titleInput.getText().toString().trim();
 
-        if (destinationIdText.isEmpty() || recipientName.isEmpty()
+        if (recipientEmail.isEmpty() || recipientName.isEmpty()
                 || amountText.isEmpty() || title.isEmpty()) {
-            toast("Uzupełnij ID konta odbiorcy, imię odbiorcy, kwotę i tytuł.");
+            toast("Uzupełnij e-mail odbiorcy, imię odbiorcy, kwotę i tytuł.");
             return;
         }
-        if (!destinationIdText.matches("[1-9][0-9]{0,7}")) {
-            toast("ID konta odbiorcy musi być liczbą od 1 do 99 999 999 (maksymalnie 8 cyfr).");
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(recipientEmail).matches()) {
+            toast("Podaj poprawny adres e-mail odbiorcy.");
             return;
         }
         if (title.length() > 140) {
@@ -433,24 +445,14 @@ public class TransferActivity extends AppCompatActivity {
             return;
         }
 
-        final long destinationAccountId;
         final BigDecimal amount;
         try {
-            destinationAccountId = Long.parseLong(destinationIdText);
             amount = new BigDecimal(amountText);
         } catch (NumberFormatException e) {
-            toast("Wprowadź poprawne ID konta i kwotę.");
+            toast("Wprowadź poprawną kwotę.");
             return;
         }
 
-        if (destinationAccountId <= 0) {
-            toast("ID konta odbiorcy musi być większe od zera.");
-            return;
-        }
-        if (destinationAccountId == selectedSourceAccount.id) {
-            toast("Konto odbiorcy musi być inne niż konto źródłowe.");
-            return;
-        }
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             toast("Kwota musi być większa od zera.");
             return;
@@ -460,6 +462,18 @@ public class TransferActivity extends AppCompatActivity {
             amountInput.requestFocus();
             return;
         }
+
+        // Sprawdź dzienny limit płatności z ustawień Karty
+        float dailyLimit = cardPrefs.getFloat("daily_limit", 1500f);
+        BigDecimal maxLimit = new BigDecimal(Float.toString(dailyLimit));
+        if (amount.compareTo(maxLimit) > 0) {
+            amountInput.setError("Kwota przekracza Twój dzienny limit płatności ("
+                    + String.format(Locale.getDefault(), "%.2f", dailyLimit)
+                    + " PLN). Zmień limit w zakładce Karty.");
+            amountInput.requestFocus();
+            return;
+        }
+
         if (selectedSourceAccount.balance != null
                 && amount.compareTo(selectedSourceAccount.balance) > 0) {
             amountInput.setError("Kwota przekracza dostępne saldo: "
@@ -470,8 +484,17 @@ public class TransferActivity extends AppCompatActivity {
         }
 
         setSubmitting(true, "Sprawdzanie konta odbiorcy…");
+        szukajKontaOdbiorce(recipientEmail, recipientName, amount, title);
+    }
+
+    private void szukajKontaOdbiorce(
+            String recipientEmail,
+            String recipientName,
+            BigDecimal amount,
+            String title
+    ) {
         TransakcjeAPI api = RetrofitClient.getInstance().create(TransakcjeAPI.class);
-        destinationCall = api.getAccount(destinationAccountId);
+        destinationCall = api.getAccountByEmailQuery(recipientEmail);
         destinationCall.enqueue(new Callback<Map<String, Object>>() {
             @Override
             public void onResponse(
@@ -480,62 +503,145 @@ public class TransferActivity extends AppCompatActivity {
             ) {
                 if (call.isCanceled() || isFinishing() || isDestroyed()) return;
 
-                if (!response.isSuccessful() || response.body() == null) {
-                    setSubmitting(false, null);
-                    toast("Nie znaleziono konta odbiorcy (HTTP " + response.code() + "). "
-                            + odczytajBlad(response));
-                    return;
+                if (response.isSuccessful() && response.body() != null) {
+                    Map<String, Object> account = response.body();
+                    Object numberValue = account.get("numerKonta");
+                    Object currencyValue = account.get("waluta");
+
+                    if (numberValue != null && currencyValue != null) {
+                        String accountNumber = numberValue.toString().replaceAll("\\s+", "");
+                        String destinationCurrency = currencyValue.toString().trim().toUpperCase(Locale.ROOT);
+
+                        if (accountNumber.matches("\\d{26}")
+                                && selectedSourceAccount.currency.equals(destinationCurrency)) {
+                            setSubmitting(false, null);
+                            pokazPodsumowanie(recipientEmail, accountNumber, recipientName, amount, title,
+                                    selectedSourceAccount.id, selectedSourceAccount.currency);
+                            return;
+                        }
+                    }
                 }
 
-                Map<String, Object> account = response.body();
-                Object idValue = account.get("id");
-                Object numberValue = account.get("numerKonta");
-                Object currencyValue = account.get("waluta");
-
-                if (!(idValue instanceof Number) || numberValue == null || currencyValue == null) {
-                    setSubmitting(false, null);
-                    toast("API nie zwróciło pełnych danych konta odbiorcy.");
-                    return;
-                }
-
-                long resolvedId = ((Number) idValue).longValue();
-                String accountNumber = numberValue.toString().replaceAll("\\s+", "");
-                String destinationCurrency = currencyValue.toString().trim().toUpperCase(Locale.ROOT);
-
-                if (resolvedId != destinationAccountId) {
-                    setSubmitting(false, null);
-                    toast("API zwróciło inne konto niż wskazane.");
-                    return;
-                }
-                if (!accountNumber.matches("\\d{26}")) {
-                    setSubmitting(false, null);
-                    toast("Numer tego konta w bazie nie ma 26 cyfr. Backend odrzuci taki przelew; sprawdź konto odbiorcy.");
-                    return;
-                }
-                if (!selectedSourceAccount.currency.equals(destinationCurrency)) {
-                    setSubmitting(false, null);
-                    toast("Konta mają różne waluty. Źródło: " + selectedSourceAccount.currency
-                            + ", odbiorca: " + destinationCurrency + ".");
-                    return;
-                }
-
-                setSubmitting(false, null);
-                pokazPodsumowanie(resolvedId, accountNumber, recipientName, amount, title,
-                        selectedSourceAccount.id, selectedSourceAccount.currency);
+                // Fallback: szukaj w użytkownikach i ich kontach
+                szukajWUzytkownikach(api, recipientEmail, recipientName, amount, title);
             }
 
             @Override
             public void onFailure(Call<Map<String, Object>> call, Throwable t) {
                 if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                szukajWUzytkownikach(api, recipientEmail, recipientName, amount, title);
+            }
+        });
+    }
+
+    private void szukajWUzytkownikach(
+            TransakcjeAPI api,
+            String recipientEmail,
+            String recipientName,
+            BigDecimal amount,
+            String title
+    ) {
+        api.getAllUsers().enqueue(new Callback<List<UserResponse>>() {
+            @Override
+            public void onResponse(
+                    Call<List<UserResponse>> call,
+                    Response<List<UserResponse>> response
+            ) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+
+                if (!response.isSuccessful() || response.body() == null) {
+                    setSubmitting(false, null);
+                    toast("Nie znaleziono odbiorcy dla e-maila: " + recipientEmail);
+                    return;
+                }
+
+                UserResponse matchingUser = null;
+                for (UserResponse user : response.body()) {
+                    if (user != null && user.getEmail() != null
+                            && user.getEmail().equalsIgnoreCase(recipientEmail)) {
+                        matchingUser = user;
+                        break;
+                    }
+                }
+
+                if (matchingUser == null || matchingUser.getId() == null) {
+                    setSubmitting(false, null);
+                    toast("Nie znaleziono użytkownika dla e-maila: " + recipientEmail);
+                    return;
+                }
+
+                long recipientUserId = matchingUser.getId();
+                pobierzKontoUzytkownika(api, recipientUserId, recipientEmail, recipientName, amount, title);
+            }
+
+            @Override
+            public void onFailure(Call<List<UserResponse>> call, Throwable t) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
                 setSubmitting(false, null);
-                toast("Nie udało się sprawdzić konta odbiorcy: "
+                toast("Błąd połączenia podczas wyszukiwania odbiorcy: "
                         + (t.getMessage() == null ? t.getClass().getSimpleName() : t.getMessage()));
             }
         });
     }
 
+    private void pobierzKontoUzytkownika(
+            TransakcjeAPI api,
+            long recipientUserId,
+            String recipientEmail,
+            String recipientName,
+            BigDecimal amount,
+            String title
+    ) {
+        api.getAccountsForUser(recipientUserId).enqueue(new Callback<List<KontoApiResponse>>() {
+            @Override
+            public void onResponse(
+                    Call<List<KontoApiResponse>> call,
+                    Response<List<KontoApiResponse>> response
+            ) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                setSubmitting(false, null);
+
+                if (!response.isSuccessful() || response.body() == null || response.body().isEmpty()) {
+                    toast("Użytkownik " + recipientEmail + " nie posiada jeszcze zarejestrowanego konta.");
+                    return;
+                }
+
+                KontoApiResponse matchingAccount = null;
+                for (KontoApiResponse acc : response.body()) {
+                    if (acc != null && acc.waluta != null
+                            && selectedSourceAccount.currency.equalsIgnoreCase(acc.waluta.trim())) {
+                        matchingAccount = acc;
+                        break;
+                    }
+                }
+
+                if (matchingAccount == null || matchingAccount.numerKonta == null) {
+                    toast("Użytkownik " + recipientEmail + " nie posiada konta w walucie "
+                            + selectedSourceAccount.currency + ".");
+                    return;
+                }
+
+                String destinationNumber = matchingAccount.numerKonta.replaceAll("\\s+", "");
+                if (!destinationNumber.matches("\\d{26}")) {
+                    toast("Numer konta odbiorcy w bazie nie ma 26 cyfr.");
+                    return;
+                }
+
+                pokazPodsumowanie(recipientEmail, destinationNumber, recipientName, amount, title,
+                        selectedSourceAccount.id, selectedSourceAccount.currency);
+            }
+
+            @Override
+            public void onFailure(Call<List<KontoApiResponse>> call, Throwable t) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                setSubmitting(false, null);
+                toast("Błąd połączenia podczas pobierania konta odbiorcy.");
+            }
+        });
+    }
+
     private void pokazPodsumowanie(
-            long destinationId,
+            String recipientEmail,
             String destinationNumber,
             String recipientName,
             BigDecimal amount,
@@ -545,7 +651,7 @@ public class TransferActivity extends AppCompatActivity {
     ) {
         String summary = "Konto źródłowe ID: " + sourceId
                 + "\nOdbiorca: " + recipientName
-                + "\nKonto odbiorcy ID: " + destinationId
+                + "\nE-mail odbiorcy: " + recipientEmail
                 + "\nNumer konta odbiorcy: " + destinationNumber
                 + "\nKwota: " + String.format(Locale.getDefault(), "%.2f %s", amount, currency)
                 + "\nTyp: przelew"
@@ -556,12 +662,13 @@ public class TransferActivity extends AppCompatActivity {
                 .setMessage(summary)
                 .setNegativeButton("Popraw", (dialog, which) -> dialog.dismiss())
                 .setPositiveButton("Wyślij", (dialog, which) ->
-                        wyslijPrzelew(sourceId, destinationNumber, recipientName, amount, currency, title))
+                        wyslijPrzelew(sourceId, recipientEmail, destinationNumber, recipientName, amount, currency, title))
                 .show();
     }
 
     private void wyslijPrzelew(
             long sourceId,
+            String recipientEmail,
             String destinationNumber,
             String recipientName,
             BigDecimal amount,
@@ -574,6 +681,7 @@ public class TransferActivity extends AppCompatActivity {
         Map<String, Object> transaction = new HashMap<>();
         transaction.put("uzytkownikId", uzytkownikId);
         transaction.put("kontoZrodloweId", sourceId);
+        transaction.put("email", recipientEmail);
         transaction.put("numerKontaOdbiorcy", destinationNumber);
         transaction.put("imieOdbiorcy", recipientName);
         transaction.put("typ", "PRZELEW");
