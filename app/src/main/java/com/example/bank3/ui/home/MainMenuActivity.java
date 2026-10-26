@@ -733,34 +733,42 @@ public class MainMenuActivity extends AppCompatActivity
         }
     }
 
-    private void selectTab(int position) {
+    public void selectTab(int position) {
+        if (position < 0 || position > 3) return;
         selectedTab = position;
         updateNavigationColors();
 
-        switch (position) {
-            case 0:
-                showHome();
-                break;
+        androidx.fragment.app.Fragment current =
+                getSupportFragmentManager().findFragmentById(R.id.contentFrame);
 
-            case 1:
-                Intent transferIntent = new Intent(this, TransferActivity.class);
-                transferIntent.putExtra("uzytkownikId", uzytkownikId);
-                startActivity(transferIntent);
-                break;
-
-            case 2:
-                Intent cardsIntent = new Intent(this, CardsActivity.class);
-                cardsIntent.putExtra("uzytkownikId", uzytkownikId);
-                startActivity(cardsIntent);
-                break;
-
-            case 3:
-                showPlaceholder(
-                        "Więcej",
-                        "Dodatkowe funkcje aplikacji."
-                );
-                break;
+        if (position == 0) {
+            if (current != null) {
+                getSupportFragmentManager().beginTransaction()
+                        .remove(current).commitNow();
+            }
+            showHome();
+            return;
         }
+
+        contentFrame.removeAllViews();
+        androidx.fragment.app.Fragment next;
+        if (position == 1) {
+            next = new TransferFragment();
+        } else if (position == 2) {
+            next = new CardsFragment();
+        } else {
+            showPlaceholder("Więcej", "Dodatkowe funkcje aplikacji.");
+            return;
+        }
+
+        getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(
+                        android.R.anim.fade_in,
+                        android.R.anim.fade_out,
+                        android.R.anim.fade_in,
+                        android.R.anim.fade_out)
+                .replace(R.id.contentFrame, next)
+                .commit();
     }
 
     private void showHome() {
