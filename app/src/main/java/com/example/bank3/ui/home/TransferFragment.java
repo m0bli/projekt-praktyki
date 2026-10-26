@@ -147,7 +147,7 @@ public class TransferFragment extends Fragment {
         heading.setTextColor(textColor);
         page.addView(heading);
 
-        TextView subtitle = new TextView(this);
+        TextView subtitle = new TextView(requireContext());
         subtitle.setText("Wybierz swoje konto i podaj dane odbiorcy.");
         subtitle.setTextSize(14);
         subtitle.setTextColor(secondaryTextColor);
@@ -156,7 +156,7 @@ public class TransferFragment extends Fragment {
         subtitleParams.bottomMargin = dp(22);
         page.addView(subtitle, subtitleParams);
 
-        LinearLayout card = new LinearLayout(this);
+        LinearLayout card = new LinearLayout(requireContext());
         card.setOrientation(LinearLayout.VERTICAL);
         card.setPadding(dp(18), dp(20), dp(18), dp(20));
         card.setBackground(roundRect(surfaceColor, dp(22)));
@@ -216,7 +216,7 @@ public class TransferFragment extends Fragment {
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
         );
 
-        TextView hint = new TextView(this);
+        TextView hint = new TextView(requireContext());
         hint.setText("Odbiorca musi mieć konto w tej samej walucie. Backend wymaga 26-cyfrowego numeru konta.");
         hint.setTextSize(12);
         hint.setTextColor(secondaryTextColor);
@@ -263,7 +263,7 @@ public class TransferFragment extends Fragment {
     }
 
     private void addLabel(LinearLayout parent, String value) {
-        TextView label = new TextView(this);
+        TextView label = new TextView(requireContext());
         label.setText(value);
         label.setTextSize(13);
         label.setTypeface(null, android.graphics.Typeface.BOLD);
