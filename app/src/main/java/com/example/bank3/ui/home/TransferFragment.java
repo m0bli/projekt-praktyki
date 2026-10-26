@@ -277,7 +277,7 @@ public class TransferFragment extends Fragment {
     private Spinner addSpinner(LinearLayout parent, String[] values) {
         Spinner spinner = new Spinner(requireContext());
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-                this, android.R.layout.simple_spinner_item, values) {
+                requireContext(), android.R.layout.simple_spinner_item, values) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 TextView view = (TextView) super.getView(position, convertView, parent);
@@ -387,7 +387,7 @@ public class TransferFragment extends Fragment {
         sourceAccounts.clear();
         sourceAccountSpinner.setEnabled(false);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this,
+                requireContext(),
                 android.R.layout.simple_spinner_item,
                 new String[]{"Nie udało się pobrać kont źródłowych"}
         );
@@ -513,7 +513,7 @@ public class TransferFragment extends Fragment {
 
             @Override
             public void onFailure(Call<Map<String, Object>> call, Throwable t) {
-                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                if (call.isCanceled() || getActivity() == null || requireActivity().isFinishing() || requireActivity().isDestroyed()) return;
                 szukajWUzytkownikach(api, recipientEmail, recipientName, amount, title);
             }
         });
@@ -532,7 +532,7 @@ public class TransferFragment extends Fragment {
                     Call<List<UserResponse>> call,
                     Response<List<UserResponse>> response
             ) {
-                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                if (call.isCanceled() || getActivity() == null || requireActivity().isFinishing() || requireActivity().isDestroyed()) return;
 
                 if (!response.isSuccessful() || response.body() == null) {
                     setSubmitting(false, null);
@@ -561,7 +561,7 @@ public class TransferFragment extends Fragment {
 
             @Override
             public void onFailure(Call<List<UserResponse>> call, Throwable t) {
-                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                if (call.isCanceled() || getActivity() == null || requireActivity().isFinishing() || requireActivity().isDestroyed()) return;
                 setSubmitting(false, null);
                 toast("Błąd połączenia podczas wyszukiwania odbiorcy: "
                         + (t.getMessage() == null ? t.getClass().getSimpleName() : t.getMessage()));
@@ -583,7 +583,7 @@ public class TransferFragment extends Fragment {
                     Call<List<KontoApiResponse>> call,
                     Response<List<KontoApiResponse>> response
             ) {
-                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                if (call.isCanceled() || getActivity() == null || requireActivity().isFinishing() || requireActivity().isDestroyed()) return;
                 setSubmitting(false, null);
 
                 if (!response.isSuccessful() || response.body() == null || response.body().isEmpty()) {
@@ -618,7 +618,7 @@ public class TransferFragment extends Fragment {
 
             @Override
             public void onFailure(Call<List<KontoApiResponse>> call, Throwable t) {
-                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                if (call.isCanceled() || getActivity() == null || requireActivity().isFinishing() || requireActivity().isDestroyed()) return;
                 setSubmitting(false, null);
                 toast("Błąd połączenia podczas pobierania konta odbiorcy.");
             }
@@ -682,7 +682,7 @@ public class TransferFragment extends Fragment {
                     Call<Map<String, Object>> call,
                     Response<Map<String, Object>> response
             ) {
-                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                if (call.isCanceled() || getActivity() == null || requireActivity().isFinishing() || requireActivity().isDestroyed()) return;
                 setSubmitting(false, null);
 
                 if (response.isSuccessful()) {
@@ -716,7 +716,7 @@ public class TransferFragment extends Fragment {
 
             @Override
             public void onFailure(Call<Map<String, Object>> call, Throwable t) {
-                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                if (call.isCanceled() || getActivity() == null || requireActivity().isFinishing() || requireActivity().isDestroyed()) return;
                 setSubmitting(false, null);
                 toast("Błąd połączenia podczas wysyłania przelewu: "
                         + (t.getMessage() == null ? t.getClass().getSimpleName() : t.getMessage()));
