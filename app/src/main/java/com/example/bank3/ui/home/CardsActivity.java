@@ -49,7 +49,6 @@ public class CardsActivity extends AppCompatActivity {
         preferences = getSharedPreferences(PREFS_PREFIX + userId, MODE_PRIVATE);
 
         setupViews();
-        BottomNavigationHelper.attach(this, findViewById(R.id.cardsScrollView), userId, 2);
     }
 
     private void setupEdgeToEdge() {
