@@ -797,6 +797,11 @@ public class MainMenuActivity extends AppCompatActivity
             String title,
             String description
     ) {
+        androidx.fragment.app.Fragment current =
+                getSupportFragmentManager().findFragmentById(R.id.contentFrame);
+        if (current != null) {
+            getSupportFragmentManager().beginTransaction().remove(current).commitNow();
+        }
         contentFrame.removeAllViews();
 
         LinearLayout page = new LinearLayout(this);
