@@ -750,13 +750,16 @@ public class MainMenuActivity extends AppCompatActivity
             return;
         }
 
-        contentFrame.removeAllViews();
         androidx.fragment.app.Fragment next;
         if (position == 1) {
             next = new TransferFragment();
         } else if (position == 2) {
             next = new CardsFragment();
         } else {
+            if (current != null) {
+                getSupportFragmentManager().beginTransaction()
+                        .remove(current).commitNow();
+            }
             showPlaceholder("Więcej", "Dodatkowe funkcje aplikacji.");
             return;
         }
