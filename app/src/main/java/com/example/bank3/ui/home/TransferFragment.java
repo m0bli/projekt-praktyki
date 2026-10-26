@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.ViewGroup;
 import androidx.fragment.app.Fragment;
 import android.text.Editable;
 import android.text.InputType;
@@ -364,7 +363,7 @@ public class TransferFragment extends Fragment {
 
             @Override
             public void onFailure(Call<List<KontoApiResponse>> call, Throwable t) {
-                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                if (call.isCanceled() || getActivity() == null || requireActivity().isFinishing() || requireActivity().isDestroyed()) return;
                 pokazBladKontaZrodlowego("Błąd połączenia podczas pobierania Twoich kont: "
                         + (t.getMessage() == null ? t.getClass().getSimpleName() : t.getMessage()));
             }
