@@ -19,4 +19,11 @@
     <color name="theme_divider">#E8ECF2</color>
     <color name="theme_transaction_positive">#16845B</color>
     <color name="theme_transaction_negative">#C23A48</color>
+
+    <!-- Kolory Akcentów z ThemeManager -->
+    <color name="accent_blue">#3478F6</color>
+    <color name="accent_green">#10B981</color>
+    <color name="accent_purple">#8B5CF6</color>
+    <color name="accent_red">#EF4444</color>
+    <color name="accent_orange">#F97316</color>
 </resources>

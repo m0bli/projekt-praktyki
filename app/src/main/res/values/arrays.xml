@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Entry & Values for Theme preference -->
+    <string-array name="theme_entries">
+        <item>Light</item>
+        <item>Dark</item>
+    </string-array>
+
+    <string-array name="theme_values">
+        <item>white</item>
+        <item>black</item>
+    </string-array>
+
+    <!-- Entry & Values for Accent preference -->
+    <string-array name="accent_entries">
+        <item>Blue</item>
+        <item>Green</item>
+        <item>Purple</item>
+        <item>Red</item>
+        <item>Orange</item>
+    </string-array>
+
+    <string-array name="accent_values">
+        <item>blue</item>
+        <item>green</item>
+        <item>purple</item>
+        <item>red</item>
+        <item>orange</item>
+    </string-array>
+</resources>

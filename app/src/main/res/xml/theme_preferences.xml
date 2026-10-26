@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="Motyw Aplikacji">
+
+        <ListPreference
+            android:defaultValue="white"
+            android:entries="@array/theme_entries"
+            android:entryValues="@array/theme_values"
+            android:key="selected_theme"
+            android:summary="Jasne lub ciemne tło interfejsu"
+            android:title="Wybierz Motyw" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Kolor Akcentowy">
+
+        <ListPreference
+            android:defaultValue="blue"
+            android:entries="@array/accent_entries"
+            android:entryValues="@array/accent_values"
+            android:key="selected_accent"
+            android:summary="Dostosuj kolor elementów aktywnych"
+            android:title="Główny Kolor Akcentu" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -48,7 +48,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:gravity="center"
-                android:text="Adrian Christian Hernandez"
+                android:text="MP"
                 android:textColor="#173B70"
                 android:textSize="30sp"
                 android:textStyle="bold"

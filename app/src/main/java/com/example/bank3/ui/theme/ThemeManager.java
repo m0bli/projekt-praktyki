@@ -6,6 +6,9 @@ import android.graphics.Color;
 import android.net.Uri;
 
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.content.ContextCompat;
+
+import com.example.bank3.R;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -162,20 +165,20 @@ public final class ThemeManager {
     public static int getAccentColor(Context context) {
         switch (getAccent(context)) {
             case ACCENT_GREEN:
-                return Color.rgb(16, 185, 129);
+                return ContextCompat.getColor(context, R.color.accent_green);
 
             case ACCENT_PURPLE:
-                return Color.rgb(139, 92, 246);
+                return ContextCompat.getColor(context, R.color.accent_purple);
 
             case ACCENT_RED:
-                return Color.rgb(239, 68, 68);
+                return ContextCompat.getColor(context, R.color.accent_red);
 
             case ACCENT_ORANGE:
-                return Color.rgb(249, 115, 22);
+                return ContextCompat.getColor(context, R.color.accent_orange);
 
             case ACCENT_BLUE:
             default:
-                return Color.rgb(52, 120, 246);
+                return ContextCompat.getColor(context, R.color.accent_blue);
         }
     }
 
