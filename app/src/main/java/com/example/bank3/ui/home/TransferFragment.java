@@ -486,7 +486,7 @@ public class TransferFragment extends Fragment {
                     Call<Map<String, Object>> call,
                     Response<Map<String, Object>> response
             ) {
-                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                if (call.isCanceled() || getActivity() == null || requireActivity().isFinishing() || requireActivity().isDestroyed()) return;
 
                 if (response.isSuccessful() && response.body() != null) {
                     Map<String, Object> account = response.body();
