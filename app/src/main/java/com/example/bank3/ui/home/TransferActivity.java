@@ -780,7 +780,7 @@ public class TransferActivity extends AppCompatActivity {
         submitting = value;
         submitButton.setEnabled(!value);
         submitButton.setText(value
-                ? (label == null ? "Przetwarzanie…" : label)
+                ? (label == null ? "Przetwarzanie..." : label)
                 : "PRZELEJ");
     }
 
