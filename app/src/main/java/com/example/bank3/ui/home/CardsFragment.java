@@ -52,12 +52,12 @@ public class CardsFragment extends Fragment {
     }
 
     private void setupViews(View root) {
-        root.root.findViewById(R.id.btnBackCards).setOnClickListener(v -> ((MainMenuActivity) requireActivity()).selectTab(0));
+        root.findViewById(R.id.btnBackCards).setOnClickListener(v -> ((MainMenuActivity) requireActivity()).selectTab(0));
 
-        cardNumber = findViewById(R.id.txtCardNumber);
-        revealButton = findViewById(R.id.btnRevealCard);
-        blockedSwitch = findViewById(R.id.switchBlocked);
-        limitValue = findViewById(R.id.txtLimitValue);
+        cardNumber = root.findViewById(R.id.txtCardNumber);
+        revealButton = root.findViewById(R.id.btnRevealCard);
+        blockedSwitch = root.findViewById(R.id.switchBlocked);
+        limitValue = root.findViewById(R.id.txtLimitValue);
 
         // Card reveal button logic
         revealButton.setOnClickListener(v -> {
@@ -83,12 +83,12 @@ public class CardsFragment extends Fragment {
         });
 
         // Limit change logic
-        findViewById(R.id.btnChangeLimit).setOnClickListener(v -> showLimitDialog());
+        root.findViewById(R.id.btnChangeLimit).setOnClickListener(v -> showLimitDialog());
         updateLimitText();
     }
 
     private void showLimitDialog() {
-        EditText input = new EditText(this);
+        EditText input = new EditText(requireContext());
         input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         input.setSingleLine(true);
         input.setHint("np. 1500");
