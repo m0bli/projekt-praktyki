@@ -735,6 +735,7 @@ public class MainMenuActivity extends AppCompatActivity
 
     public void selectTab(int position) {
         if (position < 0 || position > 3) return;
+        int previousTab = selectedTab;
         selectedTab = position;
         updateNavigationColors();
 
@@ -764,12 +765,19 @@ public class MainMenuActivity extends AppCompatActivity
             return;
         }
 
+        // Poziomy przesuw ekranu w stylu karuzeli: kierunek zależy od wybranej zakładki.
+        boolean movingForward = position > previousTab;
+        int enterAnimation = movingForward
+                ? R.anim.slide_in_right : R.anim.slide_in_left;
+        int exitAnimation = movingForward
+                ? R.anim.slide_out_left : R.anim.slide_out_right;
+
         getSupportFragmentManager().beginTransaction()
                 .setCustomAnimations(
-                        android.R.anim.fade_in,
-                        android.R.anim.fade_out,
-                        android.R.anim.fade_in,
-                        android.R.anim.fade_out)
+                        enterAnimation,
+                        exitAnimation,
+                        movingForward ? R.anim.slide_in_left : R.anim.slide_in_right,
+                        movingForward ? R.anim.slide_out_right : R.anim.slide_out_left)
                 .replace(R.id.contentFrame, next)
                 .commit();
     }
