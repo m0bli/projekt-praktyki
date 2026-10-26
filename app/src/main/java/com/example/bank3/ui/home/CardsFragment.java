@@ -52,7 +52,7 @@ public class CardsFragment extends Fragment {
     }
 
     private void setupViews(View root) {
-        root.findViewById(R.id.btnBackCards).setOnClickListener(v -> finish());
+        root.root.findViewById(R.id.btnBackCards).setOnClickListener(v -> ((MainMenuActivity) requireActivity()).selectTab(0));
 
         cardNumber = findViewById(R.id.txtCardNumber);
         revealButton = findViewById(R.id.btnRevealCard);
@@ -110,7 +110,7 @@ public class CardsFragment extends Fragment {
                         updateLimitText();
                         Toast.makeText(requireContext(), "Zapisano dzienny limit płatności.", Toast.LENGTH_SHORT).show();
                     } catch (NumberFormatException e) {
-                        Toast.makeText(this, "Podaj kwotę większą od 0 i nie większą niż 1 000 000 PLN.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(requireContext(), "Podaj kwotę większą od 0 i nie większą niż 1 000 000 PLN.", Toast.LENGTH_LONG).show();
                     }
                 })
                 .show();
