@@ -236,7 +236,8 @@ public class MainMenuActivity extends AppCompatActivity
         });
 
         refreshTheme();
-        selectTab(0);
+        int openTab = getIntent().getIntExtra("openTab", 0);
+        selectTab(openTab);
         pobierzSaldo();
         loadRecentTransactions();
     }
