@@ -251,7 +251,6 @@ public class TransferActivity extends AppCompatActivity {
         submitButton.setOnClickListener(v -> sprawdzOdbiorce());
 
         setContentView(scrollView);
-        BottomNavigationHelper.attach(this, scrollView, uzytkownikId, 1);
         pobierzKontaUzytkownika();
     }
 
