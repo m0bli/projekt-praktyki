@@ -765,19 +765,8 @@ public class MainMenuActivity extends AppCompatActivity
             return;
         }
 
-        // Poziomy przesuw ekranu w stylu karuzeli: kierunek zależy od wybranej zakładki.
-        boolean movingForward = position > previousTab;
-        int enterAnimation = movingForward
-                ? R.anim.slide_in_right : R.anim.slide_in_left;
-        int exitAnimation = movingForward
-                ? R.anim.slide_out_left : R.anim.slide_out_right;
-
+        // Bez animacji: zakładki zmieniają się natychmiast.
         getSupportFragmentManager().beginTransaction()
-                .setCustomAnimations(
-                        enterAnimation,
-                        exitAnimation,
-                        movingForward ? R.anim.slide_in_left : R.anim.slide_in_right,
-                        movingForward ? R.anim.slide_out_right : R.anim.slide_out_left)
                 .replace(R.id.contentFrame, next)
                 .commit();
     }
