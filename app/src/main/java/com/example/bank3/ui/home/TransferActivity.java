@@ -198,11 +198,11 @@ public class TransferActivity extends AppCompatActivity {
         });
 
         destinationAccountInput = addInput(
-                card, "E-mail odbiorcy", "np. jan.kowalski@example.com",
+                card, "E-mail odbiorcy", "E-mail odbiorcy",
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
         );
         recipientNameInput = addInput(
-                card, "Imię odbiorcy", "Imię właściciela konta",
+                card, "Imię odbiorcy", "Imię odbiorcy",
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS
         );
         amountInput = addInput(
@@ -223,11 +223,11 @@ public class TransferActivity extends AppCompatActivity {
         });
 
         addLabel(card, "Waluta konta źródłowego");
-        currencySpinner = addSpinner(card, new String[]{"Najpierw pobierz konto"});
+        currencySpinner = addSpinner(card, new String[]{"Pobieranie waluty..."});
         currencySpinner.setEnabled(false);
 
         titleInput = addInput(
-                card, "Tytuł przelewu", "",
+                card, "Tytuł przelewu", "Tytuł przelewu",
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
         );
 

@@ -95,7 +95,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:background="@color/theme_background"
-                android:hint="np. jan.kowalski@example.com"
+                android:hint="user@example.com"
                 android:inputType="textEmailAddress"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
@@ -120,7 +120,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:background="@color/theme_background"
-                android:hint="Imię właściciela konta"
+                android:hint=""
                 android:inputType="textCapWords"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
@@ -192,7 +192,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:background="@color/theme_background"
-                android:hint="Np. Rachunki za październik"
+                android:hint=""
                 android:inputType="textCapSentences"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
@@ -201,14 +201,6 @@
                 android:textColorHint="@color/theme_text_secondary"
                 android:textSize="15sp" />
 
-            <TextView
-                android:id="@+id/transferHint"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:text="Odbiorca musi mieć konto w tej samej walucie. Backend wymaga 26-cyfrowego numeru konta."
-                android:textColor="@color/theme_text_secondary"
-                android:textSize="12sp" />
         </LinearLayout>
 
         <Button

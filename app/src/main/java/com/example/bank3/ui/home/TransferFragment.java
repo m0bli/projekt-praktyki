@@ -1,5 +1,7 @@
 package com.example.bank3.ui.home;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.app.AlertDialog;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
@@ -183,11 +185,11 @@ public class TransferFragment extends Fragment {
         });
 
         destinationAccountInput = addInput(
-                card, "E-mail odbiorcy", "np. jan.kowalski@example.com",
+                card, "E-mail odbiorcy", "E-mail odbiorcy",
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
         );
         recipientNameInput = addInput(
-                card, "Imię odbiorcy", "Imię właściciela konta",
+                card, "Imię odbiorcy", "Imię odbiorcy",
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS
         );
         amountInput = addInput(
@@ -208,11 +210,11 @@ public class TransferFragment extends Fragment {
         });
 
         addLabel(card, "Waluta konta źródłowego");
-        currencySpinner = addSpinner(card, new String[]{"Najpierw pobierz konto"});
+        currencySpinner = addSpinner(card, new String[]{"Pobieranie waluty..."});
         currencySpinner.setEnabled(false);
 
         titleInput = addInput(
-                card, "Tytuł przelewu", "",
+                card, "Tytuł przelewu", "Tytuł przelewu",
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
         );
 
@@ -403,9 +405,12 @@ public class TransferFragment extends Fragment {
             return;
         }
 
-        // Sprawdź czy konto jest zablokowane w ustawieniach Karty
         android.content.SharedPreferences cardPrefs =
-                getSharedPreferences("demo_card_settings_" + uzytkownikId, MODE_PRIVATE);
+                requireContext().getSharedPreferences(
+                        "demo_card_settings_" + uzytkownikId,
+                        android.content.Context.MODE_PRIVATE
+                );
+
         if (cardPrefs.getBoolean("blocked", false)) {
             toast("Twoje konto jest zablokowane. Zmień ustawienia w zakładce Karty, aby odblokować przelewy.");
             return;

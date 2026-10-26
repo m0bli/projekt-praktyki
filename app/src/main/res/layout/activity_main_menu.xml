@@ -216,6 +216,7 @@
         </FrameLayout>
 
         <!-- Dolna nawigacja -->
+        <!-- TODO: NAWIGACJA WSZEDZIE -->
         <LinearLayout
             android:id="@+id/bottomNavigation"
             android:layout_width="match_parent"
