@@ -264,7 +264,7 @@
                     android:background="@drawable/bg_quick_action"
                     android:contentDescription="Ikona email"
                     android:padding="12dp"
-                    android:src="@drawable/ic_person"
+                    android:src="@drawable/ic_email"
                     app:tint="@color/theme_accent" />
 
                 <LinearLayout
@@ -495,7 +495,7 @@
                     android:background="@drawable/bg_quick_action"
                     android:contentDescription="Ikona pełny numer konta"
                     android:padding="12dp"
-                    android:src="@drawable/ic_person"
+                    android:src="@drawable/ic_kwota"
                     app:tint="@color/theme_accent" />
 
                 <LinearLayout
@@ -602,7 +602,7 @@
                     android:background="@drawable/bg_quick_action"
                     android:contentDescription="Ikona zmiana hasła"
                     android:padding="12dp"
-                    android:src="@drawable/ic_person"
+                    android:src="@android:drawable/ic_lock_lock"
                     app:tint="@color/theme_accent" />
 
                 <LinearLayout

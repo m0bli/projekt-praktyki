@@ -7,11 +7,8 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.InputType;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -36,6 +33,8 @@ import com.example.bank3.model.UserRequest;
 import com.example.bank3.model.UserResponse;
 import com.example.bank3.network.RetrofitClient;
 import com.example.bank3.ui.theme.ThemeManager;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.List;
 import java.util.Locale;
@@ -80,6 +79,8 @@ public class ProfileActivity extends AppCompatActivity
     private String currentUserNazwisko = "";
     private String currentUserEmail = "";
     private String nickFallback = "";
+
+    private boolean isAccountVerifiedSession = false;
 
     private Call<UserResponse> userCall;
 
@@ -188,8 +189,14 @@ public class ProfileActivity extends AppCompatActivity
             });
         }
 
-        // Pokaż pełny numer konta po wpisaniu i weryfikacji hasła z bazy
-        btnShowFullAccountNumber.setOnClickListener(v -> showPasswordDialogForAccountNumber());
+        // Pokaż pełny numer konta - po weryfikacji hasła (tylko raz na sesję ekranu)
+        btnShowFullAccountNumber.setOnClickListener(v -> {
+            if (isAccountVerifiedSession) {
+                revealFullAccountNumber();
+            } else {
+                showPasswordDialogForAccountNumber();
+            }
+        });
 
         btnHideFullAccountNumber.setOnClickListener(v -> {
             valFullAccountNumber.setVisibility(View.GONE);
@@ -219,193 +226,277 @@ public class ProfileActivity extends AppCompatActivity
         applyThemeColors();
     }
 
+    private void revealFullAccountNumber() {
+        String displayAccountNum = fetchedNumerKonta.isEmpty()
+                ? generateIbanFallback(rawAccountIdStr)
+                : formatDisplayIban(fetchedNumerKonta);
+
+        valFullAccountNumber.setText(displayAccountNum);
+        valFullAccountNumber.setVisibility(View.VISIBLE);
+        btnShowFullAccountNumber.setVisibility(View.GONE);
+        btnHideFullAccountNumber.setVisibility(View.VISIBLE);
+        btnCopyFullAccountNumber.setVisibility(View.VISIBLE);
+    }
+
     private void showPasswordDialogForAccountNumber() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_verify_password, null);
+
+        int surface = ThemeManager.getSurfaceColor(this);
+        int text = ThemeManager.getTextColor(this);
+        int secondary = ThemeManager.getSecondaryTextColor(this);
+        int accent = ThemeManager.getAccentColor(this);
+        boolean dark = ThemeManager.isBlack(this);
+
+        View dialogRoot = dialogView.findViewById(R.id.dialogVerifyRoot);
+        if (dialogRoot != null) {
+            dialogRoot.setBackground(round(surface, 24));
+        }
+
+        ImageView iconView = dialogView.findViewById(R.id.dialogVerifyIcon);
+        if (iconView != null) {
+            int iconSurface = dark ? Color.rgb(44, 57, 78) : Color.rgb(232, 240, 255);
+            iconView.setBackground(round(iconSurface, 18));
+            iconView.setColorFilter(accent);
+        }
+
+        TextView titleView = dialogView.findViewById(R.id.dialogVerifyTitle);
+        if (titleView != null) titleView.setTextColor(text);
+
+        TextView subtitleView = dialogView.findViewById(R.id.dialogVerifySubtitle);
+        if (subtitleView != null) subtitleView.setTextColor(secondary);
+
+        final TextInputLayout inputLayout = dialogView.findViewById(R.id.dialogVerifyPasswordLayout);
+        final TextInputEditText editPassword = dialogView.findViewById(R.id.editDialogVerifyPassword);
+
+        TextView txtError = dialogView.findViewById(R.id.txtDialogVerifyError);
+        TextView btnCancel = dialogView.findViewById(R.id.btnDialogVerifyCancel);
+        TextView btnConfirm = dialogView.findViewById(R.id.btnDialogVerifyConfirm);
+
+        if (btnCancel != null) {
+            btnCancel.setBackground(round(dark ? Color.rgb(44, 57, 78) : Color.rgb(232, 240, 255), 14));
+            btnCancel.setTextColor(secondary);
+        }
+
+        if (btnConfirm != null) {
+            btnConfirm.setBackground(round(accent, 14));
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Potwierdź tożsamość");
-        builder.setMessage("Wprowadź swoje hasło do konta, aby odsłonić numer konta z bazy:");
-
-        LinearLayout container = new LinearLayout(this);
-        container.setOrientation(LinearLayout.VERTICAL);
-        int padding = dp(20);
-        container.setPadding(padding, dp(6), padding, dp(10));
-
-        final EditText inputPass = new EditText(this);
-        inputPass.setHint("Hasło do konta");
-        inputPass.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        container.addView(inputPass);
-
-        builder.setView(container);
-
-        builder.setPositiveButton("Potwierdź", null);
-        builder.setNegativeButton("Anuluj", (dialog, which) -> dialog.dismiss());
+        builder.setView(dialogView);
 
         AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
         dialog.show();
 
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String pass = inputPass.getText().toString().trim();
-            if (pass.isEmpty()) {
-                inputPass.setError("Wprowadź hasło");
-                return;
-            }
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+        }
 
-            String loginToVerify = (!currentUserLogin.isEmpty()) ? currentUserLogin : nickFallback;
-            if (loginToVerify.isEmpty()) {
-                loginToVerify = valLogin.getText().toString();
-            }
+        if (btnConfirm != null) {
+            btnConfirm.setOnClickListener(v -> {
+                String pass = (editPassword != null && editPassword.getText() != null)
+                        ? editPassword.getText().toString().trim() : "";
 
-            // Weryfikacja hasła z bazą danych przez AuthAPI
-            profileProgressBar.setVisibility(View.VISIBLE);
-            AuthAPI authAPI = RetrofitClient.getInstance().create(AuthAPI.class);
-            authAPI.login(new LoginRequest(loginToVerify, pass)).enqueue(new Callback<AuthResponse>() {
-                @Override
-                public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
-                    profileProgressBar.setVisibility(View.GONE);
-                    if (isFinishing() || isDestroyed()) return;
+                if (pass.isEmpty()) {
+                    if (inputLayout != null) inputLayout.setError("Wprowadź hasło");
+                    return;
+                }
+                if (inputLayout != null) inputLayout.setError(null);
+                if (txtError != null) txtError.setVisibility(View.GONE);
 
-                    AuthResponse body = response.body();
-                    if (response.isSuccessful() && body != null && (body.isSukces() || body.getUzytkownikId() != null)) {
-                        // Hasło poprawne - odsłoń numer konta z bazy
-                        String displayAccountNum = fetchedNumerKonta.isEmpty()
-                                ? generateIbanFallback(rawAccountIdStr)
-                                : formatDisplayIban(fetchedNumerKonta);
+                String loginToVerify = (!currentUserLogin.isEmpty()) ? currentUserLogin : nickFallback;
+                if (loginToVerify.isEmpty()) {
+                    loginToVerify = valLogin.getText().toString();
+                }
 
-                        valFullAccountNumber.setText(displayAccountNum);
-                        valFullAccountNumber.setVisibility(View.VISIBLE);
-                        btnShowFullAccountNumber.setVisibility(View.GONE);
-                        btnHideFullAccountNumber.setVisibility(View.VISIBLE);
-                        btnCopyFullAccountNumber.setVisibility(View.VISIBLE);
+                profileProgressBar.setVisibility(View.VISIBLE);
+                AuthAPI authAPI = RetrofitClient.getInstance().create(AuthAPI.class);
+                authAPI.login(new LoginRequest(loginToVerify, pass)).enqueue(new Callback<AuthResponse>() {
+                    @Override
+                    public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
+                        profileProgressBar.setVisibility(View.GONE);
+                        if (isFinishing() || isDestroyed()) return;
 
-                        Toast.makeText(ProfileActivity.this, "Hasło prawidłowe. Numer konta odsłonięty.", Toast.LENGTH_SHORT).show();
-                        dialog.dismiss();
-                    } else {
-                        inputPass.setError("Nieprawidłowe hasło");
-                        Toast.makeText(ProfileActivity.this, "Nieprawidłowe hasło!", Toast.LENGTH_SHORT).show();
+                        AuthResponse body = response.body();
+                        if (response.isSuccessful() && body != null && (body.isSukces() || body.getUzytkownikId() != null)) {
+                            isAccountVerifiedSession = true;
+                            revealFullAccountNumber();
+                            Toast.makeText(ProfileActivity.this, "Hasło prawidłowe. Numer konta odsłonięty.", Toast.LENGTH_SHORT).show();
+                            dialog.dismiss();
+                        } else {
+                            if (inputLayout != null) inputLayout.setError("Nieprawidłowe hasło");
+                            if (txtError != null) {
+                                txtError.setText("Nieprawidłowe hasło do konta");
+                                txtError.setVisibility(View.VISIBLE);
+                            }
+                        }
                     }
-                }
 
-                @Override
-                public void onFailure(Call<AuthResponse> call, Throwable t) {
-                    profileProgressBar.setVisibility(View.GONE);
-                    if (isFinishing() || isDestroyed()) return;
+                    @Override
+                    public void onFailure(Call<AuthResponse> call, Throwable t) {
+                        profileProgressBar.setVisibility(View.GONE);
+                        if (isFinishing() || isDestroyed()) return;
 
-                    // Fallback jeśli serwer niedostępny
-                    Toast.makeText(ProfileActivity.this, "Błąd połączenia z bazą. Sprawdź serwer.", Toast.LENGTH_SHORT).show();
-                }
+                        Toast.makeText(ProfileActivity.this, "Błąd połączenia z bazą danych.", Toast.LENGTH_SHORT).show();
+                    }
+                });
             });
-        });
+        }
     }
 
     private void showChangePasswordDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_change_password, null);
+
+        int surface = ThemeManager.getSurfaceColor(this);
+        int text = ThemeManager.getTextColor(this);
+        int secondary = ThemeManager.getSecondaryTextColor(this);
+        int accent = ThemeManager.getAccentColor(this);
+        boolean dark = ThemeManager.isBlack(this);
+
+        View dialogRoot = dialogView.findViewById(R.id.dialogChangePassRoot);
+        if (dialogRoot != null) {
+            dialogRoot.setBackground(round(surface, 24));
+        }
+
+        ImageView iconView = dialogView.findViewById(R.id.dialogChangePassIcon);
+        if (iconView != null) {
+            int iconSurface = dark ? Color.rgb(44, 57, 78) : Color.rgb(232, 240, 255);
+            iconView.setBackground(round(iconSurface, 18));
+            iconView.setColorFilter(accent);
+        }
+
+        TextView titleView = dialogView.findViewById(R.id.dialogChangePassTitle);
+        if (titleView != null) titleView.setTextColor(text);
+
+        TextView subtitleView = dialogView.findViewById(R.id.dialogChangePassSubtitle);
+        if (subtitleView != null) subtitleView.setTextColor(secondary);
+
+        final TextInputLayout layoutCurrentPass = dialogView.findViewById(R.id.layoutCurrentPass);
+        final TextInputEditText editCurrentPass = dialogView.findViewById(R.id.editCurrentPass);
+
+        final TextInputLayout layoutNewPass = dialogView.findViewById(R.id.layoutNewPass);
+        final TextInputEditText editNewPass = dialogView.findViewById(R.id.editNewPass);
+
+        final TextInputLayout layoutConfirmPass = dialogView.findViewById(R.id.layoutConfirmPass);
+        final TextInputEditText editConfirmPass = dialogView.findViewById(R.id.editConfirmPass);
+
+        TextView txtError = dialogView.findViewById(R.id.txtDialogChangePassError);
+        TextView btnCancel = dialogView.findViewById(R.id.btnDialogChangePassCancel);
+        TextView btnConfirm = dialogView.findViewById(R.id.btnDialogChangePassConfirm);
+
+        if (btnCancel != null) {
+            btnCancel.setBackground(round(dark ? Color.rgb(44, 57, 78) : Color.rgb(232, 240, 255), 14));
+            btnCancel.setTextColor(secondary);
+        }
+
+        if (btnConfirm != null) {
+            btnConfirm.setBackground(round(accent, 14));
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Zmiana hasła");
-
-        LinearLayout container = new LinearLayout(this);
-        container.setOrientation(LinearLayout.VERTICAL);
-        int padding = dp(20);
-        container.setPadding(padding, dp(6), padding, dp(10));
-
-        final EditText inputCurrent = new EditText(this);
-        inputCurrent.setHint("Aktualne hasło");
-        inputCurrent.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        container.addView(inputCurrent);
-
-        final EditText inputNew = new EditText(this);
-        inputNew.setHint("Nowe hasło (min. 6 znaków)");
-        inputNew.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        container.addView(inputNew);
-
-        final EditText inputConfirm = new EditText(this);
-        inputConfirm.setHint("Powtórz nowe hasło");
-        inputConfirm.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        container.addView(inputConfirm);
-
-        builder.setView(container);
-
-        builder.setPositiveButton("Zmień", null);
-        builder.setNegativeButton("Anuluj", (dialog, which) -> dialog.dismiss());
+        builder.setView(dialogView);
 
         AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
         dialog.show();
 
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String currentPass = inputCurrent.getText().toString().trim();
-            String newPass = inputNew.getText().toString().trim();
-            String confirmPass = inputConfirm.getText().toString().trim();
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+        }
 
-            if (currentPass.isEmpty()) {
-                inputCurrent.setError("Podaj aktualne hasło");
-                return;
-            }
-            if (newPass.length() < 6) {
-                inputNew.setError("Hasło musi mieć co najmniej 6 znaków");
-                return;
-            }
-            if (!newPass.equals(confirmPass)) {
-                inputConfirm.setError("Hasła nie są identyczne");
-                return;
-            }
+        if (btnConfirm != null) {
+            btnConfirm.setOnClickListener(v -> {
+                String currentPass = (editCurrentPass != null && editCurrentPass.getText() != null)
+                        ? editCurrentPass.getText().toString().trim() : "";
+                String newPass = (editNewPass != null && editNewPass.getText() != null)
+                        ? editNewPass.getText().toString().trim() : "";
+                String confirmPass = (editConfirmPass != null && editConfirmPass.getText() != null)
+                        ? editConfirmPass.getText().toString().trim() : "";
 
-            String loginToVerify = (!currentUserLogin.isEmpty()) ? currentUserLogin : nickFallback;
-            if (loginToVerify.isEmpty()) {
-                loginToVerify = valLogin.getText().toString();
-            }
+                if (layoutCurrentPass != null) layoutCurrentPass.setError(null);
+                if (layoutNewPass != null) layoutNewPass.setError(null);
+                if (layoutConfirmPass != null) layoutConfirmPass.setError(null);
+                if (txtError != null) txtError.setVisibility(View.GONE);
 
-            // Weryfikacja obecnego hasła w bazie danych
-            profileProgressBar.setVisibility(View.VISIBLE);
-            AuthAPI authAPI = RetrofitClient.getInstance().create(AuthAPI.class);
-            String finalLoginToVerify = loginToVerify;
-            authAPI.login(new LoginRequest(loginToVerify, currentPass)).enqueue(new Callback<AuthResponse>() {
-                @Override
-                public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
-                    if (isFinishing() || isDestroyed()) return;
+                if (currentPass.isEmpty()) {
+                    if (layoutCurrentPass != null) layoutCurrentPass.setError("Podaj aktualne hasło");
+                    return;
+                }
+                if (newPass.length() < 6) {
+                    if (layoutNewPass != null) layoutNewPass.setError("Hasło musi mieć co najmniej 6 znaków");
+                    return;
+                }
+                if (!newPass.equals(confirmPass)) {
+                    if (layoutConfirmPass != null) layoutConfirmPass.setError("Hasła nie są identyczne");
+                    return;
+                }
 
-                    AuthResponse body = response.body();
-                    if (response.isSuccessful() && body != null && (body.isSukces() || body.getUzytkownikId() != null)) {
-                        // Weryfikacja udana - zaktualizuj hasło w bazie danych
-                        UserAPI userAPI = RetrofitClient.getInstance().create(UserAPI.class);
-                        UserRequest updateReq = new UserRequest(
-                                currentUserImie,
-                                currentUserNazwisko,
-                                finalLoginToVerify,
-                                currentUserEmail,
-                                newPass
-                        );
-                        userAPI.updateUser(uzytkownikId, updateReq).enqueue(new Callback<UserResponse>() {
-                            @Override
-                            public void onResponse(Call<UserResponse> call, Response<UserResponse> response) {
-                                profileProgressBar.setVisibility(View.GONE);
-                                if (isFinishing() || isDestroyed()) return;
+                String loginToVerify = (!currentUserLogin.isEmpty()) ? currentUserLogin : nickFallback;
+                if (loginToVerify.isEmpty()) {
+                    loginToVerify = valLogin.getText().toString();
+                }
 
-                                Toast.makeText(ProfileActivity.this, "Hasło zostało zmienione w bazie danych!", Toast.LENGTH_LONG).show();
-                                dialog.dismiss();
+                profileProgressBar.setVisibility(View.VISIBLE);
+                AuthAPI authAPI = RetrofitClient.getInstance().create(AuthAPI.class);
+                String finalLoginToVerify = loginToVerify;
+                authAPI.login(new LoginRequest(loginToVerify, currentPass)).enqueue(new Callback<AuthResponse>() {
+                    @Override
+                    public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
+                        if (isFinishing() || isDestroyed()) return;
+
+                        AuthResponse body = response.body();
+                        if (response.isSuccessful() && body != null && (body.isSukces() || body.getUzytkownikId() != null)) {
+                            UserAPI userAPI = RetrofitClient.getInstance().create(UserAPI.class);
+                            UserRequest updateReq = new UserRequest(
+                                    currentUserImie,
+                                    currentUserNazwisko,
+                                    finalLoginToVerify,
+                                    currentUserEmail,
+                                    newPass
+                            );
+                            userAPI.updateUser(uzytkownikId, updateReq).enqueue(new Callback<UserResponse>() {
+                                @Override
+                                public void onResponse(Call<UserResponse> call, Response<UserResponse> response) {
+                                    profileProgressBar.setVisibility(View.GONE);
+                                    if (isFinishing() || isDestroyed()) return;
+
+                                    Toast.makeText(ProfileActivity.this, "Hasło zostało zmienione w bazie danych!", Toast.LENGTH_LONG).show();
+                                    dialog.dismiss();
+                                }
+
+                                @Override
+                                public void onFailure(Call<UserResponse> call, Throwable t) {
+                                    profileProgressBar.setVisibility(View.GONE);
+                                    if (isFinishing() || isDestroyed()) return;
+
+                                    Toast.makeText(ProfileActivity.this, "Hasło zostało zmienione.", Toast.LENGTH_SHORT).show();
+                                    dialog.dismiss();
+                                }
+                            });
+                        } else {
+                            profileProgressBar.setVisibility(View.GONE);
+                            if (layoutCurrentPass != null) layoutCurrentPass.setError("Nieprawidłowe aktualne hasło");
+                            if (txtError != null) {
+                                txtError.setText("Aktualne hasło jest nieprawidłowe");
+                                txtError.setVisibility(View.VISIBLE);
                             }
-
-                            @Override
-                            public void onFailure(Call<UserResponse> call, Throwable t) {
-                                profileProgressBar.setVisibility(View.GONE);
-                                if (isFinishing() || isDestroyed()) return;
-
-                                Toast.makeText(ProfileActivity.this, "Hasło zmienione lokalnie.", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                        });
-                    } else {
-                        profileProgressBar.setVisibility(View.GONE);
-                        inputCurrent.setError("Nieprawidłowe aktualne hasło");
-                        Toast.makeText(ProfileActivity.this, "Aktualne hasło jest nieprawidłowe!", Toast.LENGTH_SHORT).show();
+                        }
                     }
-                }
 
-                @Override
-                public void onFailure(Call<AuthResponse> call, Throwable t) {
-                    profileProgressBar.setVisibility(View.GONE);
-                    if (isFinishing() || isDestroyed()) return;
+                    @Override
+                    public void onFailure(Call<AuthResponse> call, Throwable t) {
+                        profileProgressBar.setVisibility(View.GONE);
+                        if (isFinishing() || isDestroyed()) return;
 
-                    Toast.makeText(ProfileActivity.this, "Błąd połączenia z serwerem.", Toast.LENGTH_SHORT).show();
-                }
+                        Toast.makeText(ProfileActivity.this, "Błąd połączenia z serwerem.", Toast.LENGTH_SHORT).show();
+                    }
+                });
             });
-        });
+        }
     }
 
     private String formatDisplayIban(String rawNumer) {
