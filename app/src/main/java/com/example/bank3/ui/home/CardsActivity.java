@@ -333,7 +333,6 @@ public class CardsActivity extends AppCompatActivity {
                     }
                     preferences.edit().putFloat("daily_limit", limit).apply();
                     updateLimitText();
-                    Toast.makeText(this, "Zapisano dzienny limit płatności.", Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
                 } catch (NumberFormatException e) {
                     if (inputLayout != null) {

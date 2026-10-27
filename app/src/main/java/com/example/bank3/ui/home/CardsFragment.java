@@ -295,7 +295,6 @@ public class CardsFragment extends Fragment {
                     }
                     preferences.edit().putFloat("daily_limit", limit).apply();
                     updateLimitText();
-                    Toast.makeText(context, "Zapisano dzienny limit płatności.", Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
                 } catch (NumberFormatException e) {
                     if (inputLayout != null) {
