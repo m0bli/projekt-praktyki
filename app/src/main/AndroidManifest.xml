@@ -37,6 +37,9 @@
         <activity
             android:name=".ui.home.ThemesActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.home.ProfileActivity"
+            android:exported="false" />
 
 
     </application>
