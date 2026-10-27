@@ -1,11 +1,12 @@
-
 package com.example.bank3.ui.auth;
 
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -16,10 +17,11 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.example.bank3.R;
-import com.example.bank3.network.RetrofitClient;
 import com.example.bank3.data.api.UserAPI;
 import com.example.bank3.model.UserRequest;
 import com.example.bank3.model.UserResponse;
+import com.example.bank3.network.RetrofitClient;
+import com.example.bank3.ui.theme.ThemeManager;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -51,19 +53,11 @@ public class RegisterActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeManager.applyTheme(this);
         super.onCreate(savedInstanceState);
 
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_register);
-
-        WindowInsetsControllerCompat controller =
-                new WindowInsetsControllerCompat(
-                        getWindow(),
-                        getWindow().getDecorView()
-                );
-
-        controller.setAppearanceLightStatusBars(true);
-        controller.setAppearanceLightNavigationBars(true);
 
         View main = findViewById(R.id.register);
 
@@ -125,6 +119,79 @@ public class RegisterActivity extends AppCompatActivity {
         btnRegister = findViewById(R.id.btnRegister);
 
         btnRegister.setOnClickListener(v -> registerUser());
+
+        applyDynamicTheme();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        applyDynamicTheme();
+    }
+
+    private void applyDynamicTheme() {
+        boolean dark = ThemeManager.isBlack(this);
+        int backgroundColor = ThemeManager.getBackgroundColor(this);
+        int textColor = ThemeManager.getTextColor(this);
+        int secondaryTextColor = ThemeManager.getSecondaryTextColor(this);
+        int accentColor = ThemeManager.getAccentColor(this);
+
+        WindowInsetsControllerCompat controller =
+                new WindowInsetsControllerCompat(
+                        getWindow(),
+                        getWindow().getDecorView()
+                );
+
+        controller.setAppearanceLightStatusBars(!dark);
+        controller.setAppearanceLightNavigationBars(!dark);
+
+        View registerView = findViewById(R.id.register);
+        if (registerView != null) {
+            registerView.setBackgroundColor(backgroundColor);
+        }
+
+        View toolbarContainer = findViewById(R.id.toolbarContainer);
+        if (toolbarContainer != null) {
+            toolbarContainer.setBackgroundColor(backgroundColor);
+        }
+
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            toolbar.setBackgroundColor(backgroundColor);
+            toolbar.setTitleTextColor(textColor);
+            if (toolbar.getNavigationIcon() != null) {
+                toolbar.getNavigationIcon().setTint(textColor);
+            }
+        }
+
+        TextView bankTitle = findViewById(R.id.bank);
+        if (bankTitle != null) {
+            bankTitle.setTextColor(textColor);
+        }
+
+        TextView txtSubtitle = findViewById(R.id.txtSubtitle);
+        if (txtSubtitle != null) {
+            txtSubtitle.setTextColor(secondaryTextColor);
+        }
+
+        if (btnRegister != null) {
+            btnRegister.setBackgroundTintList(ColorStateList.valueOf(accentColor));
+        }
+
+        if (checkboxRegister != null) {
+            checkboxRegister.setButtonTintList(ColorStateList.valueOf(accentColor));
+            checkboxRegister.setTextColor(textColor);
+        }
+
+        TextInputLayout[] layouts = {
+                imieLayout, nazwiskoLayout, loginLayout, emailLayout, hasloLayout, potwierdzHasloLayout
+        };
+        for (TextInputLayout layout : layouts) {
+            if (layout != null) {
+                layout.setBoxStrokeColor(accentColor);
+                layout.setHintTextColor(ColorStateList.valueOf(accentColor));
+            }
+        }
     }
 
     private void setRegistering(boolean registering) {

@@ -17,6 +17,7 @@
     <!-- Dodatkowe kolory interfejsu -->
     <color name="theme_text_secondary">#77849A</color>
     <color name="theme_divider">#E8ECF2</color>
+    <color name="theme_border">#94A3B8</color>
     <color name="theme_transaction_positive">#16845B</color>
     <color name="theme_transaction_negative">#C23A48</color>
 

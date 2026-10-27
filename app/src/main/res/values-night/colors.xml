@@ -9,6 +9,7 @@
     <color name="theme_text">#E8EEF9</color>
     <color name="theme_text_secondary">#A5B2C8</color>
     <color name="theme_divider">#374151</color>
+    <color name="theme_border">#000000</color>
     <color name="theme_transaction_positive">#34D399</color>
     <color name="theme_transaction_negative">#F87171</color>
 </resources>

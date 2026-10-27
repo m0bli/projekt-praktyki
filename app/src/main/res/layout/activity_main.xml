@@ -6,7 +6,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F3F6FB"
+    android:background="@color/theme_background"
     tools:context=".ui.auth.MainActivity">
 
     <ScrollView
@@ -32,6 +32,7 @@
 
             <!-- Logo -->
             <TextView
+                android:id="@+id/txtLogo"
                 android:layout_width="76dp"
                 android:layout_height="76dp"
                 android:gravity="center"
@@ -49,7 +50,7 @@
                 android:layout_marginTop="18dp"
                 android:gravity="center"
                 android:text="MP"
-                android:textColor="#173B70"
+                android:textColor="@color/theme_text"
                 android:textSize="30sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.08" />
@@ -59,10 +60,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
-                app:cardBackgroundColor="#FFFFFF"
+                app:cardBackgroundColor="@color/theme_surface"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="3dp"
-                app:strokeColor="#E7ECF4"
+                app:strokeColor="@color/theme_divider"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -75,7 +76,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Zaloguj się"
-                        android:textColor="#18243A"
+                        android:textColor="@color/theme_text"
                         android:textSize="28sp"
                         android:textStyle="bold" />
 
@@ -86,19 +87,19 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="18dp"
                         android:hint="Login"
-                        android:textColorHint="@color/gray"
+                        android:textColorHint="@color/theme_text_secondary"
                         app:boxBackgroundMode="outline"
                         app:boxCornerRadiusTopStart="14dp"
                         app:boxCornerRadiusTopEnd="14dp"
                         app:boxCornerRadiusBottomStart="14dp"
                         app:boxCornerRadiusBottomEnd="14dp"
-                        app:boxStrokeColor="#24599B"
-                        app:hintTextColor="@color/black"
-                        app:errorTextColor="@color/red"
-                        app:boxStrokeErrorColor="@color/red"
+                        app:boxStrokeColor="@color/theme_primary"
+                        app:hintTextColor="@color/theme_text"
+                        app:errorTextColor="@color/theme_transaction_negative"
+                        app:boxStrokeErrorColor="@color/theme_transaction_negative"
                         app:startIconDrawable="@drawable/sprint"
-                        app:startIconTint="#77849A"
-                        app:errorIconTint="@color/red">
+                        app:startIconTint="@color/theme_text_secondary"
+                        app:errorIconTint="@color/theme_transaction_negative">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/editLogin"
@@ -107,7 +108,8 @@
                             android:inputType="text"
                             android:singleLine="true"
                             android:imeOptions="actionNext"
-                            android:textColor="@color/black"
+                            android:textColor="@color/theme_text"
+                            android:textColorHint="@color/theme_text_secondary"
                             android:textSize="16sp"
                             android:paddingTop="16dp"
                             android:paddingBottom="16dp" />
@@ -122,21 +124,21 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="18dp"
                         android:hint="Hasło"
-                        android:textColorHint="@color/gray"
+                        android:textColorHint="@color/theme_text_secondary"
                         app:boxBackgroundMode="outline"
                         app:boxCornerRadiusTopStart="14dp"
                         app:boxCornerRadiusTopEnd="14dp"
                         app:boxCornerRadiusBottomStart="14dp"
                         app:boxCornerRadiusBottomEnd="14dp"
-                        app:boxStrokeColor="#24599B"
-                        app:hintTextColor="@color/black"
-                        app:errorTextColor="@color/red"
-                        app:boxStrokeErrorColor="@color/red"
+                        app:boxStrokeColor="@color/theme_primary"
+                        app:hintTextColor="@color/theme_text"
+                        app:errorTextColor="@color/theme_transaction_negative"
+                        app:boxStrokeErrorColor="@color/theme_transaction_negative"
                         app:startIconDrawable="@android:drawable/ic_lock_lock"
-                        app:startIconTint="#77849A"
+                        app:startIconTint="@color/theme_text_secondary"
                         app:endIconMode="password_toggle"
-                        app:endIconTint="#77849A"
-                        app:errorIconTint="@color/red">
+                        app:endIconTint="@color/theme_text_secondary"
+                        app:errorIconTint="@color/theme_transaction_negative">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/editHaslo"
@@ -145,7 +147,8 @@
                             android:inputType="textPassword"
                             android:singleLine="true"
                             android:imeOptions="actionDone"
-                            android:textColor="@color/black"
+                            android:textColor="@color/theme_text"
+                            android:textColorHint="@color/theme_text_secondary"
                             android:textSize="16sp"
                             android:paddingTop="16dp"
                             android:paddingBottom="16dp" />
@@ -162,7 +165,7 @@
                         android:paddingStart="10dp"
                         android:paddingEnd="2dp"
                         android:text="Nie masz konta? Zarejestruj się"
-                        android:textColor="#24599B"
+                        android:textColor="@color/theme_primary"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:clickable="true"
@@ -176,7 +179,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
 
-                        android:textColor="#C62828"
+                        android:textColor="@color/theme_transaction_negative"
                         android:textSize="13sp"
                         android:accessibilityLiveRegion="polite" />
 
@@ -187,10 +190,10 @@
                         android:layout_height="56dp"
                         android:text="Zaloguj się"
                         android:textAllCaps="false"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/theme_on_primary"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        app:backgroundTint="#173B70"
+                        app:backgroundTint="@color/theme_primary"
                         app:cornerRadius="14dp"
                         app:elevation="2dp" />
 
@@ -206,7 +209,7 @@
 
                 android:gravity="center"
                 android:text="v0.0.1"
-                android:textColor="#929DB0"
+                android:textColor="@color/theme_text_secondary"
                 android:textSize="12sp" />
 
         </LinearLayout>

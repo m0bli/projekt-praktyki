@@ -1,32 +1,23 @@
 package com.example.bank3.ui.home;
 
-import static android.content.Context.MODE_PRIVATE;
-
 import android.app.AlertDialog;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import androidx.fragment.app.Fragment;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
-
-
-
+import androidx.fragment.app.Fragment;
 
 import com.example.bank3.R;
 import com.example.bank3.model.UserResponse;
@@ -40,6 +31,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import okhttp3.ResponseBody;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -68,14 +61,6 @@ public class TransferFragment extends Fragment {
     private Call<Map<String, Object>> transactionCall;
     private boolean submitting;
 
-    private int backgroundColor;
-    private int surfaceColor;
-    private int textColor;
-    private int secondaryTextColor;
-    private int accentColor;
-
-    // Odpowiedź API konta zawiera ID KONTA, numer konta, saldo i walutę.
-    // Nie używamy pola uzytkownik_id z tabeli konta.
     private static class KontoApiResponse {
         Long id;
         String numerKonta;
@@ -107,9 +92,6 @@ public class TransferFragment extends Fragment {
                 @Path("uzytkownikId") long uzytkownikId
         );
 
-        @GET("api/konta/email/{email}")
-        Call<Map<String, Object>> getAccountByEmailPath(@Path("email") String email);
-
         @GET("api/konta/email")
         Call<Map<String, Object>> getAccountByEmailQuery(@Query("email") String email);
 
@@ -122,187 +104,85 @@ public class TransferFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        applyColors();
         uzytkownikId = requireActivity().getIntent().getLongExtra("uzytkownikId", -1L);
 
-        ScrollView scrollView = new ScrollView(requireContext());
-        scrollView.setFillViewport(true);
-        scrollView.setBackgroundColor(backgroundColor);
+        View view = inflater.inflate(R.layout.activity_transfer, container, false);
 
-        LinearLayout page = new LinearLayout(requireContext());
-        page.setOrientation(LinearLayout.VERTICAL);
-        page.setPadding(dp(22), dp(18), dp(22), dp(28));
-        scrollView.addView(page);
-
-        TextView back = new TextView(requireContext());
-        back.setText("‹  Wróć");
-        back.setTextSize(16);
-        back.setTextColor(accentColor);
-        back.setPadding(0, dp(4), 0, dp(18));
-        back.setOnClickListener(v -> ((MainMenuActivity) requireActivity()).selectTab(0));
-        page.addView(back);
-
-        TextView heading = new TextView(requireContext());
-        heading.setText("Nowy przelew");
-        heading.setTextSize(28);
-        heading.setTypeface(null, android.graphics.Typeface.BOLD);
-        heading.setTextColor(textColor);
-        page.addView(heading);
-
-        TextView subtitle = new TextView(requireContext());
-        subtitle.setText("Wybierz swoje konto i podaj dane odbiorcy.");
-        subtitle.setTextSize(14);
-        subtitle.setTextColor(secondaryTextColor);
-        LinearLayout.LayoutParams subtitleParams = params(-1, -2);
-        subtitleParams.topMargin = dp(7);
-        subtitleParams.bottomMargin = dp(22);
-        page.addView(subtitle, subtitleParams);
-
-        LinearLayout card = new LinearLayout(requireContext());
-        card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(dp(18), dp(20), dp(18), dp(20));
-        card.setBackground(roundRect(surfaceColor, dp(22)));
-        page.addView(card, params(-1, -2));
-
-        addLabel(card, "Konto źródłowe");
-        sourceAccountSpinner = addSpinner(card, new String[]{"Pobieranie kont..."});
-        sourceAccountSpinner.setEnabled(false);
-        sourceAccountSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position >= 0 && position < sourceAccounts.size()) {
-                    selectedSourceAccount = sourceAccounts.get(position);
-                    ustawWaluteZrodla();
+        TextView back = view.findViewById(R.id.transferBack);
+        if (back != null) {
+            back.setOnClickListener(v -> {
+                if (requireActivity() instanceof MainMenuActivity) {
+                    ((MainMenuActivity) requireActivity()).selectTab(0);
                 } else {
+                    requireActivity().finish();
+                }
+            });
+        }
+
+        sourceAccountSpinner = view.findViewById(R.id.sourceAccountSpinner);
+        destinationAccountInput = view.findViewById(R.id.destinationAccountInput);
+        recipientNameInput = view.findViewById(R.id.recipientNameInput);
+        amountInput = view.findViewById(R.id.amountInput);
+        currencySpinner = view.findViewById(R.id.currencySpinner);
+        titleInput = view.findViewById(R.id.titleInput);
+        submitButton = view.findViewById(R.id.submitTransferButton);
+
+        if (sourceAccountSpinner != null) {
+            sourceAccountSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    if (position >= 0 && position < sourceAccounts.size()) {
+                        selectedSourceAccount = sourceAccounts.get(position);
+                        ustawWaluteZrodla();
+                    } else {
+                        selectedSourceAccount = null;
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
                     selectedSourceAccount = null;
                 }
+            });
+        }
+
+        if (amountInput != null) {
+            amountInput.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    walidujKwoteWzgledemSalda(false);
+                }
+            });
+        }
+
+        if (submitButton != null) {
+            int accentColor = ThemeManager.getAccentColor(requireContext());
+            submitButton.setBackgroundTintList(android.content.res.ColorStateList.valueOf(accentColor));
+            submitButton.setOnClickListener(v -> sprawdzOdbiorce());
+        }
+
+        int accentColor = ThemeManager.getAccentColor(requireContext());
+        com.google.android.material.textfield.TextInputLayout[] layouts = {
+                view.findViewById(R.id.layoutDestinationAccount),
+                view.findViewById(R.id.layoutRecipientName),
+                view.findViewById(R.id.layoutAmount),
+                view.findViewById(R.id.layoutTitle)
+        };
+        for (com.google.android.material.textfield.TextInputLayout layout : layouts) {
+            if (layout != null) {
+                layout.setBoxStrokeColor(accentColor);
+                layout.setHintTextColor(android.content.res.ColorStateList.valueOf(accentColor));
             }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                selectedSourceAccount = null;
-            }
-        });
-
-        destinationAccountInput = addInput(
-                card, "E-mail odbiorcy", "E-mail odbiorcy",
-                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
-        );
-        recipientNameInput = addInput(
-                card, "Imię odbiorcy", "Imię odbiorcy",
-                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS
-        );
-        amountInput = addInput(
-                card, "Kwota przelewu", "0,00",
-                InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL
-        );
-        amountInput.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) { }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                walidujKwoteWzgledemSalda(false);
-            }
-        });
-
-        addLabel(card, "Waluta konta źródłowego");
-        currencySpinner = addSpinner(card, new String[]{"Pobieranie waluty..."});
-        currencySpinner.setEnabled(false);
-
-        titleInput = addInput(
-                card, "Tytuł przelewu", "Tytuł przelewu",
-                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-        );
-
-        TextView hint = new TextView(requireContext());
-        hint.setText("Odbiorca musi mieć konto w tej samej walucie. Backend wymaga 26-cyfrowego numeru konta.");
-        hint.setTextSize(12);
-        hint.setTextColor(secondaryTextColor);
-        LinearLayout.LayoutParams hintParams = params(-1, -2);
-        hintParams.topMargin = dp(14);
-        card.addView(hint, hintParams);
-
-        submitButton = new Button(requireContext());
-        submitButton.setText("PRZELEJ");
-        submitButton.setAllCaps(false);
-        submitButton.setTextColor(Color.WHITE);
-        submitButton.setTextSize(15);
-        submitButton.setBackground(roundRect(accentColor, dp(16)));
-        LinearLayout.LayoutParams buttonParams = params(-1, dp(54));
-        buttonParams.topMargin = dp(20);
-        page.addView(submitButton, buttonParams);
-        submitButton.setOnClickListener(v -> sprawdzOdbiorce());
+        }
 
         pobierzKontaUzytkownika();
-        return scrollView;
-    }
-
-    private void applyColors() {
-        backgroundColor = ThemeManager.getBackgroundColor(requireContext());
-        surfaceColor = ThemeManager.getSurfaceColor(requireContext());
-        textColor = ThemeManager.getTextColor(requireContext());
-        secondaryTextColor = ThemeManager.getSecondaryTextColor(requireContext());
-        accentColor = ThemeManager.getAccentColor(requireContext());
-    }
-
-    private EditText addInput(LinearLayout parent, String label, String placeholder, int inputType) {
-        addLabel(parent, label);
-        EditText input = new EditText(requireContext());
-        input.setSingleLine(true);
-        input.setTextSize(15);
-        input.setTextColor(textColor);
-        input.setHintTextColor(secondaryTextColor);
-        input.setHint(placeholder);
-        input.setInputType(inputType);
-        input.setPadding(dp(14), 0, dp(14), 0);
-        input.setBackground(roundRect(backgroundColor, dp(12)));
-        parent.addView(input, params(-1, dp(50)));
-        return input;
-    }
-
-    private void addLabel(LinearLayout parent, String value) {
-        TextView label = new TextView(requireContext());
-        label.setText(value);
-        label.setTextSize(13);
-        label.setTypeface(null, android.graphics.Typeface.BOLD);
-        label.setTextColor(textColor);
-        LinearLayout.LayoutParams lp = params(-1, -2);
-        lp.topMargin = dp(13);
-        lp.bottomMargin = dp(7);
-        parent.addView(label, lp);
-    }
-
-    private Spinner addSpinner(LinearLayout parent, String[] values) {
-        Spinner spinner = new Spinner(requireContext());
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-                requireContext(), android.R.layout.simple_spinner_item, values) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                TextView view = (TextView) super.getView(position, convertView, parent);
-                view.setTextColor(textColor);
-                view.setTextSize(15);
-                return view;
-            }
-
-            @Override
-            public View getDropDownView(int position, View convertView, ViewGroup parent) {
-                TextView view = (TextView) super.getDropDownView(position, convertView, parent);
-                view.setTextColor(textColor);
-                view.setBackgroundColor(surfaceColor);
-                view.setPadding(dp(12), dp(10), dp(12), dp(10));
-                return view;
-            }
-        };
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-        spinner.setPadding(dp(8), dp(3), dp(8), dp(3));
-        spinner.setBackground(roundRect(backgroundColor, dp(12)));
-        parent.addView(spinner, params(-1, dp(50)));
-        return spinner;
+        return view;
     }
 
     private void pobierzKontaUzytkownika() {
@@ -334,7 +214,6 @@ public class TransferFragment extends Fragment {
                         continue;
                     }
 
-                    // To jest konto.id zwrócone przez API, a nie uzytkownik_id.
                     long accountId = account.id;
                     String number = account.numerKonta.trim();
                     String currency = account.waluta.trim().toUpperCase(Locale.ROOT);
@@ -353,12 +232,12 @@ public class TransferFragment extends Fragment {
                     labels[i] = sourceAccounts.get(i).label();
                 }
 
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                        requireContext(), android.R.layout.simple_spinner_item, labels);
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                sourceAccountSpinner.setAdapter(adapter);
-                sourceAccountSpinner.setEnabled(sourceAccounts.size() > 1);
-                sourceAccountSpinner.setSelection(0);
+                ArrayAdapter<String> adapter = createSpinnerAdapter(requireContext(), labels);
+                if (sourceAccountSpinner != null) {
+                    sourceAccountSpinner.setAdapter(adapter);
+                    sourceAccountSpinner.setEnabled(sourceAccounts.size() > 1);
+                    sourceAccountSpinner.setSelection(0);
+                }
                 selectedSourceAccount = sourceAccounts.get(0);
                 ustawWaluteZrodla();
             }
@@ -373,13 +252,8 @@ public class TransferFragment extends Fragment {
     }
 
     private void ustawWaluteZrodla() {
-        if (selectedSourceAccount == null) return;
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                requireContext(),
-                android.R.layout.simple_spinner_item,
-                new String[]{selectedSourceAccount.currency}
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        if (selectedSourceAccount == null || currencySpinner == null) return;
+        ArrayAdapter<String> adapter = createSpinnerAdapter(requireContext(), new String[]{selectedSourceAccount.currency});
         currencySpinner.setAdapter(adapter);
         currencySpinner.setEnabled(false);
     }
@@ -387,15 +261,37 @@ public class TransferFragment extends Fragment {
     private void pokazBladKontaZrodlowego(String message) {
         selectedSourceAccount = null;
         sourceAccounts.clear();
-        sourceAccountSpinner.setEnabled(false);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                requireContext(),
-                android.R.layout.simple_spinner_item,
-                new String[]{"Nie udało się pobrać kont źródłowych"}
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        sourceAccountSpinner.setAdapter(adapter);
+        if (sourceAccountSpinner != null) {
+            sourceAccountSpinner.setEnabled(false);
+            ArrayAdapter<String> adapter = createSpinnerAdapter(requireContext(), new String[]{"Nie udało się pobrać kont źródłowych"});
+            sourceAccountSpinner.setAdapter(adapter);
+        }
         toast(message);
+    }
+
+    private ArrayAdapter<String> createSpinnerAdapter(Context context, String[] items) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                context, android.R.layout.simple_spinner_item, items) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                TextView view = (TextView) super.getView(position, convertView, parent);
+                view.setTextColor(ThemeManager.getTextColor(context));
+                view.setTextSize(15);
+                return view;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                TextView view = (TextView) super.getDropDownView(position, convertView, parent);
+                view.setTextColor(ThemeManager.getTextColor(context));
+                view.setBackgroundColor(ThemeManager.getSurfaceColor(context));
+                int pad = (int) (12 * context.getResources().getDisplayMetrics().density + 0.5f);
+                view.setPadding(pad, pad, pad, pad);
+                return view;
+            }
+        };
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        return adapter;
     }
 
     private void sprawdzOdbiorce() {
@@ -405,10 +301,10 @@ public class TransferFragment extends Fragment {
             return;
         }
 
-        android.content.SharedPreferences cardPrefs =
+        SharedPreferences cardPrefs =
                 requireContext().getSharedPreferences(
                         "demo_card_settings_" + uzytkownikId,
-                        android.content.Context.MODE_PRIVATE
+                        Context.MODE_PRIVATE
                 );
 
         if (cardPrefs.getBoolean("blocked", false)) {
@@ -453,7 +349,6 @@ public class TransferFragment extends Fragment {
             return;
         }
 
-        // Sprawdź dzienny limit płatności z ustawień Karty
         float dailyLimit = cardPrefs.getFloat("daily_limit", 1500f);
         BigDecimal maxLimit = new BigDecimal(Float.toString(dailyLimit));
         if (amount.compareTo(maxLimit) > 0) {
@@ -512,7 +407,6 @@ public class TransferFragment extends Fragment {
                     }
                 }
 
-                // Fallback: szukaj w użytkownikach i ich kontach
                 szukajWUzytkownikach(api, recipientEmail, recipientName, amount, title);
             }
 
@@ -699,7 +593,11 @@ public class TransferFragment extends Fragment {
                     new AlertDialog.Builder(requireContext())
                             .setTitle("Przelew wykonany")
                             .setMessage(message)
-                            .setPositiveButton("Gotowe", (dialog, which) -> ((MainMenuActivity) requireActivity()).selectTab(0))
+                            .setPositiveButton("Gotowe", (dialog, which) -> {
+                                if (requireActivity() instanceof MainMenuActivity) {
+                                    ((MainMenuActivity) requireActivity()).selectTab(0);
+                                }
+                            })
                             .show();
                 } else {
                     String backendError = odczytajBlad(response);
@@ -711,8 +609,10 @@ public class TransferFragment extends Fragment {
                                     || normalizedError.contains("srodk")
                                     || normalizedError.contains("balance")
                                     || normalizedError.contains("insufficient"))) {
-                        amountInput.setError("Brak wystarczających środków na koncie. Zmniejsz kwotę przelewu.");
-                        amountInput.requestFocus();
+                        if (amountInput != null) {
+                            amountInput.setError("Brak wystarczających środków na koncie. Zmniejsz kwotę przelewu.");
+                            amountInput.requestFocus();
+                        }
                     } else {
                         toast("Nie udało się wykonać przelewu. Sprawdź dane i spróbuj ponownie.");
                     }
@@ -750,54 +650,42 @@ public class TransferFragment extends Fragment {
                 amountInput.setError(null);
             }
         } catch (NumberFormatException ignored) {
-            // Pole jest w trakcie edycji; pełna walidacja nastąpi po zatwierdzeniu.
             amountInput.setError(null);
         }
     }
 
     private String odczytajBlad(Response<?> response) {
-        try {
-            if (response.errorBody() != null) {
-                String error = response.errorBody().string();
-                return error == null || error.trim().isEmpty() ? "" : error;
+        if (response != null && response.errorBody() != null) {
+            try (ResponseBody errorBody = response.errorBody()) {
+                String error = errorBody.string();
+                return error == null ? "" : error.trim();
+            } catch (IOException ignored) {
             }
-        } catch (IOException ignored) {
         }
         return "";
     }
 
     private void setSubmitting(boolean value, String label) {
         submitting = value;
-        submitButton.setEnabled(!value);
-        submitButton.setText(value
-                ? (label == null ? "Przetwarzanie..." : label)
-                : "PRZELEJ");
-    }
-
-    private GradientDrawable roundRect(int color, int radius) {
-        GradientDrawable drawable = new GradientDrawable();
-        drawable.setColor(color);
-        drawable.setCornerRadius(radius);
-        return drawable;
-    }
-
-    private LinearLayout.LayoutParams params(int width, int height) {
-        return new LinearLayout.LayoutParams(width, height);
-    }
-
-    private int dp(int value) {
-        return (int) (value * requireContext().getResources().getDisplayMetrics().density + 0.5f);
+        if (submitButton != null) {
+            submitButton.setEnabled(!value);
+            submitButton.setText(value
+                    ? (label == null ? "Przetwarzanie…" : label)
+                    : "PRZELEJ");
+        }
     }
 
     private void toast(String message) {
-        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
+        if (getContext() != null) {
+            Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
-    public void onDestroy() {
+    public void onDestroyView() {
         if (accountsCall != null) accountsCall.cancel();
         if (destinationCall != null) destinationCall.cancel();
         if (transactionCall != null) transactionCall.cancel();
-        super.onDestroy();
+        super.onDestroyView();
     }
 }

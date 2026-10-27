@@ -152,7 +152,7 @@ public class CardsActivity extends AppCompatActivity {
             return;
         }
         float limit = preferences.getFloat("daily_limit", 1500f);
-        NumberFormat format = NumberFormat.getNumberInstance(new Locale("pl", "PL"));
+        NumberFormat format = NumberFormat.getNumberInstance(Locale.forLanguageTag("pl-PL"));
         format.setMinimumFractionDigits(2);
         format.setMaximumFractionDigits(2);
         limitValue.setText(format.format(limit) + " PLN");

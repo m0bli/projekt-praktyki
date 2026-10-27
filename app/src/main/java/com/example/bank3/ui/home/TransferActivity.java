@@ -1,20 +1,15 @@
 package com.example.bank3.ui.home;
 
 import android.app.AlertDialog;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,6 +28,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import okhttp3.ResponseBody;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -64,14 +61,6 @@ public class TransferActivity extends AppCompatActivity {
     private Call<Map<String, Object>> transactionCall;
     private boolean submitting;
 
-    private int backgroundColor;
-    private int surfaceColor;
-    private int textColor;
-    private int secondaryTextColor;
-    private int accentColor;
-
-    // Odpowiedź API konta zawiera ID KONTA, numer konta, saldo i walutę.
-    // Nie używamy pola uzytkownik_id z tabeli konta.
     private static class KontoApiResponse {
         Long id;
         String numerKonta;
@@ -103,9 +92,6 @@ public class TransferActivity extends AppCompatActivity {
                 @Path("uzytkownikId") long uzytkownikId
         );
 
-        @GET("api/konta/email/{email}")
-        Call<Map<String, Object>> getAccountByEmailPath(@Path("email") String email);
-
         @GET("api/konta/email")
         Call<Map<String, Object>> getAccountByEmailQuery(@Query("email") String email);
 
@@ -120,202 +106,91 @@ public class TransferActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         ThemeManager.applyTheme(this);
         super.onCreate(savedInstanceState);
+
         EdgeToEdge.enable(this);
-        applyColors();
+        setContentView(R.layout.activity_transfer);
+
         uzytkownikId = getIntent().getLongExtra("uzytkownikId", -1L);
 
-        ScrollView scrollView = new ScrollView(this);
-        scrollView.setFillViewport(true);
-        scrollView.setBackgroundColor(backgroundColor);
-
-        View transferScrollView = findViewById(R.id.transferScrollView);
-        // Fallback for builds where the root layout ID is stale or unavailable.
-        if (transferScrollView == null) {
-            transferScrollView = findViewById(android.R.id.content);
+        View root = findViewById(R.id.transferRoot);
+        if (root != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(root, (view, windowInsets) -> {
+                androidx.core.graphics.Insets bars = windowInsets.getInsets(
+                        WindowInsetsCompat.Type.systemBars()
+                );
+                view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+                return windowInsets;
+            });
         }
-        final View insetsTarget = transferScrollView;
-        ViewCompat.setOnApplyWindowInsetsListener(insetsTarget, (view, windowInsets) -> {
-            androidx.core.graphics.Insets bars = windowInsets.getInsets(
-                    WindowInsetsCompat.Type.systemBars()
-            );
-            view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-            return windowInsets;
-        });
 
-        LinearLayout page = new LinearLayout(this);
-        page.setOrientation(LinearLayout.VERTICAL);
-        page.setPadding(dp(22), dp(18), dp(22), dp(28));
-        scrollView.addView(page);
+        TextView back = findViewById(R.id.transferBack);
+        if (back != null) {
+            back.setOnClickListener(v -> finish());
+        }
 
-        TextView back = new TextView(this);
-        back.setText("‹  Wróć");
-        back.setTextSize(16);
-        back.setTextColor(accentColor);
-        back.setPadding(0, dp(4), 0, dp(18));
-        back.setOnClickListener(v -> finish());
-        page.addView(back);
+        sourceAccountSpinner = findViewById(R.id.sourceAccountSpinner);
+        destinationAccountInput = findViewById(R.id.destinationAccountInput);
+        recipientNameInput = findViewById(R.id.recipientNameInput);
+        amountInput = findViewById(R.id.amountInput);
+        currencySpinner = findViewById(R.id.currencySpinner);
+        titleInput = findViewById(R.id.titleInput);
+        submitButton = findViewById(R.id.submitTransferButton);
 
-        TextView heading = new TextView(this);
-        heading.setText("Nowy przelew");
-        heading.setTextSize(28);
-        heading.setTypeface(null, android.graphics.Typeface.BOLD);
-        heading.setTextColor(textColor);
-        page.addView(heading);
+        if (sourceAccountSpinner != null) {
+            sourceAccountSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    if (position >= 0 && position < sourceAccounts.size()) {
+                        selectedSourceAccount = sourceAccounts.get(position);
+                        ustawWaluteZrodla();
+                    } else {
+                        selectedSourceAccount = null;
+                    }
+                }
 
-        TextView subtitle = new TextView(this);
-        subtitle.setText("Wybierz swoje konto i podaj dane odbiorcy.");
-        subtitle.setTextSize(14);
-        subtitle.setTextColor(secondaryTextColor);
-        LinearLayout.LayoutParams subtitleParams = params(-1, -2);
-        subtitleParams.topMargin = dp(7);
-        subtitleParams.bottomMargin = dp(22);
-        page.addView(subtitle, subtitleParams);
-
-        LinearLayout card = new LinearLayout(this);
-        card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(dp(18), dp(20), dp(18), dp(20));
-        card.setBackground(roundRect(surfaceColor, dp(22)));
-        page.addView(card, params(-1, -2));
-
-        addLabel(card, "Konto źródłowe");
-        sourceAccountSpinner = addSpinner(card, new String[]{"Pobieranie kont..."});
-        sourceAccountSpinner.setEnabled(false);
-        sourceAccountSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position >= 0 && position < sourceAccounts.size()) {
-                    selectedSourceAccount = sourceAccounts.get(position);
-                    ustawWaluteZrodla();
-                } else {
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
                     selectedSourceAccount = null;
                 }
-            }
+            });
+        }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                selectedSourceAccount = null;
-            }
-        });
+        if (amountInput != null) {
+            amountInput.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
 
-        destinationAccountInput = addInput(
-                card, "E-mail odbiorcy", "E-mail odbiorcy",
-                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
-        );
-        recipientNameInput = addInput(
-                card, "Imię odbiorcy", "Imię odbiorcy",
-                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS
-        );
-        amountInput = addInput(
-                card, "Kwota przelewu", "0,00",
-                InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL
-        );
-        amountInput.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) { }
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+                @Override
+                public void afterTextChanged(Editable s) {
+                    walidujKwoteWzgledemSalda(false);
+                }
+            });
+        }
 
-            @Override
-            public void afterTextChanged(Editable s) {
-                walidujKwoteWzgledemSalda(false);
-            }
-        });
+        if (submitButton != null) {
+            int accentColor = ThemeManager.getAccentColor(this);
+            submitButton.setBackgroundTintList(android.content.res.ColorStateList.valueOf(accentColor));
+            submitButton.setOnClickListener(v -> sprawdzOdbiorce());
+        }
 
-        addLabel(card, "Waluta konta źródłowego");
-        currencySpinner = addSpinner(card, new String[]{"Pobieranie waluty..."});
-        currencySpinner.setEnabled(false);
-
-        titleInput = addInput(
-                card, "Tytuł przelewu", "Tytuł przelewu",
-                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-        );
-
-        TextView hint = new TextView(this);
-        hint.setText("Odbiorca musi mieć konto w tej samej walucie. Backend wymaga 26-cyfrowego numeru konta.");
-        hint.setTextSize(12);
-        hint.setTextColor(secondaryTextColor);
-        LinearLayout.LayoutParams hintParams = params(-1, -2);
-        hintParams.topMargin = dp(14);
-        card.addView(hint, hintParams);
-
-        submitButton = new Button(this);
-        submitButton.setText("PRZELEJ");
-        submitButton.setAllCaps(false);
-        submitButton.setTextColor(Color.WHITE);
-        submitButton.setTextSize(15);
-        submitButton.setBackground(roundRect(accentColor, dp(16)));
-        LinearLayout.LayoutParams buttonParams = params(-1, dp(54));
-        buttonParams.topMargin = dp(20);
-        page.addView(submitButton, buttonParams);
-        submitButton.setOnClickListener(v -> sprawdzOdbiorce());
-
-        setContentView(scrollView);
-        pobierzKontaUzytkownika();
-    }
-
-    private void applyColors() {
-        backgroundColor = ThemeManager.getBackgroundColor(this);
-        surfaceColor = ThemeManager.getSurfaceColor(this);
-        textColor = ThemeManager.getTextColor(this);
-        secondaryTextColor = ThemeManager.getSecondaryTextColor(this);
-        accentColor = ThemeManager.getAccentColor(this);
-    }
-
-    private EditText addInput(LinearLayout parent, String label, String placeholder, int inputType) {
-        addLabel(parent, label);
-        EditText input = new EditText(this);
-        input.setSingleLine(true);
-        input.setTextSize(15);
-        input.setTextColor(textColor);
-        input.setHintTextColor(secondaryTextColor);
-        input.setHint(placeholder);
-        input.setInputType(inputType);
-        input.setPadding(dp(14), 0, dp(14), 0);
-        input.setBackground(roundRect(backgroundColor, dp(12)));
-        parent.addView(input, params(-1, dp(50)));
-        return input;
-    }
-
-    private void addLabel(LinearLayout parent, String value) {
-        TextView label = new TextView(this);
-        label.setText(value);
-        label.setTextSize(13);
-        label.setTypeface(null, android.graphics.Typeface.BOLD);
-        label.setTextColor(textColor);
-        LinearLayout.LayoutParams lp = params(-1, -2);
-        lp.topMargin = dp(13);
-        lp.bottomMargin = dp(7);
-        parent.addView(label, lp);
-    }
-
-    private Spinner addSpinner(LinearLayout parent, String[] values) {
-        Spinner spinner = new Spinner(this);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-                this, android.R.layout.simple_spinner_item, values) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                TextView view = (TextView) super.getView(position, convertView, parent);
-                view.setTextColor(textColor);
-                view.setTextSize(15);
-                return view;
-            }
-
-            @Override
-            public View getDropDownView(int position, View convertView, ViewGroup parent) {
-                TextView view = (TextView) super.getDropDownView(position, convertView, parent);
-                view.setTextColor(textColor);
-                view.setBackgroundColor(surfaceColor);
-                view.setPadding(dp(12), dp(10), dp(12), dp(10));
-                return view;
-            }
+        int accentColor = ThemeManager.getAccentColor(this);
+        com.google.android.material.textfield.TextInputLayout[] layouts = {
+                findViewById(R.id.layoutDestinationAccount),
+                findViewById(R.id.layoutRecipientName),
+                findViewById(R.id.layoutAmount),
+                findViewById(R.id.layoutTitle)
         };
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-        spinner.setPadding(dp(8), dp(3), dp(8), dp(3));
-        spinner.setBackground(roundRect(backgroundColor, dp(12)));
-        parent.addView(spinner, params(-1, dp(50)));
-        return spinner;
+        for (com.google.android.material.textfield.TextInputLayout layout : layouts) {
+            if (layout != null) {
+                layout.setBoxStrokeColor(accentColor);
+                layout.setHintTextColor(android.content.res.ColorStateList.valueOf(accentColor));
+            }
+        }
+
+        pobierzKontaUzytkownika();
     }
 
     private void pobierzKontaUzytkownika() {
@@ -347,7 +222,6 @@ public class TransferActivity extends AppCompatActivity {
                         continue;
                     }
 
-                    // To jest konto.id zwrócone przez API, a nie uzytkownik_id.
                     long accountId = account.id;
                     String number = account.numerKonta.trim();
                     String currency = account.waluta.trim().toUpperCase(Locale.ROOT);
@@ -366,12 +240,12 @@ public class TransferActivity extends AppCompatActivity {
                     labels[i] = sourceAccounts.get(i).label();
                 }
 
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                        TransferActivity.this, android.R.layout.simple_spinner_item, labels);
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                sourceAccountSpinner.setAdapter(adapter);
-                sourceAccountSpinner.setEnabled(sourceAccounts.size() > 1);
-                sourceAccountSpinner.setSelection(0);
+                ArrayAdapter<String> adapter = createSpinnerAdapter(TransferActivity.this, labels);
+                if (sourceAccountSpinner != null) {
+                    sourceAccountSpinner.setAdapter(adapter);
+                    sourceAccountSpinner.setEnabled(sourceAccounts.size() > 1);
+                    sourceAccountSpinner.setSelection(0);
+                }
                 selectedSourceAccount = sourceAccounts.get(0);
                 ustawWaluteZrodla();
             }
@@ -386,13 +260,8 @@ public class TransferActivity extends AppCompatActivity {
     }
 
     private void ustawWaluteZrodla() {
-        if (selectedSourceAccount == null) return;
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_item,
-                new String[]{selectedSourceAccount.currency}
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        if (selectedSourceAccount == null || currencySpinner == null) return;
+        ArrayAdapter<String> adapter = createSpinnerAdapter(this, new String[]{selectedSourceAccount.currency});
         currencySpinner.setAdapter(adapter);
         currencySpinner.setEnabled(false);
     }
@@ -400,15 +269,37 @@ public class TransferActivity extends AppCompatActivity {
     private void pokazBladKontaZrodlowego(String message) {
         selectedSourceAccount = null;
         sourceAccounts.clear();
-        sourceAccountSpinner.setEnabled(false);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_item,
-                new String[]{"Nie udało się pobrać kont źródłowych"}
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        sourceAccountSpinner.setAdapter(adapter);
+        if (sourceAccountSpinner != null) {
+            sourceAccountSpinner.setEnabled(false);
+            ArrayAdapter<String> adapter = createSpinnerAdapter(this, new String[]{"Nie udało się pobrać kont źródłowych"});
+            sourceAccountSpinner.setAdapter(adapter);
+        }
         toast(message);
+    }
+
+    private ArrayAdapter<String> createSpinnerAdapter(android.content.Context context, String[] items) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                context, android.R.layout.simple_spinner_item, items) {
+            @Override
+            public View getView(int position, View convertView, android.view.ViewGroup parent) {
+                TextView view = (TextView) super.getView(position, convertView, parent);
+                view.setTextColor(ThemeManager.getTextColor(context));
+                view.setTextSize(15);
+                return view;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, android.view.ViewGroup parent) {
+                TextView view = (TextView) super.getDropDownView(position, convertView, parent);
+                view.setTextColor(ThemeManager.getTextColor(context));
+                view.setBackgroundColor(ThemeManager.getSurfaceColor(context));
+                int pad = (int) (12 * context.getResources().getDisplayMetrics().density + 0.5f);
+                view.setPadding(pad, pad, pad, pad);
+                return view;
+            }
+        };
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        return adapter;
     }
 
     private void sprawdzOdbiorce() {
@@ -418,8 +309,7 @@ public class TransferActivity extends AppCompatActivity {
             return;
         }
 
-        // Sprawdź czy konto jest zablokowane w ustawieniach Karty
-        android.content.SharedPreferences cardPrefs =
+        SharedPreferences cardPrefs =
                 getSharedPreferences("demo_card_settings_" + uzytkownikId, MODE_PRIVATE);
         if (cardPrefs.getBoolean("blocked", false)) {
             toast("Twoje konto jest zablokowane. Zmień ustawienia w zakładce Karty, aby odblokować przelewy.");
@@ -463,7 +353,6 @@ public class TransferActivity extends AppCompatActivity {
             return;
         }
 
-        // Sprawdź dzienny limit płatności z ustawień Karty
         float dailyLimit = cardPrefs.getFloat("daily_limit", 1500f);
         BigDecimal maxLimit = new BigDecimal(Float.toString(dailyLimit));
         if (amount.compareTo(maxLimit) > 0) {
@@ -522,7 +411,6 @@ public class TransferActivity extends AppCompatActivity {
                     }
                 }
 
-                // Fallback: szukaj w użytkownikach i ich kontach
                 szukajWUzytkownikach(api, recipientEmail, recipientName, amount, title);
             }
 
@@ -721,8 +609,10 @@ public class TransferActivity extends AppCompatActivity {
                                     || normalizedError.contains("srodk")
                                     || normalizedError.contains("balance")
                                     || normalizedError.contains("insufficient"))) {
-                        amountInput.setError("Brak wystarczających środków na koncie. Zmniejsz kwotę przelewu.");
-                        amountInput.requestFocus();
+                        if (amountInput != null) {
+                            amountInput.setError("Brak wystarczających środków na koncie. Zmniejsz kwotę przelewu.");
+                            amountInput.requestFocus();
+                        }
                     } else {
                         toast("Nie udało się wykonać przelewu. Sprawdź dane i spróbuj ponownie.");
                     }
@@ -760,43 +650,29 @@ public class TransferActivity extends AppCompatActivity {
                 amountInput.setError(null);
             }
         } catch (NumberFormatException ignored) {
-            // Pole jest w trakcie edycji; pełna walidacja nastąpi po zatwierdzeniu.
             amountInput.setError(null);
         }
     }
 
     private String odczytajBlad(Response<?> response) {
-        try {
-            if (response.errorBody() != null) {
-                String error = response.errorBody().string();
-                return error == null || error.trim().isEmpty() ? "" : error;
+        if (response != null && response.errorBody() != null) {
+            try (ResponseBody errorBody = response.errorBody()) {
+                String error = errorBody.string();
+                return error == null ? "" : error.trim();
+            } catch (IOException ignored) {
             }
-        } catch (IOException ignored) {
         }
         return "";
     }
 
     private void setSubmitting(boolean value, String label) {
         submitting = value;
-        submitButton.setEnabled(!value);
-        submitButton.setText(value
-                ? (label == null ? "Przetwarzanie..." : label)
-                : "PRZELEJ");
-    }
-
-    private GradientDrawable roundRect(int color, int radius) {
-        GradientDrawable drawable = new GradientDrawable();
-        drawable.setColor(color);
-        drawable.setCornerRadius(radius);
-        return drawable;
-    }
-
-    private LinearLayout.LayoutParams params(int width, int height) {
-        return new LinearLayout.LayoutParams(width, height);
-    }
-
-    private int dp(int value) {
-        return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
+        if (submitButton != null) {
+            submitButton.setEnabled(!value);
+            submitButton.setText(value
+                    ? (label == null ? "Przetwarzanie…" : label)
+                    : "PRZELEJ");
+        }
     }
 
     private void toast(String message) {

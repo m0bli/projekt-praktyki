@@ -6,7 +6,7 @@
     android:id="@+id/register"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F3F6FB"
+    android:background="@color/theme_background"
     tools:context=".ui.auth.RegisterActivity">
 
     <!-- Pasek nawigacji -->
@@ -14,7 +14,7 @@
         android:id="@+id/toolbarContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#F3F6FB"
+        android:background="@color/theme_background"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -23,10 +23,11 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="#F3F6FB"
+            android:background="@color/theme_background"
             app:title="Tworzenie konta"
-            app:titleTextColor="#173B70"
-            app:navigationIcon="@drawable/ic_arrow_back" />
+            app:titleTextColor="@color/theme_text"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="@color/theme_text" />
 
     </FrameLayout>
 
@@ -59,18 +60,19 @@
                 android:layout_marginTop="2dp"
                 android:gravity="center"
                 android:text="Rejestracja"
-                android:textColor="#173B70"
+                android:textColor="@color/theme_text"
                 android:textSize="30sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.04" />
 
             <TextView
+                android:id="@+id/txtSubtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:gravity="center"
                 android:text="Utwórz konto, aby rozpocząć"
-                android:textColor="#77849A"
+                android:textColor="@color/theme_text_secondary"
                 android:textSize="14sp" />
 
             <!-- Karta -->
@@ -78,10 +80,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                app:cardBackgroundColor="#FFFFFF"
+                app:cardBackgroundColor="@color/theme_surface"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="3dp"
-                app:strokeColor="#E7ECF4"
+                app:strokeColor="@color/theme_divider"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -102,14 +104,14 @@
                         app:boxCornerRadiusTopEnd="14dp"
                         app:boxCornerRadiusBottomStart="14dp"
                         app:boxCornerRadiusBottomEnd="14dp"
-                        app:boxStrokeColor="#24599B"
-                        app:hintTextColor="@color/black"
-                        app:errorTextColor="@color/red"
-                        app:boxStrokeErrorColor="@color/red"
-                        android:textColorHint="@color/gray"
+                        app:boxStrokeColor="@color/theme_primary"
+                        app:hintTextColor="@color/theme_text"
+                        app:errorTextColor="@color/theme_transaction_negative"
+                        app:boxStrokeErrorColor="@color/theme_transaction_negative"
+                        android:textColorHint="@color/theme_text_secondary"
                         app:startIconDrawable="@drawable/ic_person"
-                        app:startIconTint="#77849A"
-                        app:errorIconTint="@color/red">
+                        app:startIconTint="@color/theme_text_secondary"
+                        app:errorIconTint="@color/theme_transaction_negative">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/editRegisterImie"
@@ -118,13 +120,13 @@
                             android:inputType="textCapWords"
                             android:singleLine="true"
                             android:imeOptions="actionNext"
-                            android:textColor="@color/black"
+                            android:textColor="@color/theme_text"
+                            android:textColorHint="@color/theme_text_secondary"
                             android:textSize="16sp"
                             android:paddingTop="16dp"
                             android:paddingBottom="16dp" />
 
                     </com.google.android.material.textfield.TextInputLayout>
-
 
                     <!-- Nazwisko -->
                     <com.google.android.material.textfield.TextInputLayout
@@ -138,14 +140,14 @@
                         app:boxCornerRadiusTopEnd="14dp"
                         app:boxCornerRadiusBottomStart="14dp"
                         app:boxCornerRadiusBottomEnd="14dp"
-                        app:boxStrokeColor="#24599B"
-                        app:hintTextColor="@color/black"
-                        app:errorTextColor="@color/red"
-                        app:boxStrokeErrorColor="@color/red"
-                        android:textColorHint="@color/gray"
+                        app:boxStrokeColor="@color/theme_primary"
+                        app:hintTextColor="@color/theme_text"
+                        app:errorTextColor="@color/theme_transaction_negative"
+                        app:boxStrokeErrorColor="@color/theme_transaction_negative"
+                        android:textColorHint="@color/theme_text_secondary"
                         app:startIconDrawable="@drawable/ic_person"
-                        app:startIconTint="#77849A"
-                        app:errorIconTint="@color/red">
+                        app:startIconTint="@color/theme_text_secondary"
+                        app:errorIconTint="@color/theme_transaction_negative">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/editRegisterNazwisko"
@@ -154,13 +156,13 @@
                             android:inputType="textCapWords"
                             android:singleLine="true"
                             android:imeOptions="actionNext"
-                            android:textColor="@color/black"
+                            android:textColor="@color/theme_text"
+                            android:textColorHint="@color/theme_text_secondary"
                             android:textSize="16sp"
                             android:paddingTop="16dp"
                             android:paddingBottom="16dp" />
 
                     </com.google.android.material.textfield.TextInputLayout>
-
 
                     <!-- Login -->
                     <com.google.android.material.textfield.TextInputLayout
@@ -174,14 +176,14 @@
                         app:boxCornerRadiusTopEnd="14dp"
                         app:boxCornerRadiusBottomStart="14dp"
                         app:boxCornerRadiusBottomEnd="14dp"
-                        app:boxStrokeColor="#24599B"
-                        app:hintTextColor="@color/black"
-                        app:errorTextColor="@color/red"
-                        app:boxStrokeErrorColor="@color/red"
-                        android:textColorHint="@color/gray"
+                        app:boxStrokeColor="@color/theme_primary"
+                        app:hintTextColor="@color/theme_text"
+                        app:errorTextColor="@color/theme_transaction_negative"
+                        app:boxStrokeErrorColor="@color/theme_transaction_negative"
+                        android:textColorHint="@color/theme_text_secondary"
                         app:startIconDrawable="@drawable/ic_person"
-                        app:startIconTint="#77849A"
-                        app:errorIconTint="@color/red">
+                        app:startIconTint="@color/theme_text_secondary"
+                        app:errorIconTint="@color/theme_transaction_negative">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/editRegisterLogin"
@@ -190,13 +192,13 @@
                             android:inputType="text"
                             android:singleLine="true"
                             android:imeOptions="actionNext"
-                            android:textColor="@color/black"
+                            android:textColor="@color/theme_text"
+                            android:textColorHint="@color/theme_text_secondary"
                             android:textSize="16sp"
                             android:paddingTop="16dp"
                             android:paddingBottom="16dp" />
 
                     </com.google.android.material.textfield.TextInputLayout>
-
 
                     <!-- E-mail -->
                     <com.google.android.material.textfield.TextInputLayout
@@ -210,14 +212,14 @@
                         app:boxCornerRadiusTopEnd="14dp"
                         app:boxCornerRadiusBottomStart="14dp"
                         app:boxCornerRadiusBottomEnd="14dp"
-                        app:boxStrokeColor="#24599B"
-                        app:hintTextColor="@color/black"
-                        app:errorTextColor="@color/red"
-                        app:boxStrokeErrorColor="@color/red"
-                        android:textColorHint="@color/gray"
+                        app:boxStrokeColor="@color/theme_primary"
+                        app:hintTextColor="@color/theme_text"
+                        app:errorTextColor="@color/theme_transaction_negative"
+                        app:boxStrokeErrorColor="@color/theme_transaction_negative"
+                        android:textColorHint="@color/theme_text_secondary"
                         app:startIconDrawable="@android:drawable/ic_dialog_email"
-                        app:startIconTint="#77849A"
-                        app:errorIconTint="@color/red">
+                        app:startIconTint="@color/theme_text_secondary"
+                        app:errorIconTint="@color/theme_transaction_negative">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/editRegisterEmail"
@@ -226,13 +228,13 @@
                             android:inputType="textEmailAddress"
                             android:singleLine="true"
                             android:imeOptions="actionNext"
-                            android:textColor="@color/black"
+                            android:textColor="@color/theme_text"
+                            android:textColorHint="@color/theme_text_secondary"
                             android:textSize="16sp"
                             android:paddingTop="16dp"
                             android:paddingBottom="16dp" />
 
                     </com.google.android.material.textfield.TextInputLayout>
-
 
                     <!-- Hasło -->
                     <com.google.android.material.textfield.TextInputLayout
@@ -246,15 +248,16 @@
                         app:boxCornerRadiusTopEnd="14dp"
                         app:boxCornerRadiusBottomStart="14dp"
                         app:boxCornerRadiusBottomEnd="14dp"
-                        app:boxStrokeColor="#24599B"
-                        app:hintTextColor="@color/black"
-                        app:errorTextColor="@color/red"
-                        app:boxStrokeErrorColor="@color/red"
-                        android:textColorHint="@color/gray"
+                        app:boxStrokeColor="@color/theme_primary"
+                        app:hintTextColor="@color/theme_text"
+                        app:errorTextColor="@color/theme_transaction_negative"
+                        app:boxStrokeErrorColor="@color/theme_transaction_negative"
+                        android:textColorHint="@color/theme_text_secondary"
                         app:startIconDrawable="@android:drawable/ic_lock_lock"
-                        app:startIconTint="#77849A"
-                        app:errorIconTint="@color/red"
-                        app:endIconMode="password_toggle">
+                        app:startIconTint="@color/theme_text_secondary"
+                        app:errorIconTint="@color/theme_transaction_negative"
+                        app:endIconMode="password_toggle"
+                        app:endIconTint="@color/theme_text_secondary">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/editRegisterHaslo"
@@ -263,13 +266,13 @@
                             android:inputType="textPassword"
                             android:singleLine="true"
                             android:imeOptions="actionNext"
-                            android:textColor="@color/black"
+                            android:textColor="@color/theme_text"
+                            android:textColorHint="@color/theme_text_secondary"
                             android:textSize="16sp"
                             android:paddingTop="16dp"
                             android:paddingBottom="16dp" />
 
                     </com.google.android.material.textfield.TextInputLayout>
-
 
                     <!-- Potwierdź hasło -->
                     <com.google.android.material.textfield.TextInputLayout
@@ -283,15 +286,16 @@
                         app:boxCornerRadiusTopEnd="14dp"
                         app:boxCornerRadiusBottomStart="14dp"
                         app:boxCornerRadiusBottomEnd="14dp"
-                        app:boxStrokeColor="#24599B"
-                        app:hintTextColor="@color/black"
-                        app:errorTextColor="@color/red"
-                        app:boxStrokeErrorColor="@color/red"
-                        android:textColorHint="@color/gray"
+                        app:boxStrokeColor="@color/theme_primary"
+                        app:hintTextColor="@color/theme_text"
+                        app:errorTextColor="@color/theme_transaction_negative"
+                        app:boxStrokeErrorColor="@color/theme_transaction_negative"
+                        android:textColorHint="@color/theme_text_secondary"
                         app:startIconDrawable="@android:drawable/ic_lock_lock"
-                        app:startIconTint="#77849A"
-                        app:errorIconTint="@color/red"
-                        app:endIconMode="password_toggle">
+                        app:startIconTint="@color/theme_text_secondary"
+                        app:errorIconTint="@color/theme_transaction_negative"
+                        app:endIconMode="password_toggle"
+                        app:endIconTint="@color/theme_text_secondary">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/editRegisterPotwierdzHaslo"
@@ -300,22 +304,22 @@
                             android:inputType="textPassword"
                             android:singleLine="true"
                             android:imeOptions="actionDone"
-                            android:textColor="@color/black"
+                            android:textColor="@color/theme_text"
+                            android:textColorHint="@color/theme_text_secondary"
                             android:textSize="16sp"
                             android:paddingTop="16dp"
                             android:paddingBottom="16dp" />
 
                     </com.google.android.material.textfield.TextInputLayout>
-                    ```
 
                     <CheckBox
                         android:id="@+id/checkboxRegister"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:buttonTint="#24599B"
+                        android:buttonTint="@color/theme_primary"
                         android:text="Akceptuję politykę prywatności"
-                        android:textColor="#526078"
+                        android:textColor="@color/theme_text"
                         android:textSize="14sp" />
 
                 </LinearLayout>
@@ -336,10 +340,10 @@
         android:layout_marginBottom="10dp"
         android:text="Utwórz konto"
         android:textAllCaps="false"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/theme_on_primary"
         android:textSize="16sp"
         android:textStyle="bold"
-        app:backgroundTint="#173B70"
+        app:backgroundTint="@color/theme_primary"
         app:cornerRadius="14dp"
         app:elevation="2dp"
         app:layout_constraintBottom_toBottomOf="parent"

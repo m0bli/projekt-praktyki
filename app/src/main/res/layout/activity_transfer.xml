@@ -1,31 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/transferScrollView"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/transferRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:background="@color/theme_background">
+    android:background="@color/theme_background"
+    tools:context=".ui.home.TransferActivity">
 
+    <!-- Nagłówek strony -->
     <LinearLayout
-        android:id="@+id/transferPage"
-        android:layout_width="match_parent"
+        android:id="@+id/transferHeaderContainer"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingStart="22dp"
         android:paddingTop="18dp"
         android:paddingEnd="22dp"
-        android:paddingBottom="28dp"
-        android:background="@color/theme_background">
+        android:paddingBottom="10dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
             android:id="@+id/transferBack"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingTop="4dp"
-            android:paddingBottom="18dp"
+            android:paddingBottom="12dp"
             android:text="‹  Wróć"
             android:textColor="@color/theme_accent"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground" />
 
         <TextView
             android:id="@+id/transferHeading"
@@ -40,178 +49,261 @@
             android:id="@+id/transferSubtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="7dp"
-            android:layout_marginBottom="22dp"
+            android:layout_marginTop="4dp"
             android:text="Wybierz swoje konto i podaj dane odbiorcy."
             android:textColor="@color/theme_text_secondary"
             android:textSize="14sp" />
 
-        <LinearLayout
+    </LinearLayout>
+
+    <!-- ScrollView dla formularza (transferFormCard) -->
+    <ScrollView
+        android:id="@+id/transferScrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:paddingStart="22dp"
+        android:paddingEnd="22dp"
+        android:paddingBottom="12dp"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@id/transferHeaderContainer"
+        app:layout_constraintBottom_toTopOf="@id/submitTransferButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/transferFormCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingStart="18dp"
-            android:paddingTop="20dp"
-            android:paddingEnd="18dp"
-            android:paddingBottom="20dp"
-            android:background="@color/theme_surface">
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            app:cardBackgroundColor="@color/theme_surface"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="3dp"
+            app:strokeColor="@color/theme_divider"
+            app:strokeWidth="1dp">
 
-            <TextView
-                android:id="@+id/sourceAccountLabel"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="13dp"
-                android:layout_marginBottom="7dp"
-                android:text="Konto źródłowe — tylko Twoje konta"
-                android:textColor="@color/theme_text"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                android:orientation="vertical"
+                android:padding="22dp">
 
-            <Spinner
-                android:id="@+id/sourceAccountSpinner"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:paddingStart="8dp"
-                android:paddingTop="3dp"
-                android:paddingEnd="8dp"
-                android:paddingBottom="3dp"
-                android:background="@color/theme_background"
-                android:enabled="false" />
+                <!-- Konto źródłowe -->
+                <TextView
+                    android:id="@+id/sourceAccountLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Konto źródłowe"
+                    android:textColor="@color/theme_text"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/destinationAccountLabel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="13dp"
-                android:layout_marginBottom="7dp"
-                android:text="E-mail odbiorcy"
-                android:textColor="@color/theme_text"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                <Spinner
+                    android:id="@+id/sourceAccountSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="8dp"
+                    android:paddingStart="12dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="4dp"
+                    android:background="@drawable/bg_input_rounded"
+                    android:enabled="false" />
 
-            <EditText
-                android:id="@+id/destinationAccountInput"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@color/theme_background"
-                android:hint="user@example.com"
-                android:inputType="textEmailAddress"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:singleLine="true"
-                android:textColor="@color/theme_text"
-                android:textColorHint="@color/theme_text_secondary"
-                android:textSize="15sp" />
+                <!-- E-mail odbiorcy -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layoutDestinationAccount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:hint="E-mail odbiorcy"
+                    android:textColorHint="@color/theme_text_secondary"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusTopStart="16dp"
+                    app:boxCornerRadiusTopEnd="16dp"
+                    app:boxCornerRadiusBottomStart="16dp"
+                    app:boxCornerRadiusBottomEnd="16dp"
+                    app:boxStrokeColor="@color/theme_border"
+                    app:hintTextColor="@color/theme_text"
+                    app:errorTextColor="@color/theme_transaction_negative"
+                    app:boxStrokeErrorColor="@color/theme_transaction_negative"
+                    app:startIconDrawable="@drawable/ic_email"
+                    app:startIconTint="@color/theme_text_secondary"
+                    app:errorIconTint="@color/theme_transaction_negative">
 
-            <TextView
-                android:id="@+id/recipientNameLabel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="13dp"
-                android:layout_marginBottom="7dp"
-                android:text="Imię odbiorcy"
-                android:textColor="@color/theme_text"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/destinationAccountInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textEmailAddress"
+                        android:singleLine="true"
+                        android:imeOptions="actionNext"
+                        android:textColor="@color/theme_text"
+                        android:textColorHint="@color/theme_text_secondary"
+                        android:textSize="15sp"
+                        android:paddingTop="15dp"
+                        android:paddingBottom="15dp" />
 
-            <EditText
-                android:id="@+id/recipientNameInput"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@color/theme_background"
-                android:hint=""
-                android:inputType="textCapWords"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:singleLine="true"
-                android:textColor="@color/theme_text"
-                android:textColorHint="@color/theme_text_secondary"
-                android:textSize="15sp" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-            <TextView
-                android:id="@+id/amountLabel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="13dp"
-                android:layout_marginBottom="7dp"
-                android:text="Kwota przelewu"
-                android:textColor="@color/theme_text"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                <!-- Imię odbiorcy -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layoutRecipientName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:hint="Imię odbiorcy"
+                    android:textColorHint="@color/theme_text_secondary"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusTopStart="16dp"
+                    app:boxCornerRadiusTopEnd="16dp"
+                    app:boxCornerRadiusBottomStart="16dp"
+                    app:boxCornerRadiusBottomEnd="16dp"
+                    app:boxStrokeColor="@color/theme_border"
+                    app:hintTextColor="@color/theme_text"
+                    app:errorTextColor="@color/theme_transaction_negative"
+                    app:boxStrokeErrorColor="@color/theme_transaction_negative"
+                    app:startIconDrawable="@drawable/ic_person"
+                    app:startIconTint="@color/theme_text_secondary"
+                    app:errorIconTint="@color/theme_transaction_negative">
 
-            <EditText
-                android:id="@+id/amountInput"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@color/theme_background"
-                android:hint="0,00"
-                android:inputType="numberDecimal"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:singleLine="true"
-                android:textColor="@color/theme_text"
-                android:textColorHint="@color/theme_text_secondary"
-                android:textSize="15sp" />
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/recipientNameInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapWords"
+                        android:singleLine="true"
+                        android:imeOptions="actionNext"
+                        android:textColor="@color/theme_text"
+                        android:textColorHint="@color/theme_text_secondary"
+                        android:textSize="15sp"
+                        android:paddingTop="15dp"
+                        android:paddingBottom="15dp" />
 
-            <TextView
-                android:id="@+id/currencyLabel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="13dp"
-                android:layout_marginBottom="7dp"
-                android:text="Waluta konta źródłowego"
-                android:textColor="@color/theme_text"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-            <Spinner
-                android:id="@+id/currencySpinner"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:paddingStart="8dp"
-                android:paddingTop="3dp"
-                android:paddingEnd="8dp"
-                android:paddingBottom="3dp"
-                android:background="@color/theme_background"
-                android:enabled="false" />
+                <!-- Kwota przelewu -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layoutAmount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:hint="Kwota przelewu"
+                    android:textColorHint="@color/theme_text_secondary"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusTopStart="16dp"
+                    app:boxCornerRadiusTopEnd="16dp"
+                    app:boxCornerRadiusBottomStart="16dp"
+                    app:boxCornerRadiusBottomEnd="16dp"
+                    app:boxStrokeColor="@color/theme_border"
+                    app:hintTextColor="@color/theme_text"
+                    app:errorTextColor="@color/theme_transaction_negative"
+                    app:boxStrokeErrorColor="@color/theme_transaction_negative"
+                    app:startIconDrawable="@drawable/ic_kwota"
+                    app:startIconTint="@color/theme_text_secondary"
+                    app:errorIconTint="@color/theme_transaction_negative">
 
-            <TextView
-                android:id="@+id/titleLabel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="13dp"
-                android:layout_marginBottom="7dp"
-                android:text="Tytuł przelewu"
-                android:textColor="@color/theme_text"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/amountInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
+                        android:singleLine="true"
+                        android:imeOptions="actionNext"
+                        android:textColor="@color/theme_text"
+                        android:textColorHint="@color/theme_text_secondary"
+                        android:textSize="15sp"
+                        android:paddingTop="15dp"
+                        android:paddingBottom="15dp" />
 
-            <EditText
-                android:id="@+id/titleInput"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@color/theme_background"
-                android:hint=""
-                android:inputType="textCapSentences"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:singleLine="true"
-                android:textColor="@color/theme_text"
-                android:textColorHint="@color/theme_text_secondary"
-                android:textSize="15sp" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-        </LinearLayout>
+                <!-- Waluta konta źródłowego -->
+                <TextView
+                    android:id="@+id/currencyLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:text="Waluta konta źródłowego"
+                    android:textColor="@color/theme_text"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/submitTransferButton"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginTop="20dp"
-            android:background="@color/theme_accent"
-            android:text="PRZELEJ"
-            android:textColor="@color/white"
-            android:textSize="15sp" />
+                <Spinner
+                    android:id="@+id/currencySpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="8dp"
+                    android:paddingStart="12dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="4dp"
+                    android:background="@drawable/bg_input_rounded"
+                    android:enabled="false" />
 
-    </LinearLayout>
-</ScrollView>
+                <!-- Tytuł przelewu -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layoutTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:hint="Tytuł przelewu"
+                    android:textColorHint="@color/theme_text_secondary"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusTopStart="16dp"
+                    app:boxCornerRadiusTopEnd="16dp"
+                    app:boxCornerRadiusBottomStart="16dp"
+                    app:boxCornerRadiusBottomEnd="16dp"
+                    app:boxStrokeColor="@color/theme_border"
+                    app:hintTextColor="@color/theme_text"
+                    app:errorTextColor="@color/theme_transaction_negative"
+                    app:boxStrokeErrorColor="@color/theme_transaction_negative"
+                    app:startIconDrawable="@drawable/ic_tytul_przelewu"
+                    app:startIconTint="@color/theme_text_secondary"
+                    app:errorIconTint="@color/theme_transaction_negative">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/titleInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapSentences"
+                        android:singleLine="true"
+                        android:imeOptions="actionDone"
+                        android:textColor="@color/theme_text"
+                        android:textColorHint="@color/theme_text_secondary"
+                        android:textSize="15sp"
+                        android:paddingTop="15dp"
+                        android:paddingBottom="15dp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </ScrollView>
+
+    <!-- Przycisk przelewu na dole -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/submitTransferButton"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginStart="22dp"
+        android:layout_marginEnd="22dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="16dp"
+        android:text="PRZELEJ"
+        android:textAllCaps="false"
+        android:textColor="@color/theme_on_primary"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:backgroundTint="@color/theme_primary"
+        app:cornerRadius="16dp"
+        app:elevation="2dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

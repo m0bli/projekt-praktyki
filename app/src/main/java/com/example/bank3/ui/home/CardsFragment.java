@@ -1,27 +1,22 @@
 package com.example.bank3.ui.home;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.ViewGroup;
-import androidx.fragment.app.Fragment;
 import android.text.InputType;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
-
 import androidx.appcompat.widget.SwitchCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
 
 import com.example.bank3.R;
-import com.example.bank3.ui.theme.ThemeManager;
 
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -29,12 +24,10 @@ import java.util.Locale;
 public class CardsFragment extends Fragment {
 
     private static final String PREFS_PREFIX = "demo_card_settings_";
-    private long userId;
     private SharedPreferences preferences;
 
     private TextView cardNumber;
     private TextView limitValue;
-    private SwitchCompat blockedSwitch;
     private Button revealButton;
     private boolean numberRevealed;
 
@@ -42,10 +35,8 @@ public class CardsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.activity_cards, container, false);
 
-
-
-        userId = requireActivity().getIntent().getLongExtra("uzytkownikId", -1L);
-        preferences = requireContext().getSharedPreferences(PREFS_PREFIX + userId, android.content.Context.MODE_PRIVATE);
+        long userId = requireActivity().getIntent().getLongExtra("uzytkownikId", -1L);
+        preferences = requireContext().getSharedPreferences(PREFS_PREFIX + userId, Context.MODE_PRIVATE);
 
         setupViews(root);
         return root;
@@ -56,10 +47,9 @@ public class CardsFragment extends Fragment {
 
         cardNumber = root.findViewById(R.id.txtCardNumber);
         revealButton = root.findViewById(R.id.btnRevealCard);
-        blockedSwitch = root.findViewById(R.id.switchBlocked);
+        SwitchCompat blockedSwitch = root.findViewById(R.id.switchBlocked);
         limitValue = root.findViewById(R.id.txtLimitValue);
 
-        // Card reveal button logic
         revealButton.setOnClickListener(v -> {
             numberRevealed = !numberRevealed;
             cardNumber.setText(numberRevealed
@@ -68,21 +58,21 @@ public class CardsFragment extends Fragment {
             revealButton.setText(numberRevealed ? "Ukryj dane karty" : "Pokaż dane karty");
         });
 
-        // Blocked switch logic
         boolean isBlocked = preferences.getBoolean("blocked", false);
-        blockedSwitch.setChecked(isBlocked);
+        if (blockedSwitch != null) {
+            blockedSwitch.setChecked(isBlocked);
 
-        blockedSwitch.setOnCheckedChangeListener((button, checked) -> {
-            preferences.edit().putBoolean("blocked", checked).apply();
-            Toast.makeText(
-                    requireContext(),
-                    checked ? "Konto zostało zablokowane. Przelewy są teraz wyłączone."
-                            : "Konto zostało odblokowane.",
-                    Toast.LENGTH_SHORT
-            ).show();
-        });
+            blockedSwitch.setOnCheckedChangeListener((button, checked) -> {
+                preferences.edit().putBoolean("blocked", checked).apply();
+                Toast.makeText(
+                        requireContext(),
+                        checked ? "Konto zostało zablokowane. Przelewy są teraz wyłączone."
+                                : "Konto zostało odblokowane.",
+                        Toast.LENGTH_SHORT
+                ).show();
+            });
+        }
 
-        // Limit change logic
         root.findViewById(R.id.btnChangeLimit).setOnClickListener(v -> showLimitDialog());
         updateLimitText();
     }
@@ -121,7 +111,7 @@ public class CardsFragment extends Fragment {
             return;
         }
         float limit = preferences.getFloat("daily_limit", 1500f);
-        NumberFormat format = NumberFormat.getNumberInstance(new Locale("pl", "PL"));
+        NumberFormat format = NumberFormat.getNumberInstance(Locale.forLanguageTag("pl-PL"));
         format.setMinimumFractionDigits(2);
         format.setMaximumFractionDigits(2);
         limitValue.setText(format.format(limit) + " PLN");

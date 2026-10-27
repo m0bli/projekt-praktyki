@@ -414,7 +414,7 @@ public class MainMenuActivity extends AppCompatActivity
 
     private String formatTransactionAmount(Object amount) {
         try {
-            NumberFormat format = NumberFormat.getNumberInstance(new Locale("pl", "PL"));
+            NumberFormat format = NumberFormat.getNumberInstance(Locale.forLanguageTag("pl-PL"));
             format.setMinimumFractionDigits(2);
             format.setMaximumFractionDigits(2);
             return format.format(amount instanceof Number
@@ -480,7 +480,7 @@ public class MainMenuActivity extends AppCompatActivity
                 if (response.isSuccessful() && saldoResponse != null
                         && saldoResponse.getSaldo() != null) {
                     NumberFormat format = NumberFormat.getNumberInstance(
-                            new Locale("pl", "PL")
+                            Locale.forLanguageTag("pl-PL")
                     );
                     format.setMinimumFractionDigits(2);
                     format.setMaximumFractionDigits(2);
@@ -583,7 +583,6 @@ public class MainMenuActivity extends AppCompatActivity
         int background = ThemeManager.getBackgroundColor(this);
         int surface = ThemeManager.getSurfaceColor(this);
         int text = ThemeManager.getTextColor(this);
-        int secondary = ThemeManager.getSecondaryTextColor(this);
         int accent = ThemeManager.getAccentColor(this);
 
         View mainContent = drawerLayout.getChildAt(0);
@@ -599,8 +598,7 @@ public class MainMenuActivity extends AppCompatActivity
                 if (topBar instanceof ViewGroup) {
                     applyTextColors(
                             (ViewGroup) topBar,
-                            text,
-                            secondary
+                            text
                     );
                 }
             }
@@ -624,7 +622,7 @@ public class MainMenuActivity extends AppCompatActivity
         View drawer = findViewById(R.id.profileDrawer);
         if (drawer instanceof ViewGroup) {
             drawer.setBackgroundColor(surface);
-            applyTextColors((ViewGroup) drawer, text, secondary);
+            applyTextColors((ViewGroup) drawer, text);
         }
 
         colorQuickAction(R.id.actionTransfer, accent);
@@ -636,8 +634,7 @@ public class MainMenuActivity extends AppCompatActivity
 
     private void applyTextColors(
             ViewGroup parent,
-            int textColor,
-            int secondaryColor
+            int textColor
     ) {
         for (int i = 0; i < parent.getChildCount(); i++) {
             View child = parent.getChildAt(i);
@@ -659,8 +656,7 @@ public class MainMenuActivity extends AppCompatActivity
             } else if (child instanceof ViewGroup) {
                 applyTextColors(
                         (ViewGroup) child,
-                        textColor,
-                        secondaryColor
+                        textColor
                 );
             }
         }
@@ -735,7 +731,6 @@ public class MainMenuActivity extends AppCompatActivity
 
     public void selectTab(int position) {
         if (position < 0 || position > 3) return;
-        int previousTab = selectedTab;
         selectedTab = position;
         updateNavigationColors();
 

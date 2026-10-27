@@ -1,6 +1,7 @@
 package com.example.bank3.ui.auth;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -18,6 +19,7 @@ import com.example.bank3.data.repository.AuthRepository;
 import com.example.bank3.model.AuthResponse;
 import com.example.bank3.model.LoginRequest;
 import com.example.bank3.ui.home.MainMenuActivity;
+import com.example.bank3.ui.theme.ThemeManager;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -43,18 +45,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeManager.applyTheme(this);
         super.onCreate(savedInstanceState);
 
         EdgeToEdge.enable(this);
-
-        WindowInsetsControllerCompat controller =
-                new WindowInsetsControllerCompat(
-                        getWindow(),
-                        getWindow().getDecorView()
-                );
-
-        controller.setAppearanceLightStatusBars(true);
-        controller.setAppearanceLightNavigationBars(true);
 
         setContentView(R.layout.activity_main);
 
@@ -97,6 +91,69 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnLogin.setOnClickListener(v -> login());
+
+        applyDynamicTheme();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        applyDynamicTheme();
+    }
+
+    private void applyDynamicTheme() {
+        boolean dark = ThemeManager.isBlack(this);
+        int backgroundColor = ThemeManager.getBackgroundColor(this);
+        int textColor = ThemeManager.getTextColor(this);
+        int accentColor = ThemeManager.getAccentColor(this);
+
+        WindowInsetsControllerCompat controller =
+                new WindowInsetsControllerCompat(
+                        getWindow(),
+                        getWindow().getDecorView()
+                );
+
+        controller.setAppearanceLightStatusBars(!dark);
+        controller.setAppearanceLightNavigationBars(!dark);
+
+        View main = findViewById(R.id.main);
+        if (main != null) {
+            main.setBackgroundColor(backgroundColor);
+        }
+
+        TextView txtLogo = findViewById(R.id.txtLogo);
+        if (txtLogo != null && txtLogo.getBackground() != null) {
+            txtLogo.getBackground().setTint(accentColor);
+        }
+
+        TextView bankTitle = findViewById(R.id.bank);
+        if (bankTitle != null) {
+            bankTitle.setTextColor(textColor);
+        }
+
+        if (btnRegister != null) {
+            btnRegister.setTextColor(accentColor);
+        }
+
+        if (btnLogin != null) {
+            btnLogin.setBackgroundTintList(
+                    ColorStateList.valueOf(accentColor)
+            );
+        }
+
+        if (loginLayout != null) {
+            loginLayout.setBoxStrokeColor(accentColor);
+            loginLayout.setHintTextColor(
+                    ColorStateList.valueOf(accentColor)
+            );
+        }
+
+        if (hasloLayout != null) {
+            hasloLayout.setBoxStrokeColor(accentColor);
+            hasloLayout.setHintTextColor(
+                    ColorStateList.valueOf(accentColor)
+            );
+        }
     }
 
     private void login() {
