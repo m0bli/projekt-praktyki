@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/dialogLimitRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_quick_action"
+    android:elevation="8dp"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- Ikona w nagłówku -->
+    <ImageView
+        android:id="@+id/dialogLimitIcon"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/bg_nav_inactive"
+        android:contentDescription="Ikona limit płatności"
+        android:padding="14dp"
+        android:src="@drawable/ic_person"
+        app:tint="@color/theme_accent" />
+
+    <!-- Tytuł -->
+    <TextView
+        android:id="@+id/dialogLimitTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:text="Dzienny limit płatności"
+        android:textColor="@color/theme_text"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <!-- Opis -->
+    <TextView
+        android:id="@+id/dialogLimitSubtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center"
+        android:text="Podaj maksymalną kwotę dziennych transakcji w PLN (1 - 1 000 000 PLN)."
+        android:textColor="@color/theme_text_secondary"
+        android:textSize="13sp" />
+
+    <!-- Pole na kwotę limitu -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutLimitInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:hint="Kwota limitu (PLN)"
+        android:textColorHint="@color/theme_text_secondary"
+        app:boxBackgroundMode="outline"
+        app:boxCornerRadiusBottomEnd="14dp"
+        app:boxCornerRadiusBottomStart="14dp"
+        app:boxCornerRadiusTopEnd="14dp"
+        app:boxCornerRadiusTopStart="14dp"
+        app:boxStrokeColor="@color/theme_primary"
+        app:boxStrokeErrorColor="@color/theme_transaction_negative"
+        app:errorIconTint="@color/theme_transaction_negative"
+        app:errorTextColor="@color/theme_transaction_negative"
+        app:hintTextColor="@color/theme_primary"
+        app:startIconDrawable="@drawable/ic_person"
+        app:startIconTint="@color/theme_accent">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editLimitValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionDone"
+            android:inputType="numberDecimal"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:singleLine="true"
+            android:textColor="@color/theme_text"
+            android:textColorHint="@color/theme_text_secondary"
+            android:textSize="16sp" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Komunikat błędu -->
+    <TextView
+        android:id="@+id/txtDialogLimitError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:textColor="@color/theme_transaction_negative"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+    <!-- Przyciski akcji -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/btnDialogLimitCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_nav_inactive"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingHorizontal="18dp"
+            android:paddingVertical="12dp"
+            android:text="Anuluj"
+            android:textColor="@color/theme_text_secondary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btnDialogLimitConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/bg_register_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingHorizontal="22dp"
+            android:paddingVertical="12dp"
+            android:text="Zapisz"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</LinearLayout>

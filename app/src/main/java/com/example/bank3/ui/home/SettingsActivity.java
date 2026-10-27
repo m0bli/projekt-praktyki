@@ -72,12 +72,12 @@ public class SettingsActivity extends AppCompatActivity
                 ))
         );
 
-        findViewById(R.id.settingProfile).setOnClickListener(v ->
-                showMessage(
-                        "Moje dane",
-                        "Ta funkcja zostanie dodana później."
-                )
-        );
+        findViewById(R.id.settingProfile).setOnClickListener(v -> {
+            Intent intent = new Intent(SettingsActivity.this, ProfileActivity.class);
+            intent.putExtra("uzytkownikId", getIntent().getLongExtra("uzytkownikId", -1L));
+            intent.putExtra("nick", getIntent().getStringExtra("nick"));
+            startActivity(intent);
+        });
 
         findViewById(R.id.settingSecurity).setOnClickListener(v ->
                 showMessage(

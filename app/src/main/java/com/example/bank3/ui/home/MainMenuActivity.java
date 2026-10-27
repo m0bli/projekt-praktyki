@@ -168,19 +168,22 @@ public class MainMenuActivity extends AppCompatActivity
 
         findViewById(R.id.drawerProfile).setOnClickListener(v -> {
             drawerLayout.closeDrawer(GravityCompat.START);
-            showPlaceholder(
-                    "Moje dane",
-                    "Tutaj wyświetlimy dane Twojego konta."
-            );
+            Intent intent = new Intent(MainMenuActivity.this, ProfileActivity.class);
+            intent.putExtra("uzytkownikId", uzytkownikId);
+            intent.putExtra("nick", getIntent().getStringExtra("nick"));
+            startActivity(intent);
         });
 
         findViewById(R.id.drawerSettings).setOnClickListener(v -> {
             drawerLayout.closeDrawer(GravityCompat.START);
 
-            startActivity(new Intent(
+            Intent intent = new Intent(
                     MainMenuActivity.this,
                     SettingsActivity.class
-            ));
+            );
+            intent.putExtra("uzytkownikId", uzytkownikId);
+            intent.putExtra("nick", getIntent().getStringExtra("nick"));
+            startActivity(intent);
         });
 
         findViewById(R.id.drawerPrivacy).setOnClickListener(v -> {
