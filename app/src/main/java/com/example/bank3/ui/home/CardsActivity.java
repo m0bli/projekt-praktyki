@@ -238,7 +238,6 @@ public class CardsActivity extends AppCompatActivity {
                             if (onVerified != null) {
                                 onVerified.run();
                             }
-                            Toast.makeText(CardsActivity.this, "Tożsamość potwierdzona. Dane karty odsłonięte.", Toast.LENGTH_SHORT).show();
                             dialog.dismiss();
                         } else {
                             if (inputLayout != null) inputLayout.setError("Nieprawidłowe hasło");

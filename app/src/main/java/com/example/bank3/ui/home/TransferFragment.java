@@ -686,6 +686,15 @@ public class TransferFragment extends Fragment {
         if (accountsCall != null) accountsCall.cancel();
         if (destinationCall != null) destinationCall.cancel();
         if (transactionCall != null) transactionCall.cancel();
+
+        sourceAccountSpinner = null;
+        currencySpinner = null;
+        destinationAccountInput = null;
+        recipientNameInput = null;
+        amountInput = null;
+        titleInput = null;
+        submitButton = null;
+
         super.onDestroyView();
     }
 }

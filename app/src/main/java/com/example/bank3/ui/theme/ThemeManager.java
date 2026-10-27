@@ -87,9 +87,13 @@ public final class ThemeManager {
     }
 
     private static void notifyThemeChanged() {
-        List<ThemeChangeListener> activeListeners = new ArrayList<>();
+        ThemeChangeListener[] targets;
 
         synchronized (ThemeManager.class) {
+            int size = listeners.size();
+            ThemeChangeListener[] temp = new ThemeChangeListener[size];
+            int count = 0;
+
             Iterator<WeakReference<ThemeChangeListener>> iterator =
                     listeners.iterator();
 
@@ -99,12 +103,15 @@ public final class ThemeManager {
                 if (listener == null) {
                     iterator.remove();
                 } else {
-                    activeListeners.add(listener);
+                    temp[count++] = listener;
                 }
             }
+
+            targets = new ThemeChangeListener[count];
+            System.arraycopy(temp, 0, targets, 0, count);
         }
 
-        for (ThemeChangeListener listener : activeListeners) {
+        for (ThemeChangeListener listener : targets) {
             listener.onThemeChanged();
         }
     }

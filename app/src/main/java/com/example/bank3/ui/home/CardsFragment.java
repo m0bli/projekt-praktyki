@@ -199,7 +199,6 @@ public class CardsFragment extends Fragment {
                             if (onVerified != null) {
                                 onVerified.run();
                             }
-                            Toast.makeText(context, "Tożsamość potwierdzona. Dane karty odsłonięte.", Toast.LENGTH_SHORT).show();
                             dialog.dismiss();
                         } else {
                             if (inputLayout != null) inputLayout.setError("Nieprawidłowe hasło");
@@ -327,5 +326,13 @@ public class CardsFragment extends Fragment {
         drawable.setColor(color);
         drawable.setCornerRadius((int) (radiusDp * requireContext().getResources().getDisplayMetrics().density + 0.5f));
         return drawable;
+    }
+
+    @Override
+    public void onDestroyView() {
+        cardNumber = null;
+        limitValue = null;
+        revealButton = null;
+        super.onDestroyView();
     }
 }

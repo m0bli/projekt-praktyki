@@ -323,7 +323,6 @@ public class ProfileActivity extends AppCompatActivity
                         if (response.isSuccessful() && body != null && (body.isSukces() || body.getUzytkownikId() != null)) {
                             isAccountVerifiedSession = true;
                             revealFullAccountNumber();
-                            Toast.makeText(ProfileActivity.this, "Hasło prawidłowe. Numer konta odsłonięty.", Toast.LENGTH_SHORT).show();
                             dialog.dismiss();
                         } else {
                             if (inputLayout != null) inputLayout.setError("Nieprawidłowe hasło");
@@ -464,7 +463,7 @@ public class ProfileActivity extends AppCompatActivity
                                     profileProgressBar.setVisibility(View.GONE);
                                     if (isFinishing() || isDestroyed()) return;
 
-                                    Toast.makeText(ProfileActivity.this, "Hasło zostało zmienione w bazie danych!", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(ProfileActivity.this, "Hasło zostało pomyślnie zmienione.", Toast.LENGTH_SHORT).show();
                                     dialog.dismiss();
                                 }
 
@@ -473,8 +472,7 @@ public class ProfileActivity extends AppCompatActivity
                                     profileProgressBar.setVisibility(View.GONE);
                                     if (isFinishing() || isDestroyed()) return;
 
-                                    Toast.makeText(ProfileActivity.this, "Hasło zostało zmienione.", Toast.LENGTH_SHORT).show();
-                                    dialog.dismiss();
+                                    Toast.makeText(ProfileActivity.this, "Błąd podczas zmiany hasła.", Toast.LENGTH_SHORT).show();
                                 }
                             });
                         } else {
