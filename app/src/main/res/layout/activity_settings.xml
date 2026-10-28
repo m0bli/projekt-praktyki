@@ -201,65 +201,7 @@
                 android:textSize="28sp" />
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/settingSecurity"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:background="@drawable/bg_nav_inactive"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingStart="14dp"
-            android:paddingTop="14dp"
-            android:paddingEnd="12dp"
-            android:paddingBottom="14dp">
 
-            <TextView
-                android:id="@+id/iconSecurity"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@drawable/bg_quick_action"
-                android:gravity="center"
-                android:text="⌑"
-                android:textColor="@color/theme_accent"
-                android:textSize="23sp" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/titleSecurity"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Bezpieczeństwo"
-                    android:textColor="@color/theme_text"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/descriptionSecurity"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingTop="4dp"
-                    android:text="Ustawienia bezpieczeństwa konta"
-                    android:textColor="@color/theme_text_secondary"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="24dp"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="›"
-                android:textColor="@color/theme_text_secondary"
-                android:textSize="28sp" />
-        </LinearLayout>
 
         <TextView
             android:id="@+id/sectionApp"
@@ -309,7 +251,7 @@
                     android:id="@+id/titleNotifications"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Powiadomienia"
+                    android:text="Powiadomienia push"
                     android:textColor="@color/theme_text"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -319,18 +261,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingTop="4dp"
-                    android:text="Zarządzanie powiadomieniami"
+                    android:text="Powiadomienia push są włączone"
                     android:textColor="@color/theme_text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
 
-            <TextView
-                android:layout_width="24dp"
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchNotifications"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="›"
-                android:textColor="@color/theme_text_secondary"
-                android:textSize="28sp" />
+                android:clickable="false"
+                android:focusable="false" />
         </LinearLayout>
 
         <TextView

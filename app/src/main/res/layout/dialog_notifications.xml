@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dialogRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bg_popup_rounded"
+    android:padding="20dp">
+
+    <!-- Uchwyt do wysuwania -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_drag_handle" />
+
+    <!-- Nagłówek okna -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/dialogTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:text="Powiadomienia"
+            android:textColor="@color/theme_text"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btnCloseDialog"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:gravity="center"
+            android:text="✕"
+            android:textColor="@color/theme_text_secondary"
+            android:textSize="20sp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true" />
+    </RelativeLayout>
+
+    <View
+        android:id="@+id/headerDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="16dp"
+        android:background="@color/theme_divider" />
+
+    <!-- Przewijana lista powiadomień z obsługą gestu wysuwania w dół -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/notificationsScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:id="@+id/notificationsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

@@ -216,6 +216,7 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtra("uzytkownikId", body.getUzytkownikId());
                     }
                     startActivity(intent);
+                    finish();
 
                 } else if (response.code() == 401) {
                     showError("Nieprawidłowy login lub hasło.");

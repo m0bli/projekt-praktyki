@@ -1,11 +1,16 @@
 package com.example.bank3.ui.home;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -528,6 +533,21 @@ public class TransferActivity extends AppCompatActivity {
         });
     }
 
+    private String formatAccountNumber(String raw) {
+        if (raw == null) return "";
+        String clean = raw.replaceAll("\\s+", "");
+        if (clean.length() == 26) {
+            return clean.substring(0, 2) + " "
+                    + clean.substring(2, 6) + " "
+                    + clean.substring(6, 10) + " "
+                    + clean.substring(10, 14) + " "
+                    + clean.substring(14, 18) + " "
+                    + clean.substring(18, 22) + " "
+                    + clean.substring(22, 26);
+        }
+        return raw;
+    }
+
     private void pokazPodsumowanie(
             String recipientEmail,
             String destinationNumber,
@@ -537,21 +557,63 @@ public class TransferActivity extends AppCompatActivity {
             long sourceId,
             String currency
     ) {
-        String summary = "Konto źródłowe ID: " + sourceId
-                + "\nOdbiorca: " + recipientName
-                + "\nE-mail odbiorcy: " + recipientEmail
-                + "\nNumer konta odbiorcy: " + destinationNumber
-                + "\nKwota: " + String.format(Locale.getDefault(), "%.2f %s", amount, currency)
-                + "\nTyp: przelew"
-                + "\nTytuł: " + title;
+        Dialog dialog = new Dialog(this, R.style.NotificationDialogTheme);
+        View view = getLayoutInflater().inflate(R.layout.dialog_confirm_transfer, null);
+        dialog.setContentView(view);
 
-        new AlertDialog.Builder(this)
-                .setTitle("Potwierdź przelew")
-                .setMessage(summary)
-                .setNegativeButton("Popraw", (dialog, which) -> dialog.dismiss())
-                .setPositiveButton("Wyślij", (dialog, which) ->
-                        wyslijPrzelew(sourceId, recipientEmail, destinationNumber, recipientName, amount, currency, title))
-                .show();
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setGravity(Gravity.CENTER);
+        }
+
+        View root = view.findViewById(R.id.dialogConfirmRoot);
+        if (root != null) {
+            GradientDrawable shape = new GradientDrawable();
+            shape.setShape(GradientDrawable.RECTANGLE);
+            shape.setColor(ThemeManager.getSurfaceColor(this));
+            shape.setCornerRadius(dp(20));
+            root.setBackground(shape);
+        }
+
+        TextView txtAmount = view.findViewById(R.id.txtConfirmAmount);
+        TextView txtRecipient = view.findViewById(R.id.txtConfirmRecipient);
+        TextView txtAccount = view.findViewById(R.id.txtConfirmAccount);
+        TextView txtTitle = view.findViewById(R.id.txtConfirmTitle);
+        TextView btnCancel = view.findViewById(R.id.btnConfirmCancel);
+        TextView btnSubmit = view.findViewById(R.id.btnConfirmSubmit);
+
+        if (txtAmount != null) {
+            txtAmount.setText(String.format(Locale.US, "%.2f %s", amount, currency));
+            txtAmount.setTextColor(ThemeManager.getAccentColor(this));
+        }
+        if (txtRecipient != null) {
+            String recipient = (recipientName != null && !recipientName.trim().isEmpty())
+                    ? recipientName + " (" + recipientEmail + ")" : recipientEmail;
+            txtRecipient.setText(recipient);
+            txtRecipient.setTextColor(ThemeManager.getTextColor(this));
+        }
+        if (txtAccount != null) {
+            txtAccount.setText(formatAccountNumber(destinationNumber));
+            txtAccount.setTextColor(ThemeManager.getSecondaryTextColor(this));
+        }
+        if (txtTitle != null) {
+            txtTitle.setText(title);
+            txtTitle.setTextColor(ThemeManager.getTextColor(this));
+        }
+
+        if (btnCancel != null) {
+            btnCancel.setTextColor(ThemeManager.getTextColor(this));
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+        }
+        if (btnSubmit != null) {
+            btnSubmit.setOnClickListener(v -> {
+                dialog.dismiss();
+                wyslijPrzelew(sourceId, recipientEmail, destinationNumber, recipientName, amount, currency, title);
+            });
+        }
+
+        dialog.show();
     }
 
     private void wyslijPrzelew(
@@ -590,15 +652,40 @@ public class TransferActivity extends AppCompatActivity {
 
                 if (response.isSuccessful()) {
                     Map<String, Object> result = response.body();
-                    String message = "Przelew został wykonany.";
+                    long txId = System.currentTimeMillis();
+                    String formattedTxId = String.valueOf(txId);
+
                     if (result != null && result.get("id") != null) {
-                        message += "\nNumer transakcji: " + result.get("id");
+                        Object idObj = result.get("id");
+                        if (idObj instanceof Number) {
+                            long idLong = ((Number) idObj).longValue();
+                            txId = idLong;
+                            formattedTxId = String.valueOf(idLong);
+                        } else {
+                            formattedTxId = String.valueOf(idObj).replaceAll("\\.0+$", "");
+                        }
                     }
-                    new AlertDialog.Builder(TransferActivity.this)
-                            .setTitle("Przelew wykonany")
-                            .setMessage(message)
-                            .setPositiveButton("Gotowe", (dialog, which) -> finish())
-                            .show();
+
+                    String formattedAmount = String.format(Locale.US, "%.2f", amount.doubleValue());
+                    String targetName = (recipientName != null && !recipientName.trim().isEmpty())
+                            ? recipientName : recipientEmail;
+
+                    NotificationHelper.sendTransferNotification(
+                            TransferActivity.this,
+                            uzytkownikId,
+                            getIntent().getStringExtra("nick"),
+                            "Przelew wysłany",
+                            "Wysłałeś " + formattedAmount + " " + currency + " do " + targetName,
+                            (int) (txId & 0x7FFFFFFF)
+                    );
+
+                    SharedPreferences prefs = getSharedPreferences("notifications_prefs", MODE_PRIVATE);
+                    String prefKey = "notified_tx_ids_" + uzytkownikId;
+                    java.util.Set<String> notifiedIds = new java.util.HashSet<>(prefs.getStringSet(prefKey, new java.util.HashSet<>()));
+                    notifiedIds.add(String.valueOf(txId));
+                    prefs.edit().putStringSet(prefKey, notifiedIds).apply();
+
+                    pokazSukcesDialog(formattedTxId, formattedAmount, currency, targetName, () -> finish());
                 } else {
                     String backendError = odczytajBlad(response);
                     String normalizedError = backendError == null
@@ -677,6 +764,73 @@ public class TransferActivity extends AppCompatActivity {
 
     private void toast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
+
+    private int dp(float value) {
+        return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    private void pokazSukcesDialog(
+            String txIdFormatted,
+            String amountFormatted,
+            String currency,
+            String recipient,
+            Runnable onDone
+    ) {
+        Dialog dialog = new Dialog(this, R.style.NotificationDialogTheme);
+        View view = getLayoutInflater().inflate(R.layout.dialog_transfer_success, null);
+        dialog.setContentView(view);
+
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setGravity(Gravity.CENTER);
+        }
+
+        View root = view.findViewById(R.id.dialogSuccessRoot);
+        if (root != null) {
+            GradientDrawable shape = new GradientDrawable();
+            shape.setShape(GradientDrawable.RECTANGLE);
+            shape.setColor(ThemeManager.getSurfaceColor(this));
+            shape.setCornerRadius(dp(20));
+            root.setBackground(shape);
+        }
+
+        TextView iconSuccess = view.findViewById(R.id.iconSuccess);
+        if (iconSuccess != null) {
+            GradientDrawable iconBg = new GradientDrawable();
+            iconBg.setShape(GradientDrawable.OVAL);
+            iconBg.setColor(Color.parseColor("#1510B981"));
+            iconBg.setStroke(dp(2), Color.parseColor("#10B981"));
+            iconSuccess.setBackground(iconBg);
+        }
+
+        TextView txtTxId = view.findViewById(R.id.txtSuccessTxId);
+        TextView txtAmount = view.findViewById(R.id.txtSuccessAmount);
+        TextView txtRecipient = view.findViewById(R.id.txtSuccessRecipient);
+        TextView btnDone = view.findViewById(R.id.btnSuccessDone);
+
+        if (txtTxId != null) {
+            txtTxId.setText("#" + txIdFormatted);
+            txtTxId.setTextColor(ThemeManager.getTextColor(this));
+        }
+        if (txtAmount != null) {
+            txtAmount.setText(amountFormatted + " " + currency);
+            txtAmount.setTextColor(ThemeManager.getAccentColor(this));
+        }
+        if (txtRecipient != null) {
+            txtRecipient.setText(recipient);
+            txtRecipient.setTextColor(ThemeManager.getTextColor(this));
+        }
+
+        if (btnDone != null) {
+            btnDone.setOnClickListener(v -> {
+                dialog.dismiss();
+                if (onDone != null) onDone.run();
+            });
+        }
+
+        dialog.show();
     }
 
     @Override

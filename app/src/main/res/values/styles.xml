@@ -90,4 +90,14 @@
         <item name="android:textSize">16sp</item>
     </style>
 
+    <!-- Style dla okna popup z powiadomieniami -->
+    <style name="NotificationDialogTheme" parent="Theme.MaterialComponents.Light.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.5</item>
+    </style>
+
 </resources>

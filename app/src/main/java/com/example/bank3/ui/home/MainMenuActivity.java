@@ -1,30 +1,42 @@
 package com.example.bank3.ui.home;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import com.example.bank3.R;
 import com.example.bank3.data.repository.KontoRepository;
@@ -74,6 +86,21 @@ public class MainMenuActivity extends AppCompatActivity
     private Call<SaldoResponse> saldoCall;
     private boolean saldoLoading;
     private boolean saldoCanRetry;
+
+    private View notificationBadge;
+    private final List<Map<String, Object>> allTransactionsList = new ArrayList<>();
+
+    private final android.os.Handler autoRefreshHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable autoRefreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (!isFinishing() && !isDestroyed()) {
+                pobierzSaldo();
+                loadRecentTransactions();
+                autoRefreshHandler.postDelayed(this, 10000);
+            }
+        }
+    };
 
     private LinearLayout navHome;
     private LinearLayout navPayments;
@@ -142,25 +169,53 @@ public class MainMenuActivity extends AppCompatActivity
         }
 
         View mainContent = drawerLayout.getChildAt(0);
+        if (mainContent != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(
+                    mainContent,
+                    (view, windowInsets) -> {
+                        androidx.core.graphics.Insets bars =
+                                windowInsets.getInsets(
+                                        WindowInsetsCompat.Type.systemBars()
+                                );
 
-        ViewCompat.setOnApplyWindowInsetsListener(
-                mainContent,
-                (view, windowInsets) -> {
-                    androidx.core.graphics.Insets bars =
-                            windowInsets.getInsets(
-                                    WindowInsetsCompat.Type.systemBars()
-                            );
+                        view.setPadding(
+                                bars.left,
+                                bars.top,
+                                bars.right,
+                                bars.bottom
+                        );
 
-                    view.setPadding(
-                            bars.left,
-                            bars.top,
-                            bars.right,
-                            bars.bottom
-                    );
+                        return windowInsets;
+                    }
+            );
+        }
 
-                    return windowInsets;
-                }
-        );
+        View profileDrawer = findViewById(R.id.profileDrawer);
+        if (profileDrawer != null) {
+            int pStart = profileDrawer.getPaddingStart();
+            int pTop = profileDrawer.getPaddingTop();
+            int pEnd = profileDrawer.getPaddingEnd();
+            int pBottom = profileDrawer.getPaddingBottom();
+
+            ViewCompat.setOnApplyWindowInsetsListener(
+                    profileDrawer,
+                    (view, windowInsets) -> {
+                        androidx.core.graphics.Insets bars =
+                                windowInsets.getInsets(
+                                        WindowInsetsCompat.Type.systemBars()
+                                );
+
+                        view.setPadding(
+                                pStart + bars.left,
+                                pTop + bars.top,
+                                pEnd,
+                                pBottom + bars.bottom
+                        );
+
+                        return windowInsets;
+                    }
+            );
+        }
 
         findViewById(R.id.btnProfile).setOnClickListener(v ->
                 drawerLayout.openDrawer(GravityCompat.START)
@@ -186,20 +241,9 @@ public class MainMenuActivity extends AppCompatActivity
             startActivity(intent);
         });
 
-        findViewById(R.id.drawerPrivacy).setOnClickListener(v -> {
-            drawerLayout.closeDrawer(GravityCompat.START);
-            showPlaceholder(
-                    "Bezpieczeństwo",
-                    "Ustawienia bezpieczeństwa konta."
-            );
-        });
-
+        notificationBadge = findViewById(R.id.notificationBadge);
         findViewById(R.id.btnNotifications).setOnClickListener(v ->
-                Toast.makeText(
-                        this,
-                        "Brak nowych powiadomień",
-                        Toast.LENGTH_SHORT
-                ).show()
+                showNotificationsDialog()
         );
 
         findViewById(R.id.btnLogout).setOnClickListener(v -> {
@@ -235,6 +279,34 @@ public class MainMenuActivity extends AppCompatActivity
             loadRecentTransactions();
             if (recentTransactionsContainer != null) {
                 recentTransactionsContainer.requestFocus();
+            }
+        });
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            private long backPressedTime = 0;
+
+            @Override
+            public void handleOnBackPressed() {
+                if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                    return;
+                }
+
+                if (selectedTab != 0) {
+                    selectTab(0);
+                    return;
+                }
+
+                if (backPressedTime + 2000 > System.currentTimeMillis()) {
+                    moveTaskToBack(true);
+                } else {
+                    Toast.makeText(
+                            MainMenuActivity.this,
+                            "Naciśnij ponownie wstecz, aby wyjść z aplikacji",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+                backPressedTime = System.currentTimeMillis();
             }
         });
 
@@ -345,21 +417,27 @@ public class MainMenuActivity extends AppCompatActivity
     }
 
     private void renderRecentTransactions(List<Map<String, Object>> transactions) {
-        Collections.sort(transactions, (a, b) -> {
+        allTransactionsList.clear();
+        allTransactionsList.addAll(transactions);
+
+        Collections.sort(allTransactionsList, (a, b) -> {
             String dateA = String.valueOf(a.get("dataOperacji"));
             String dateB = String.valueOf(b.get("dataOperacji"));
             return dateB.compareTo(dateA);
         });
 
+        checkUnreadNotifications();
+        checkNewIncomingTransactions(allTransactionsList);
+
         recentTransactionsContainer.removeAllViews();
-        if (transactions.isEmpty()) {
+        if (allTransactionsList.isEmpty()) {
             addTransactionMessage("Nie masz jeszcze żadnych transakcji.");
             return;
         }
 
-        int count = Math.min(3, transactions.size());
+        int count = Math.min(3, allTransactionsList.size());
         for (int i = 0; i < count; i++) {
-            Map<String, Object> transaction = transactions.get(i);
+            Map<String, Object> transaction = allTransactionsList.get(i);
             String direction = String.valueOf(transaction.get("kierunek"));
             String title = String.valueOf(transaction.get("tytul"));
             String currency = transaction.get("waluta") == null ? "PLN" : String.valueOf(transaction.get("waluta"));
@@ -448,6 +526,317 @@ public class MainMenuActivity extends AppCompatActivity
         view.setTextSize(14);
         view.setPadding(dp(10), dp(12), dp(10), dp(12));
         recentTransactionsContainer.addView(view);
+    }
+
+    private void checkNewIncomingTransactions(List<Map<String, Object>> transactions) {
+        if (transactions == null || transactions.isEmpty() || uzytkownikId <= 0) return;
+
+        android.content.SharedPreferences prefs = getSharedPreferences("notifications_prefs", MODE_PRIVATE);
+        String prefKey = "notified_tx_ids_" + uzytkownikId;
+        java.util.Set<String> notifiedIds = new java.util.HashSet<>(prefs.getStringSet(prefKey, new java.util.HashSet<>()));
+        boolean firstRun = !prefs.contains(prefKey);
+
+        boolean updated = false;
+
+        for (Map<String, Object> tx : transactions) {
+            if (tx == null || tx.get("id") == null) continue;
+            String txId = String.valueOf(tx.get("id"));
+            String direction = String.valueOf(tx.get("kierunek"));
+            boolean isIncome = "WPLYW".equalsIgnoreCase(direction);
+
+            if (firstRun) {
+                notifiedIds.add(txId);
+                updated = true;
+            } else if (isIncome && !notifiedIds.contains(txId)) {
+                String amountText = formatTransactionAmount(tx.get("kwota"));
+                String currency = tx.get("waluta") == null ? "PLN" : String.valueOf(tx.get("waluta"));
+                String counterparty = tx.get("imieKontrahenta") == null
+                        ? "" : String.valueOf(tx.get("imieKontrahenta"));
+
+                String title = "Przelew przychodzący";
+                String message = "Otrzymałeś " + amountText + " " + currency
+                        + (counterparty.isEmpty() ? "" : " od: " + counterparty);
+
+                int notifId = txId.hashCode();
+
+                NotificationHelper.sendTransferNotification(
+                        this,
+                        uzytkownikId,
+                        getIntent().getStringExtra("nick"),
+                        title,
+                        message,
+                        notifId
+                );
+
+                notifiedIds.add(txId);
+                updated = true;
+            }
+        }
+
+        if (updated) {
+            prefs.edit().putStringSet(prefKey, notifiedIds).apply();
+        }
+    }
+
+    private void checkUnreadNotifications() {
+        if (notificationBadge == null) return;
+        if (allTransactionsList.isEmpty()) {
+            notificationBadge.setVisibility(View.GONE);
+            return;
+        }
+
+        String newestDate = String.valueOf(allTransactionsList.get(0).get("dataOperacji"));
+        android.content.SharedPreferences prefs = getSharedPreferences("notifications_prefs", MODE_PRIVATE);
+        String lastSeenDate = prefs.getString("last_seen_date_" + uzytkownikId, "");
+
+        if (lastSeenDate.isEmpty() || newestDate.compareTo(lastSeenDate) > 0) {
+            notificationBadge.setVisibility(View.VISIBLE);
+        } else {
+            notificationBadge.setVisibility(View.GONE);
+        }
+    }
+
+    private void markNotificationsAsSeen() {
+        if (notificationBadge != null) {
+            notificationBadge.setVisibility(View.GONE);
+        }
+        if (!allTransactionsList.isEmpty()) {
+            String newestDate = String.valueOf(allTransactionsList.get(0).get("dataOperacji"));
+            getSharedPreferences("notifications_prefs", MODE_PRIVATE)
+                    .edit()
+                    .putString("last_seen_date_" + uzytkownikId, newestDate)
+                    .apply();
+        }
+    }
+
+    private void showNotificationsDialog() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
+
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.NotificationDialogTheme);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_notifications, null);
+        bottomSheetDialog.setContentView(dialogView);
+
+        int screenHeight = getResources().getDisplayMetrics().heightPixels;
+        int targetHeight = (int) (screenHeight * 0.75);
+
+        View dialogRoot = dialogView.findViewById(R.id.dialogRoot);
+        if (dialogRoot != null) {
+            ViewGroup.LayoutParams params = dialogRoot.getLayoutParams();
+            if (params != null) {
+                params.height = targetHeight;
+                dialogRoot.setLayoutParams(params);
+            }
+
+            GradientDrawable shape = new GradientDrawable();
+            shape.setShape(GradientDrawable.RECTANGLE);
+            shape.setColor(ThemeManager.getSurfaceColor(this));
+            float radius = dp(24);
+            shape.setCornerRadii(new float[]{radius, radius, radius, radius, 0, 0, 0, 0});
+            dialogRoot.setBackground(shape);
+        }
+
+        TextView dialogTitle = dialogView.findViewById(R.id.dialogTitle);
+        TextView btnClose = dialogView.findViewById(R.id.btnCloseDialog);
+        View headerDivider = dialogView.findViewById(R.id.headerDivider);
+        LinearLayout container = dialogView.findViewById(R.id.notificationsContainer);
+
+        if (dialogTitle != null) {
+            dialogTitle.setTextColor(ThemeManager.getTextColor(this));
+        }
+        if (btnClose != null) {
+            btnClose.setTextColor(ThemeManager.getSecondaryTextColor(this));
+            btnClose.setOnClickListener(v -> bottomSheetDialog.dismiss());
+        }
+        if (headerDivider != null) {
+            headerDivider.setBackgroundColor(androidx.core.content.ContextCompat.getColor(this, R.color.theme_divider));
+        }
+
+        populateNotificationsList(container);
+        markNotificationsAsSeen();
+
+        bottomSheetDialog.show();
+
+        View parentView = (View) dialogView.getParent();
+        if (parentView != null) {
+            parentView.setBackgroundColor(Color.TRANSPARENT);
+            BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(parentView);
+            behavior.setHideable(true);
+            behavior.setPeekHeight(targetHeight);
+            behavior.setMaxHeight(targetHeight);
+            behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            behavior.setSkipCollapsed(true);
+            behavior.setDraggable(true);
+
+            behavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+                private float lastDraggedFraction = 0f;
+
+                @Override
+                public void onStateChanged(@androidx.annotation.NonNull View bottomSheet, int newState) {
+                    if (newState == BottomSheetBehavior.STATE_DRAGGING) {
+                        lastDraggedFraction = 0f;
+                    } else if (newState == BottomSheetBehavior.STATE_SETTLING || newState == BottomSheetBehavior.STATE_HIDDEN) {
+                        int initialTop = screenHeight - targetHeight;
+                        float draggedDistance = bottomSheet.getTop() - initialTop;
+                        float currentFraction = draggedDistance / (float) targetHeight;
+                        float fraction = Math.max(currentFraction, lastDraggedFraction);
+
+                        if (fraction < 0.70f) {
+                            bottomSheet.post(() -> behavior.setState(BottomSheetBehavior.STATE_EXPANDED));
+                        }
+                    }
+                }
+
+                @Override
+                public void onSlide(@androidx.annotation.NonNull View bottomSheet, float slideOffset) {
+                    int initialTop = screenHeight - targetHeight;
+                    float draggedDistance = bottomSheet.getTop() - initialTop;
+                    lastDraggedFraction = draggedDistance / (float) targetHeight;
+                }
+            });
+        }
+    }
+
+    private void populateNotificationsList(LinearLayout container) {
+        if (container == null) return;
+        container.removeAllViews();
+
+        if (allTransactionsList.isEmpty()) {
+            LinearLayout emptyLayout = new LinearLayout(this);
+            emptyLayout.setOrientation(LinearLayout.VERTICAL);
+            emptyLayout.setGravity(Gravity.CENTER);
+            emptyLayout.setPadding(dp(20), dp(40), dp(20), dp(40));
+
+            TextView iconView = new TextView(this);
+            iconView.setText("🔔");
+            iconView.setTextSize(40);
+            iconView.setGravity(Gravity.CENTER);
+
+            TextView emptyTitle = new TextView(this);
+            emptyTitle.setText("Brak powiadomień");
+            emptyTitle.setTextColor(ThemeManager.getTextColor(this));
+            emptyTitle.setTextSize(18);
+            emptyTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+            emptyTitle.setGravity(Gravity.CENTER);
+            emptyTitle.setPadding(0, dp(12), 0, dp(4));
+
+            TextView emptySub = new TextView(this);
+            emptySub.setText("Powiadomienia o Twoich przelewach pojawią się tutaj.");
+            emptySub.setTextColor(ThemeManager.getSecondaryTextColor(this));
+            emptySub.setTextSize(14);
+            emptySub.setGravity(Gravity.CENTER);
+
+            emptyLayout.addView(iconView);
+            emptyLayout.addView(emptyTitle);
+            emptyLayout.addView(emptySub);
+            container.addView(emptyLayout);
+            return;
+        }
+
+        android.content.SharedPreferences prefs = getSharedPreferences("notifications_prefs", MODE_PRIVATE);
+        String lastSeenDate = prefs.getString("last_seen_date_" + uzytkownikId, "");
+
+        for (Map<String, Object> tx : allTransactionsList) {
+            String direction = String.valueOf(tx.get("kierunek"));
+            boolean income = "WPLYW".equalsIgnoreCase(direction);
+            String rawTitle = String.valueOf(tx.get("tytul"));
+            String title = (rawTitle == null || "null".equals(rawTitle) || rawTitle.trim().isEmpty())
+                    ? (income ? "Przelew przychodzący" : "Przelew wychodzący")
+                    : rawTitle;
+
+            String currency = tx.get("waluta") == null ? "PLN" : String.valueOf(tx.get("waluta"));
+            String amountText = formatTransactionAmount(tx.get("kwota"));
+            String counterparty = tx.get("imieKontrahenta") == null
+                    ? "" : String.valueOf(tx.get("imieKontrahenta"));
+            String dateStr = formatTransactionDate(tx.get("dataOperacji"));
+            String txDate = String.valueOf(tx.get("dataOperacji"));
+
+            boolean isUnread = !lastSeenDate.isEmpty() && txDate.compareTo(lastSeenDate) > 0;
+
+            LinearLayout card = new LinearLayout(this);
+            card.setOrientation(LinearLayout.VERTICAL);
+            card.setPadding(dp(16), dp(14), dp(16), dp(14));
+
+            LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            cardParams.bottomMargin = dp(10);
+            card.setLayoutParams(cardParams);
+
+            GradientDrawable cardBg = new GradientDrawable();
+            cardBg.setShape(GradientDrawable.RECTANGLE);
+            cardBg.setCornerRadius(dp(16));
+            cardBg.setColor(ThemeManager.getSurfaceColor(this));
+            cardBg.setStroke(dp(1), isUnread ? ThemeManager.getAccentColor(this) : androidx.core.content.ContextCompat.getColor(this, R.color.theme_divider));
+            card.setBackground(cardBg);
+
+            LinearLayout topRow = new LinearLayout(this);
+            topRow.setOrientation(LinearLayout.HORIZONTAL);
+            topRow.setGravity(Gravity.CENTER_VERTICAL);
+
+            TextView circleIcon = new TextView(this);
+            circleIcon.setLayoutParams(new LinearLayout.LayoutParams(dp(40), dp(40)));
+            circleIcon.setGravity(Gravity.CENTER);
+            circleIcon.setText(income ? "↙" : "↗");
+            circleIcon.setTextSize(18);
+            circleIcon.setTypeface(null, android.graphics.Typeface.BOLD);
+            circleIcon.setTextColor(income ? Color.parseColor("#10B981") : Color.parseColor("#EF4444"));
+
+            GradientDrawable circleBg = new GradientDrawable();
+            circleBg.setShape(GradientDrawable.OVAL);
+            circleBg.setColor(income ? Color.parseColor("#1510B981") : Color.parseColor("#15EF4444"));
+            circleIcon.setBackground(circleBg);
+
+            LinearLayout middle = new LinearLayout(this);
+            middle.setOrientation(LinearLayout.VERTICAL);
+            LinearLayout.LayoutParams middleParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+            middleParams.setMargins(dp(12), 0, dp(8), 0);
+            middle.setLayoutParams(middleParams);
+
+            TextView titleTv = new TextView(this);
+            titleTv.setText(title);
+            titleTv.setTextColor(ThemeManager.getTextColor(this));
+            titleTv.setTextSize(15);
+            titleTv.setTypeface(null, android.graphics.Typeface.BOLD);
+            titleTv.setMaxLines(2);
+
+            TextView detailsTv = new TextView(this);
+            String detailsText = (income ? "Otrzymano od: " : "Wysłano do: ")
+                    + (counterparty.isEmpty() ? "Brak danych" : counterparty);
+            detailsTv.setText(detailsText);
+            detailsTv.setTextColor(ThemeManager.getSecondaryTextColor(this));
+            detailsTv.setTextSize(12);
+            detailsTv.setPadding(0, dp(2), 0, 0);
+
+            TextView dateTv = new TextView(this);
+            dateTv.setText(dateStr);
+            dateTv.setTextColor(ThemeManager.getSecondaryTextColor(this));
+            dateTv.setTextSize(11);
+            dateTv.setPadding(0, dp(2), 0, 0);
+
+            middle.addView(titleTv);
+            middle.addView(detailsTv);
+            middle.addView(dateTv);
+
+            TextView amountTv = new TextView(this);
+            String formattedAmountText = amountText + " " + currency;
+            amountTv.setText(formattedAmountText);
+            amountTv.setTextSize(15);
+            amountTv.setTypeface(null, android.graphics.Typeface.BOLD);
+            amountTv.setTextColor(income ? Color.parseColor("#10B981") : Color.parseColor("#EF4444"));
+
+            topRow.addView(circleIcon);
+            topRow.addView(middle);
+            topRow.addView(amountTv);
+
+            card.addView(topRow);
+            container.addView(card);
+        }
     }
 
     private void pobierzSaldo() {
@@ -549,6 +938,14 @@ public class MainMenuActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         refreshTheme();
+        autoRefreshHandler.removeCallbacks(autoRefreshRunnable);
+        autoRefreshHandler.postDelayed(autoRefreshRunnable, 10000);
+    }
+
+    @Override
+    protected void onPause() {
+        autoRefreshHandler.removeCallbacks(autoRefreshRunnable);
+        super.onPause();
     }
 
     @Override
@@ -650,11 +1047,12 @@ public class MainMenuActivity extends AppCompatActivity
                     continue;
                 }
 
-                if (id == R.id.btnProfile
-                        || id == R.id.btnNotifications) {
-                    tv.setTextColor(ThemeManager.getAccentColor(this));
-                } else {
-                    tv.setTextColor(textColor);
+                tv.setTextColor(textColor);
+            } else if (child instanceof ImageView) {
+                ImageView iv = (ImageView) child;
+                int id = iv.getId();
+                if (id == R.id.btnProfile || id == R.id.imgNotificationIcon) {
+                    iv.setImageTintList(ColorStateList.valueOf(ThemeManager.getAccentColor(this)));
                 }
             } else if (child instanceof ViewGroup) {
                 applyTextColors(
