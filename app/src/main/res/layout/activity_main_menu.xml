@@ -113,48 +113,96 @@
 
                     <!-- Karta salda -->
                     <LinearLayout
+                        android:id="@+id/balanceCard"
                         android:layout_width="match_parent"
-                        android:layout_height="190dp"
-                        android:layout_marginTop="24dp"
+                        android:layout_height="195dp"
+                        android:layout_marginTop="20dp"
                         android:background="@drawable/bg_balance_card"
                         android:orientation="vertical"
                         android:padding="22dp"
-                        android:elevation="4dp">
+                        android:elevation="6dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="DOSTĘPNE ŚRODKI"
-                            android:textColor="#DCE8FF"
-                            android:textSize="12sp"
-                            android:letterSpacing="0.08" />
-
-                        <TextView
-                            android:id="@+id/txtBalance"
+                        <!-- Górny rząd: Etykieta + Chip typu konta -->
+                        <RelativeLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="14dp"
-                            android:text="Ładowanie..."
-                            android:textColor="#FFFFFF"
-                            android:textSize="30sp"
-                            android:textStyle="bold" />
+                            android:layout_height="wrap_content">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="14dp"
-                            android:text="Konto osobiste"
-                            android:textColor="#DCE8FF"
-                            android:textSize="14sp" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentStart="true"
+                                android:layout_centerVertical="true"
+                                android:text="DOSTĘPNE ŚRODKI"
+                                android:textColor="#93C5FD"
+                                android:textSize="11sp"
+                                android:textStyle="bold"
+                                android:letterSpacing="0.08" />
 
-                        <TextView
-                            android:id="@+id/txtAccountId"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="5dp"
-                            android:text="#—"
-                            android:textColor="#DCE8FF"
-                            android:textSize="12sp" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:background="@drawable/bg_card_badge"
+                                android:paddingHorizontal="10dp"
+                                android:paddingVertical="4dp"
+                                android:text="Konto osobiste"
+                                android:textColor="#FFFFFF"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </RelativeLayout>
+
+                        <!-- Środek: Saldo -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:gravity="center_vertical"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/txtBalance"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Ładowanie..."
+                                android:textColor="#FFFFFF"
+                                android:textSize="38sp"
+                                android:textStyle="bold"
+                                android:letterSpacing="-0.02" />
+
+                        </LinearLayout>
+
+                        <!-- Dolny rząd: Numer konta -->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentStart="true"
+                                android:layout_centerVertical="true"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="NUMER KONTA"
+                                    android:textColor="#BFDBFE"
+                                    android:textSize="10sp"
+                                    android:letterSpacing="0.08" />
+
+                                <TextView
+                                    android:id="@+id/txtAccountId"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="—"
+                                    android:textColor="#FFFFFF"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+                        </RelativeLayout>
 
                     </LinearLayout>
 

@@ -365,9 +365,9 @@ public class MainMenuActivity extends AppCompatActivity
                             ? null : response.body().get(0).get("id");
                     if (firstAccountId instanceof Number
                             && ((Number) firstAccountId).longValue() > 0) {
-                        txtAccountId.setText("#" + ((Number) firstAccountId).longValue());
+                        txtAccountId.setText(String.valueOf(((Number) firstAccountId).longValue()));
                     } else {
-                        txtAccountId.setText("#—");
+                        txtAccountId.setText("—");
                     }
                 }
 
@@ -379,7 +379,7 @@ public class MainMenuActivity extends AppCompatActivity
                     }
                 }
                 if (accountIds.isEmpty()) {
-                    if (txtAccountId != null) txtAccountId.setText("#—");
+                    if (txtAccountId != null) txtAccountId.setText("—");
                     showRecentTransactionsMessage("Brak kont do wyświetlenia historii.");
                     return;
                 }

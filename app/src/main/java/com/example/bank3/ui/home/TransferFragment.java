@@ -25,6 +25,7 @@ import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 
 import com.example.bank3.R;
+import com.example.bank3.data.api.UserAPI;
 import com.example.bank3.model.UserResponse;
 import com.example.bank3.network.RetrofitClient;
 import com.example.bank3.ui.theme.ThemeManager;
@@ -49,6 +50,8 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public class TransferFragment extends Fragment {
+
+    private String userFullName = "";
 
     private Spinner sourceAccountSpinner;
     private Spinner currencySpinner;
@@ -78,16 +81,21 @@ public class TransferFragment extends Fragment {
         final String number;
         final BigDecimal balance;
         final String currency;
+        String ownerName;
 
-        SourceAccount(long id, String number, BigDecimal balance, String currency) {
+        SourceAccount(long id, String number, BigDecimal balance, String currency, String ownerName) {
             this.id = id;
             this.number = number;
             this.balance = balance;
             this.currency = currency;
+            this.ownerName = ownerName;
         }
 
         String label() {
-            return "ID konta: " + id;
+            if (ownerName != null && !ownerName.trim().isEmpty()) {
+                return ownerName;
+            }
+            return "Konto (" + currency + ")";
         }
     }
 
@@ -186,8 +194,53 @@ public class TransferFragment extends Fragment {
             }
         }
 
+        pobierzDaneUzytkownika();
         pobierzKontaUzytkownika();
         return view;
+    }
+
+    private void pobierzDaneUzytkownika() {
+        if (uzytkownikId <= 0) return;
+
+        UserAPI userAPI = RetrofitClient.getInstance().create(UserAPI.class);
+        userAPI.getUserById(uzytkownikId).enqueue(new Callback<UserResponse>() {
+            @Override
+            public void onResponse(Call<UserResponse> call, Response<UserResponse> response) {
+                if (getActivity() == null || requireActivity().isFinishing() || requireActivity().isDestroyed() || call.isCanceled()) return;
+                if (response.isSuccessful() && response.body() != null) {
+                    UserResponse u = response.body();
+                    String imie = u.getImie() != null ? u.getImie().trim() : "";
+                    String nazwisko = u.getNazwisko() != null ? u.getNazwisko().trim() : "";
+                    userFullName = (imie + " " + nazwisko).trim();
+                    if (userFullName.isEmpty()) {
+                        userFullName = u.getLogin() != null ? u.getLogin() : "";
+                    }
+                    updateSourceAccountsLabels();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<UserResponse> call, Throwable t) {}
+        });
+    }
+
+    private void updateSourceAccountsLabels() {
+        if (sourceAccounts.isEmpty() || getContext() == null) return;
+        for (SourceAccount sa : sourceAccounts) {
+            sa.ownerName = userFullName;
+        }
+        String[] labels = new String[sourceAccounts.size()];
+        for (int i = 0; i < sourceAccounts.size(); i++) {
+            labels[i] = sourceAccounts.get(i).label();
+        }
+        ArrayAdapter<String> adapter = createSpinnerAdapter(requireContext(), labels);
+        if (sourceAccountSpinner != null) {
+            int selectedPos = sourceAccountSpinner.getSelectedItemPosition();
+            sourceAccountSpinner.setAdapter(adapter);
+            if (selectedPos >= 0 && selectedPos < sourceAccounts.size()) {
+                sourceAccountSpinner.setSelection(selectedPos);
+            }
+        }
     }
 
     private void pobierzKontaUzytkownika() {
@@ -223,7 +276,7 @@ public class TransferFragment extends Fragment {
                     String number = account.numerKonta.trim();
                     String currency = account.waluta.trim().toUpperCase(Locale.ROOT);
                     if (accountId > 0 && !number.isEmpty() && currency.matches("[A-Z]{3}")) {
-                        sourceAccounts.add(new SourceAccount(accountId, number, account.saldo, currency));
+                        sourceAccounts.add(new SourceAccount(accountId, number, account.saldo, currency, userFullName));
                     }
                 }
 
