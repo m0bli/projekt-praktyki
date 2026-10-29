@@ -39,8 +39,11 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import com.example.bank3.R;
+import com.example.bank3.data.api.UserAPI;
 import com.example.bank3.data.repository.KontoRepository;
 import com.example.bank3.model.SaldoResponse;
+import com.example.bank3.model.UserResponse;
+import com.example.bank3.network.RetrofitClient;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -90,18 +93,6 @@ public class MainMenuActivity extends AppCompatActivity
     private View notificationBadge;
     private final List<Map<String, Object>> allTransactionsList = new ArrayList<>();
 
-    private final android.os.Handler autoRefreshHandler = new android.os.Handler(android.os.Looper.getMainLooper());
-    private final Runnable autoRefreshRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (!isFinishing() && !isDestroyed()) {
-                pobierzSaldo();
-                loadRecentTransactions();
-                autoRefreshHandler.postDelayed(this, 10000);
-            }
-        }
-    };
-
     private LinearLayout navHome;
     private LinearLayout navPayments;
     private LinearLayout navCards;
@@ -140,6 +131,7 @@ public class MainMenuActivity extends AppCompatActivity
                 homeSwipeRefresh.setRefreshing(false);
             } else {
                 pobierzSaldo();
+                pobierzDaneUzytkownika();
                 loadRecentTransactions();
             }
         });
@@ -274,13 +266,9 @@ public class MainMenuActivity extends AppCompatActivity
                 selectTab(2)
         );
 
-        findViewById(R.id.actionHistory).setOnClickListener(v -> {
-            selectTab(0);
-            loadRecentTransactions();
-            if (recentTransactionsContainer != null) {
-                recentTransactionsContainer.requestFocus();
-            }
-        });
+        findViewById(R.id.actionHistory).setOnClickListener(v ->
+                showFullHistoryDialog()
+        );
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             private long backPressedTime = 0;
@@ -314,7 +302,34 @@ public class MainMenuActivity extends AppCompatActivity
         int openTab = getIntent().getIntExtra("openTab", 0);
         selectTab(openTab);
         pobierzSaldo();
+        pobierzDaneUzytkownika();
         loadRecentTransactions();
+    }
+
+    private void pobierzDaneUzytkownika() {
+        if (uzytkownikId <= 0) return;
+
+        UserAPI userAPI = RetrofitClient.getInstance().create(UserAPI.class);
+        userAPI.getUserById(uzytkownikId).enqueue(new Callback<UserResponse>() {
+            @Override
+            public void onResponse(Call<UserResponse> call, Response<UserResponse> response) {
+                if (isFinishing() || isDestroyed() || call.isCanceled()) return;
+                if (response.isSuccessful() && response.body() != null) {
+                    UserResponse user = response.body();
+                    String imie = user.getImie();
+                    if (imie != null && !imie.trim().isEmpty()) {
+                        if (txtWelcome != null) {
+                            txtWelcome.setText("Witaj, " + imie.trim() + "!");
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<UserResponse> call, Throwable t) {
+                // Zachowaj domyślne powitanie
+            }
+        });
     }
 
     private void loadRecentTransactions() {
@@ -416,6 +431,128 @@ public class MainMenuActivity extends AppCompatActivity
         });
     }
 
+    private String extractDateKey(String rawDate) {
+        if (rawDate == null || rawDate.length() < 10) return "Inne";
+        return rawDate.substring(0, 10);
+    }
+
+    private String formatDateKeyToPolish(String dateKey) {
+        if (dateKey == null || dateKey.length() < 10) return dateKey;
+        try {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.ROOT);
+            java.util.Date date = sdf.parse(dateKey.substring(0, 10));
+            if (date == null) return dateKey;
+
+            java.util.Calendar cal = java.util.Calendar.getInstance();
+            java.util.Date today = cal.getTime();
+            cal.add(java.util.Calendar.DAY_OF_YEAR, -1);
+            java.util.Date yesterday = cal.getTime();
+
+            java.text.SimpleDateFormat polishFormat = new java.text.SimpleDateFormat("d MMMM yyyy", new Locale("pl", "PL"));
+            String formatted = polishFormat.format(date);
+
+            java.text.SimpleDateFormat yearDayFormat = new java.text.SimpleDateFormat("yyyy-DDD", Locale.ROOT);
+            String dateYd = yearDayFormat.format(date);
+            String todayYd = yearDayFormat.format(today);
+            String yesterdayYd = yearDayFormat.format(yesterday);
+
+            if (dateYd.equals(todayYd)) {
+                return "Dzisiaj, " + formatted;
+            } else if (dateYd.equals(yesterdayYd)) {
+                return "Wczoraj, " + formatted;
+            } else {
+                return formatted;
+            }
+        } catch (Exception e) {
+            return dateKey;
+        }
+    }
+
+    private double parseAmountValue(Object val) {
+        if (val == null) return 0.0;
+        if (val instanceof Number) return ((Number) val).doubleValue();
+        try {
+            return Double.parseDouble(String.valueOf(val));
+        } catch (Exception e) {
+            return 0.0;
+        }
+    }
+
+    private View renderSingleTransactionRow(Map<String, Object> transaction) {
+        String direction = String.valueOf(transaction.get("kierunek"));
+        String rawTitle = String.valueOf(transaction.get("tytul"));
+        boolean income = "WPLYW".equalsIgnoreCase(direction);
+
+        String title = (rawTitle == null || "null".equals(rawTitle) || rawTitle.trim().isEmpty())
+                ? (income ? "Przelew przychodzący" : "Przelew wychodzący")
+                : rawTitle;
+
+        String currency = transaction.get("waluta") == null ? "PLN" : String.valueOf(transaction.get("waluta"));
+        String amountText = formatTransactionAmount(transaction.get("kwota"));
+        String counterparty = transaction.get("imieKontrahenta") == null
+                ? "" : String.valueOf(transaction.get("imieKontrahenta"));
+        String timeStr = formatTransactionDate(transaction.get("dataOperacji"));
+        if (timeStr.length() >= 16) {
+            timeStr = timeStr.substring(11, 16);
+        }
+
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(0, dp(10), 0, dp(10));
+
+        TextView circleIcon = new TextView(this);
+        circleIcon.setLayoutParams(new LinearLayout.LayoutParams(dp(36), dp(36)));
+        circleIcon.setGravity(Gravity.CENTER);
+        circleIcon.setText(income ? "↙" : "↗");
+        circleIcon.setTextSize(16);
+        circleIcon.setTypeface(null, android.graphics.Typeface.BOLD);
+        circleIcon.setTextColor(income ? Color.parseColor("#10B981") : Color.parseColor("#EF4444"));
+
+        GradientDrawable circleBg = new GradientDrawable();
+        circleBg.setShape(GradientDrawable.OVAL);
+        circleBg.setColor(income ? Color.parseColor("#1510B981") : Color.parseColor("#15EF4444"));
+        circleIcon.setBackground(circleBg);
+
+        LinearLayout middle = new LinearLayout(this);
+        middle.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams middleParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        middleParams.setMargins(dp(12), 0, dp(8), 0);
+        middle.setLayoutParams(middleParams);
+
+        TextView titleTv = new TextView(this);
+        titleTv.setText(title);
+        titleTv.setTextColor(ThemeManager.getTextColor(this));
+        titleTv.setTextSize(14);
+        titleTv.setTypeface(null, android.graphics.Typeface.BOLD);
+        titleTv.setMaxLines(2);
+
+        TextView detailsTv = new TextView(this);
+        String detailsText = (income ? "Od: " : "Do: ")
+                + (counterparty.isEmpty() ? "Brak danych" : counterparty)
+                + (timeStr.isEmpty() ? "" : " · " + timeStr);
+        detailsTv.setText(detailsText);
+        detailsTv.setTextColor(ThemeManager.getSecondaryTextColor(this));
+        detailsTv.setTextSize(12);
+        detailsTv.setPadding(0, dp(2), 0, 0);
+
+        middle.addView(titleTv);
+        middle.addView(detailsTv);
+
+        TextView amountTv = new TextView(this);
+        String formattedAmountText = amountText + " " + currency;
+        amountTv.setText(formattedAmountText);
+        amountTv.setTextSize(14);
+        amountTv.setTypeface(null, android.graphics.Typeface.BOLD);
+        amountTv.setTextColor(income ? Color.parseColor("#10B981") : Color.parseColor("#EF4444"));
+
+        row.addView(circleIcon);
+        row.addView(middle);
+        row.addView(amountTv);
+
+        return row;
+    }
+
     private void renderRecentTransactions(List<Map<String, Object>> transactions) {
         allTransactionsList.clear();
         allTransactionsList.addAll(transactions);
@@ -430,66 +567,311 @@ public class MainMenuActivity extends AppCompatActivity
         checkNewIncomingTransactions(allTransactionsList);
 
         recentTransactionsContainer.removeAllViews();
+
+        // Zakres dat dla ostatniego tygodnia
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        java.util.Date today = cal.getTime();
+        cal.add(java.util.Calendar.DAY_OF_YEAR, -7);
+        java.util.Date weekAgo = cal.getTime();
+
+        java.text.SimpleDateFormat sdfDisplay = new java.text.SimpleDateFormat("dd.MM.yyyy", Locale.ROOT);
+        java.text.SimpleDateFormat sdfIso = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.ROOT);
+
+        String weekAgoKey = sdfIso.format(weekAgo);
+        String dateRangeText = "od " + sdfDisplay.format(weekAgo) + " do " + sdfDisplay.format(today);
+
+        TextView txtDateRange = findViewById(R.id.txtRecentTransactionsDateRange);
+        if (txtDateRange != null) {
+            txtDateRange.setText(dateRangeText);
+        }
+
         if (allTransactionsList.isEmpty()) {
             addTransactionMessage("Nie masz jeszcze żadnych transakcji.");
             return;
         }
 
-        int count = Math.min(3, allTransactionsList.size());
-        for (int i = 0; i < count; i++) {
-            Map<String, Object> transaction = allTransactionsList.get(i);
-            String direction = String.valueOf(transaction.get("kierunek"));
-            String title = String.valueOf(transaction.get("tytul"));
-            String currency = transaction.get("waluta") == null ? "PLN" : String.valueOf(transaction.get("waluta"));
-            String amountText = formatTransactionAmount(transaction.get("kwota"));
-            boolean income = "WPLYW".equalsIgnoreCase(direction);
-            String sign = income ? "+" : "−";
-            String counterparty = transaction.get("imieKontrahenta") == null
-                    ? "" : String.valueOf(transaction.get("imieKontrahenta"));
-            String date = formatTransactionDate(transaction.get("dataOperacji"));
-
-            LinearLayout row = new LinearLayout(this);
-            row.setOrientation(LinearLayout.VERTICAL);
-            row.setPadding(dp(10), dp(12), dp(10), dp(12));
-
-            LinearLayout top = new LinearLayout(this);
-            top.setOrientation(LinearLayout.HORIZONTAL);
-            top.setGravity(Gravity.CENTER_VERTICAL);
-
-            TextView titleView = new TextView(this);
-            titleView.setText(title == null || "null".equals(title) || title.trim().isEmpty()
-                    ? "Przelew" : title);
-            titleView.setTextColor(ThemeManager.getTextColor(this));
-            titleView.setTextSize(14);
-            titleView.setTypeface(null, android.graphics.Typeface.BOLD);
-            titleView.setMaxLines(2);
-            titleView.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1));
-
-            TextView amountView = new TextView(this);
-            amountView.setText(sign + amountText + " " + currency);
-            amountView.setTextColor(income ? Color.rgb(35, 150, 90) : ThemeManager.getTextColor(this));
-            amountView.setTextSize(14);
-            amountView.setTypeface(null, android.graphics.Typeface.BOLD);
-            top.addView(titleView);
-            top.addView(amountView);
-            row.addView(top);
-
-            TextView details = new TextView(this);
-            details.setText((income ? "Wpływ" : "Wydatek")
-                    + (counterparty.isEmpty() ? "" : " · konto: " + counterparty)
-                    + (date.isEmpty() ? "" : " · " + date));
-            details.setTextColor(ThemeManager.getSecondaryTextColor(this));
-            details.setTextSize(12);
-            LinearLayout.LayoutParams detailsParams = new LinearLayout.LayoutParams(-1, -2);
-            detailsParams.topMargin = dp(5);
-            row.addView(details, detailsParams);
-            recentTransactionsContainer.addView(row);
-
-            if (i < count - 1) {
-                View divider = new View(this);
-                divider.setBackgroundColor(ThemeManager.getSecondaryTextColor(this));
-                recentTransactionsContainer.addView(divider, new LinearLayout.LayoutParams(-1, dp(1)));
+        // Filtrowanie transakcji z ostatniego tygodnia
+        List<Map<String, Object>> lastWeekTransactions = new ArrayList<>();
+        for (Map<String, Object> tx : allTransactionsList) {
+            String rawDate = String.valueOf(tx.get("dataOperacji"));
+            String dateKey = extractDateKey(rawDate);
+            if (dateKey.compareTo(weekAgoKey) >= 0) {
+                lastWeekTransactions.add(tx);
             }
+        }
+
+        if (lastWeekTransactions.isEmpty()) {
+            addTransactionMessage("Brak transakcji z ostatniego tygodnia.");
+            return;
+        }
+
+        java.util.LinkedHashMap<String, List<Map<String, Object>>> dayGroups = new java.util.LinkedHashMap<>();
+        for (Map<String, Object> tx : lastWeekTransactions) {
+            String rawDate = String.valueOf(tx.get("dataOperacji"));
+            String dateKey = extractDateKey(rawDate);
+            if (!dayGroups.containsKey(dateKey)) {
+                dayGroups.put(dateKey, new ArrayList<>());
+            }
+            List<Map<String, Object>> groupList = dayGroups.get(dateKey);
+            if (groupList != null) {
+                groupList.add(tx);
+            }
+        }
+
+        for (Map.Entry<String, List<Map<String, Object>>> entry : dayGroups.entrySet()) {
+            String dateKey = entry.getKey();
+            List<Map<String, Object>> dayTxList = entry.getValue();
+
+            double dayIncome = 0;
+            double dayExpense = 0;
+            for (Map<String, Object> tx : dayTxList) {
+                String direction = String.valueOf(tx.get("kierunek"));
+                double amount = parseAmountValue(tx.get("kwota"));
+                if ("WPLYW".equalsIgnoreCase(direction)) {
+                    dayIncome += amount;
+                } else {
+                    dayExpense += amount;
+                }
+            }
+
+            LinearLayout dayCard = new LinearLayout(this);
+            dayCard.setOrientation(LinearLayout.VERTICAL);
+            dayCard.setPadding(dp(16), dp(14), dp(16), dp(14));
+
+            LinearLayout.LayoutParams dayParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            dayParams.bottomMargin = dp(14);
+            dayCard.setLayoutParams(dayParams);
+
+            GradientDrawable dayBg = new GradientDrawable();
+            dayBg.setShape(GradientDrawable.RECTANGLE);
+            dayBg.setCornerRadius(dp(18));
+            dayBg.setColor(ThemeManager.getSurfaceColor(this));
+            dayBg.setStroke(dp(1), androidx.core.content.ContextCompat.getColor(this, R.color.theme_divider));
+            dayCard.setBackground(dayBg);
+
+            LinearLayout dayHeader = new LinearLayout(this);
+            dayHeader.setOrientation(LinearLayout.VERTICAL);
+
+            TextView dateTv = new TextView(this);
+            dateTv.setText(formatDateKeyToPolish(dateKey));
+            dateTv.setTextColor(ThemeManager.getTextColor(this));
+            dateTv.setTextSize(15);
+            dateTv.setTypeface(null, android.graphics.Typeface.BOLD);
+
+            LinearLayout summaryRow = new LinearLayout(this);
+            summaryRow.setOrientation(LinearLayout.HORIZONTAL);
+            summaryRow.setPadding(0, dp(4), 0, dp(10));
+
+            if (dayIncome > 0) {
+                TextView incomeTv = new TextView(this);
+                incomeTv.setText("Wpływ: +" + formatTransactionAmount(dayIncome) + " PLN  ");
+                incomeTv.setTextColor(Color.parseColor("#10B981"));
+                incomeTv.setTextSize(12);
+                incomeTv.setTypeface(null, android.graphics.Typeface.BOLD);
+                summaryRow.addView(incomeTv);
+            }
+
+            if (dayExpense > 0) {
+                TextView expenseTv = new TextView(this);
+                expenseTv.setText("Wydatek: -" + formatTransactionAmount(dayExpense) + " PLN");
+                expenseTv.setTextColor(Color.parseColor("#EF4444"));
+                expenseTv.setTextSize(12);
+                expenseTv.setTypeface(null, android.graphics.Typeface.BOLD);
+                summaryRow.addView(expenseTv);
+            }
+
+            dayHeader.addView(dateTv);
+            dayHeader.addView(summaryRow);
+
+            View divider = new View(this);
+            divider.setBackgroundColor(androidx.core.content.ContextCompat.getColor(this, R.color.theme_divider));
+            dayHeader.addView(divider, new LinearLayout.LayoutParams(-1, dp(1)));
+
+            dayCard.addView(dayHeader);
+
+            int countForDay = Math.min(3, dayTxList.size());
+            for (int i = 0; i < countForDay; i++) {
+                Map<String, Object> tx = dayTxList.get(i);
+                View txRow = renderSingleTransactionRow(tx);
+                dayCard.addView(txRow);
+
+                if (i < countForDay - 1) {
+                    View rowDivider = new View(this);
+                    rowDivider.setBackgroundColor(androidx.core.content.ContextCompat.getColor(this, R.color.theme_divider));
+                    dayCard.addView(rowDivider, new LinearLayout.LayoutParams(-1, dp(1)));
+                }
+            }
+
+            recentTransactionsContainer.addView(dayCard);
+        }
+    }
+
+    private void showFullHistoryDialog() {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.NotificationDialogTheme);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_full_history, null);
+        bottomSheetDialog.setContentView(dialogView);
+
+        int screenHeight = getResources().getDisplayMetrics().heightPixels;
+        int targetHeight = (int) (screenHeight * 0.85);
+
+        View dialogRoot = dialogView.findViewById(R.id.dialogHistoryRoot);
+        if (dialogRoot != null) {
+            ViewGroup.LayoutParams params = dialogRoot.getLayoutParams();
+            if (params != null) {
+                params.height = targetHeight;
+                dialogRoot.setLayoutParams(params);
+            }
+
+            GradientDrawable shape = new GradientDrawable();
+            shape.setShape(GradientDrawable.RECTANGLE);
+            shape.setColor(ThemeManager.getSurfaceColor(this));
+            float radius = dp(24);
+            shape.setCornerRadii(new float[]{radius, radius, radius, radius, 0, 0, 0, 0});
+            dialogRoot.setBackground(shape);
+        }
+
+        TextView dialogTitle = dialogView.findViewById(R.id.dialogHistoryTitle);
+        TextView btnClose = dialogView.findViewById(R.id.btnCloseHistoryDialog);
+        View headerDivider = dialogView.findViewById(R.id.historyHeaderDivider);
+        LinearLayout container = dialogView.findViewById(R.id.fullHistoryContainer);
+
+        if (dialogTitle != null) dialogTitle.setTextColor(ThemeManager.getTextColor(this));
+        if (btnClose != null) {
+            btnClose.setTextColor(ThemeManager.getSecondaryTextColor(this));
+            btnClose.setOnClickListener(v -> bottomSheetDialog.dismiss());
+        }
+        if (headerDivider != null) {
+            headerDivider.setBackgroundColor(androidx.core.content.ContextCompat.getColor(this, R.color.theme_divider));
+        }
+
+        populateFullHistoryList(container);
+
+        bottomSheetDialog.show();
+
+        View parentView = (View) dialogView.getParent();
+        if (parentView != null) {
+            parentView.setBackgroundColor(Color.TRANSPARENT);
+            BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(parentView);
+            behavior.setPeekHeight(targetHeight);
+            behavior.setMaxHeight(targetHeight);
+            behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            behavior.setSkipCollapsed(true);
+            behavior.setDraggable(true);
+        }
+    }
+
+    private void populateFullHistoryList(LinearLayout container) {
+        if (container == null) return;
+        container.removeAllViews();
+
+        if (allTransactionsList.isEmpty()) {
+            addTransactionMessage("Nie masz jeszcze żadnych transakcji.");
+            return;
+        }
+
+        java.util.LinkedHashMap<String, List<Map<String, Object>>> dayGroups = new java.util.LinkedHashMap<>();
+        for (Map<String, Object> tx : allTransactionsList) {
+            String rawDate = String.valueOf(tx.get("dataOperacji"));
+            String dateKey = extractDateKey(rawDate);
+            if (!dayGroups.containsKey(dateKey)) {
+                dayGroups.put(dateKey, new ArrayList<>());
+            }
+            List<Map<String, Object>> groupList = dayGroups.get(dateKey);
+            if (groupList != null) {
+                groupList.add(tx);
+            }
+        }
+
+        for (Map.Entry<String, List<Map<String, Object>>> entry : dayGroups.entrySet()) {
+            String dateKey = entry.getKey();
+            List<Map<String, Object>> dayTxList = entry.getValue();
+
+            double dayIncome = 0;
+            double dayExpense = 0;
+            for (Map<String, Object> tx : dayTxList) {
+                String direction = String.valueOf(tx.get("kierunek"));
+                double amount = parseAmountValue(tx.get("kwota"));
+                if ("WPLYW".equalsIgnoreCase(direction)) {
+                    dayIncome += amount;
+                } else {
+                    dayExpense += amount;
+                }
+            }
+
+            LinearLayout dayCard = new LinearLayout(this);
+            dayCard.setOrientation(LinearLayout.VERTICAL);
+            dayCard.setPadding(dp(16), dp(14), dp(16), dp(14));
+
+            LinearLayout.LayoutParams dayParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            dayParams.bottomMargin = dp(14);
+            dayCard.setLayoutParams(dayParams);
+
+            GradientDrawable dayBg = new GradientDrawable();
+            dayBg.setShape(GradientDrawable.RECTANGLE);
+            dayBg.setCornerRadius(dp(18));
+            dayBg.setColor(ThemeManager.getSurfaceColor(this));
+            dayBg.setStroke(dp(1), androidx.core.content.ContextCompat.getColor(this, R.color.theme_divider));
+            dayCard.setBackground(dayBg);
+
+            LinearLayout dayHeader = new LinearLayout(this);
+            dayHeader.setOrientation(LinearLayout.VERTICAL);
+
+            TextView dateTv = new TextView(this);
+            dateTv.setText(formatDateKeyToPolish(dateKey));
+            dateTv.setTextColor(ThemeManager.getTextColor(this));
+            dateTv.setTextSize(15);
+            dateTv.setTypeface(null, android.graphics.Typeface.BOLD);
+
+            LinearLayout summaryRow = new LinearLayout(this);
+            summaryRow.setOrientation(LinearLayout.HORIZONTAL);
+            summaryRow.setPadding(0, dp(4), 0, dp(10));
+
+            if (dayIncome > 0) {
+                TextView incomeTv = new TextView(this);
+                incomeTv.setText("Wpływ: +" + formatTransactionAmount(dayIncome) + " PLN  ");
+                incomeTv.setTextColor(Color.parseColor("#10B981"));
+                incomeTv.setTextSize(12);
+                incomeTv.setTypeface(null, android.graphics.Typeface.BOLD);
+                summaryRow.addView(incomeTv);
+            }
+
+            if (dayExpense > 0) {
+                TextView expenseTv = new TextView(this);
+                expenseTv.setText("Wydatek: -" + formatTransactionAmount(dayExpense) + " PLN");
+                expenseTv.setTextColor(Color.parseColor("#EF4444"));
+                expenseTv.setTextSize(12);
+                expenseTv.setTypeface(null, android.graphics.Typeface.BOLD);
+                summaryRow.addView(expenseTv);
+            }
+
+            dayHeader.addView(dateTv);
+            dayHeader.addView(summaryRow);
+
+            View divider = new View(this);
+            divider.setBackgroundColor(androidx.core.content.ContextCompat.getColor(this, R.color.theme_divider));
+            dayHeader.addView(divider, new LinearLayout.LayoutParams(-1, dp(1)));
+
+            dayCard.addView(dayHeader);
+
+            for (int i = 0; i < dayTxList.size(); i++) {
+                Map<String, Object> tx = dayTxList.get(i);
+                View txRow = renderSingleTransactionRow(tx);
+                dayCard.addView(txRow);
+
+                if (i < dayTxList.size() - 1) {
+                    View rowDivider = new View(this);
+                    rowDivider.setBackgroundColor(androidx.core.content.ContextCompat.getColor(this, R.color.theme_divider));
+                    dayCard.addView(rowDivider, new LinearLayout.LayoutParams(-1, dp(1)));
+                }
+            }
+
+            container.addView(dayCard);
         }
     }
 
@@ -938,14 +1320,6 @@ public class MainMenuActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         refreshTheme();
-        autoRefreshHandler.removeCallbacks(autoRefreshRunnable);
-        autoRefreshHandler.postDelayed(autoRefreshRunnable, 10000);
-    }
-
-    @Override
-    protected void onPause() {
-        autoRefreshHandler.removeCallbacks(autoRefreshRunnable);
-        super.onPause();
     }
 
     @Override
