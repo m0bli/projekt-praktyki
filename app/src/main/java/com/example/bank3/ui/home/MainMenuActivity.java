@@ -1527,12 +1527,7 @@ public class MainMenuActivity extends AppCompatActivity
         } else if (position == 2) {
             next = new CardsFragment();
         } else {
-            if (current != null) {
-                getSupportFragmentManager().beginTransaction()
-                        .remove(current).commitNow();
-            }
-            showPlaceholder("Więcej", "Dodatkowe funkcje aplikacji.");
-            return;
+            next = new SettingsFragment();
         }
 
         // Bez animacji: zakładki zmieniają się natychmiast.

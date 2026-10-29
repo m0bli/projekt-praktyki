@@ -108,7 +108,27 @@ public class SettingsActivity extends AppCompatActivity
             ).show();
         });
 
+        View settingLogout = findViewById(R.id.settingLogout);
+        if (settingLogout != null) {
+            settingLogout.setOnClickListener(v -> showLogoutConfirmationDialog());
+        }
+
         applyThemeColors();
+    }
+
+    private void showLogoutConfirmationDialog() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Wyloguj się")
+                .setMessage("Czy na pewno chcesz się wylogować?")
+                .setNegativeButton("Anuluj", (dialog, which) -> dialog.dismiss())
+                .setPositiveButton("Wyloguj", (dialog, which) -> {
+                    dialog.dismiss();
+                    Intent intent = new Intent(SettingsActivity.this, com.example.bank3.ui.auth.MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .show();
     }
 
     private void updateNotificationsDescription(boolean enabled) {
@@ -163,15 +183,18 @@ public class SettingsActivity extends AppCompatActivity
                 R.id.btnBackSettings,
                 R.id.settingThemes,
                 R.id.settingProfile,
-                R.id.settingNotifications
+                R.id.settingNotifications,
+                R.id.settingLogout
         };
 
         for (int id : surfaceIds) {
             View view = findViewById(id);
-            view.setBackground(round(
-                    surface,
-                    id == R.id.btnBackSettings ? 16 : 18
-            ));
+            if (view != null) {
+                view.setBackground(round(
+                        surface,
+                        id == R.id.btnBackSettings ? 16 : 18
+                ));
+            }
         }
 
         int[] iconIds = {
@@ -182,8 +205,15 @@ public class SettingsActivity extends AppCompatActivity
 
         for (int id : iconIds) {
             TextView icon = findViewById(id);
-            icon.setBackground(round(iconSurface, 14));
-            icon.setTextColor(accent);
+            if (icon != null) {
+                icon.setBackground(round(iconSurface, 14));
+                icon.setTextColor(accent);
+            }
+        }
+
+        TextView iconLogout = findViewById(R.id.iconLogout);
+        if (iconLogout != null) {
+            iconLogout.setBackground(round(Color.parseColor("#15EF4444"), 14));
         }
 
         int[] primaryTextIds = {
@@ -194,7 +224,8 @@ public class SettingsActivity extends AppCompatActivity
         };
 
         for (int id : primaryTextIds) {
-            ((TextView) findViewById(id)).setTextColor(text);
+            TextView tv = findViewById(id);
+            if (tv != null) tv.setTextColor(text);
         }
 
         int[] secondaryTextIds = {
@@ -205,11 +236,13 @@ public class SettingsActivity extends AppCompatActivity
                 R.id.descriptionThemes,
                 R.id.descriptionProfile,
                 R.id.descriptionNotifications,
+                R.id.descriptionLogout,
                 R.id.txtSettingsVersion
         };
 
         for (int id : secondaryTextIds) {
-            ((TextView) findViewById(id)).setTextColor(secondary);
+            TextView tv = findViewById(id);
+            if (tv != null) tv.setTextColor(secondary);
         }
 
         setSystemBarAppearance(dark);

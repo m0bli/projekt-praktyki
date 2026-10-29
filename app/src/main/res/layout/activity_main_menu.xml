@@ -427,11 +427,11 @@
 
                 <TextView
                     style="@style/BottomNavIcon"
-                    android:text="•••" />
+                    android:text="⚙" />
 
                 <TextView
                     style="@style/BottomNavLabel"
-                    android:text="Więcej" />
+                    android:text="Ustawienia" />
             </LinearLayout>
 
         </LinearLayout>
