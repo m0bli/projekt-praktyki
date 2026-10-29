@@ -1,6 +1,7 @@
 package com.example.bank3.ui.home;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
@@ -8,9 +9,11 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -79,21 +82,40 @@ public class SettingsActivity extends AppCompatActivity
             startActivity(intent);
         });
 
-        findViewById(R.id.settingSecurity).setOnClickListener(v ->
-                showMessage(
-                        "Bezpieczeństwo",
-                        "Ta funkcja zostanie dodana później."
-                )
-        );
+        SwitchCompat switchNotifications = findViewById(R.id.switchNotifications);
+        SharedPreferences prefs = getSharedPreferences("notifications_prefs", MODE_PRIVATE);
+        boolean isPushEnabled = prefs.getBoolean("push_notifications_enabled", true);
 
-        findViewById(R.id.settingNotifications).setOnClickListener(v ->
-                showMessage(
-                        "Powiadomienia",
-                        "Ta funkcja zostanie dodana później."
-                )
-        );
+        if (switchNotifications != null) {
+            switchNotifications.setChecked(isPushEnabled);
+        }
+        updateNotificationsDescription(isPushEnabled);
+
+        findViewById(R.id.settingNotifications).setOnClickListener(v -> {
+            boolean current = prefs.getBoolean("push_notifications_enabled", true);
+            boolean newStatus = !current;
+
+            prefs.edit().putBoolean("push_notifications_enabled", newStatus).apply();
+            if (switchNotifications != null) {
+                switchNotifications.setChecked(newStatus);
+            }
+            updateNotificationsDescription(newStatus);
+
+            Toast.makeText(
+                    this,
+                    newStatus ? "Powiadomienia push zostały włączone" : "Powiadomienia push zostały wyłączone",
+                    Toast.LENGTH_SHORT
+            ).show();
+        });
 
         applyThemeColors();
+    }
+
+    private void updateNotificationsDescription(boolean enabled) {
+        TextView description = findViewById(R.id.descriptionNotifications);
+        if (description != null) {
+            description.setText(enabled ? "Powiadomienia push są włączone" : "Powiadomienia push są wyłączone");
+        }
     }
 
     @Override
@@ -141,7 +163,6 @@ public class SettingsActivity extends AppCompatActivity
                 R.id.btnBackSettings,
                 R.id.settingThemes,
                 R.id.settingProfile,
-                R.id.settingSecurity,
                 R.id.settingNotifications
         };
 
@@ -156,7 +177,6 @@ public class SettingsActivity extends AppCompatActivity
         int[] iconIds = {
                 R.id.iconThemes,
                 R.id.iconProfile,
-                R.id.iconSecurity,
                 R.id.iconNotifications
         };
 
@@ -170,7 +190,6 @@ public class SettingsActivity extends AppCompatActivity
                 R.id.txtSettingsTitle,
                 R.id.titleThemes,
                 R.id.titleProfile,
-                R.id.titleSecurity,
                 R.id.titleNotifications
         };
 
@@ -185,7 +204,6 @@ public class SettingsActivity extends AppCompatActivity
                 R.id.sectionApp,
                 R.id.descriptionThemes,
                 R.id.descriptionProfile,
-                R.id.descriptionSecurity,
                 R.id.descriptionNotifications,
                 R.id.txtSettingsVersion
         };
