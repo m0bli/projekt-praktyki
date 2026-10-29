@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        String login = loginInput.getText() != null
+        String input = loginInput.getText() != null
                 ? loginInput.getText().toString().trim()
                 : "";
 
@@ -171,8 +171,8 @@ public class MainActivity extends AppCompatActivity {
 
         clearErrors();
 
-        if (login.isEmpty()) {
-            loginLayout.setError("Podaj login.");
+        if (input.isEmpty()) {
+            loginLayout.setError("Podaj login lub e-mail.");
             loginInput.requestFocus();
             return;
         }
@@ -185,7 +185,11 @@ public class MainActivity extends AppCompatActivity {
 
         setLoading(true);
 
-        LoginRequest request = new LoginRequest(login, haslo);
+        attemptLogin(input, haslo, true);
+    }
+
+    private void attemptLogin(String input, String haslo, boolean tryUserLookupOnFail) {
+        LoginRequest request = new LoginRequest(input, haslo);
 
         loginCall = authRepository.login(request);
         loginCall.enqueue(new Callback<AuthResponse>() {
@@ -198,7 +202,6 @@ public class MainActivity extends AppCompatActivity {
                 if (isFinishing() || isDestroyed() || call.isCanceled()) {
                     return;
                 }
-                setLoading(false);
 
                 AuthResponse body = response.body();
 
@@ -206,33 +209,24 @@ public class MainActivity extends AppCompatActivity {
                         && body != null
                         && body.isSukces()) {
 
+                    setLoading(false);
                     Intent intent = new Intent(
                             MainActivity.this,
                             MainMenuActivity.class
                     );
 
-                    intent.putExtra("nick", login);
+                    intent.putExtra("nick", input);
                     if (body.getUzytkownikId() != null) {
                         intent.putExtra("uzytkownikId", body.getUzytkownikId());
                     }
                     startActivity(intent);
                     finish();
 
-                } else if (response.code() == 401) {
-                    showError("Nieprawidłowy login lub hasło.");
-                    btnLogin.setText("Spróbuj ponownie");
-
-                } else if (body != null
-                        && body.getKomunikat() != null
-                        && !body.getKomunikat().isEmpty()) {
-
-                    showError(body.getKomunikat());
-                    btnLogin.setText("Spróbuj ponownie");
-
+                } else if (tryUserLookupOnFail) {
+                    lookupUserAndRetryLogin(input, haslo);
                 } else {
-                    showError(response.code() >= 500
-                            ? "Serwer chwilowo niedostępny. Spróbuj ponownie."
-                            : "Nie udało się zalogować (HTTP " + response.code() + ").");
+                    setLoading(false);
+                    showError("Nieprawidłowy login, e-mail lub hasło.");
                     btnLogin.setText("Spróbuj ponownie");
                 }
             }
@@ -247,6 +241,55 @@ public class MainActivity extends AppCompatActivity {
                 }
                 setLoading(false);
                 showError("Nie można połączyć się z serwerem. Sprawdź połączenie i spróbuj ponownie.");
+                btnLogin.setText("Spróbuj ponownie");
+            }
+        });
+    }
+
+    private void lookupUserAndRetryLogin(String input, String haslo) {
+        com.example.bank3.data.api.UserAPI userAPI = com.example.bank3.network.RetrofitClient.getInstance()
+                .create(com.example.bank3.data.api.UserAPI.class);
+
+        userAPI.getUsers().enqueue(new Callback<java.util.List<com.example.bank3.model.UserResponse>>() {
+            @Override
+            public void onResponse(
+                    Call<java.util.List<com.example.bank3.model.UserResponse>> call,
+                    Response<java.util.List<com.example.bank3.model.UserResponse>> response
+            ) {
+                if (isFinishing() || isDestroyed() || call.isCanceled()) return;
+
+                if (response.isSuccessful() && response.body() != null) {
+                    com.example.bank3.model.UserResponse matchedUser = null;
+                    for (com.example.bank3.model.UserResponse user : response.body()) {
+                        if (user != null) {
+                            if ((user.getEmail() != null && user.getEmail().equalsIgnoreCase(input))
+                                    || (user.getLogin() != null && user.getLogin().equalsIgnoreCase(input))) {
+                                matchedUser = user;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (matchedUser != null && matchedUser.getLogin() != null
+                            && !matchedUser.getLogin().equalsIgnoreCase(input)) {
+                        attemptLogin(matchedUser.getLogin(), haslo, false);
+                        return;
+                    }
+                }
+
+                setLoading(false);
+                showError("Nieprawidłowy login, e-mail lub hasło.");
+                btnLogin.setText("Spróbuj ponownie");
+            }
+
+            @Override
+            public void onFailure(
+                    Call<java.util.List<com.example.bank3.model.UserResponse>> call,
+                    Throwable t
+            ) {
+                if (isFinishing() || isDestroyed() || call.isCanceled()) return;
+                setLoading(false);
+                showError("Nieprawidłowy login, e-mail lub hasło.");
                 btnLogin.setText("Spróbuj ponownie");
             }
         });

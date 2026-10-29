@@ -80,13 +80,13 @@
                         android:textSize="28sp"
                         android:textStyle="bold" />
 
-                    <!-- Login -->
+                    <!-- Login lub E-mail -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/loginLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="18dp"
-                        android:hint="Login"
+                        android:hint="Podaj login lub e-mail"
                         android:textColorHint="@color/theme_text_secondary"
                         app:boxBackgroundMode="outline"
                         app:boxCornerRadiusTopStart="14dp"
@@ -105,7 +105,7 @@
                             android:id="@+id/editLogin"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:inputType="text"
+                            android:inputType="textEmailAddress"
                             android:singleLine="true"
                             android:imeOptions="actionNext"
                             android:textColor="@color/theme_text"
