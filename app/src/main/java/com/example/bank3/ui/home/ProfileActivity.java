@@ -3,10 +3,21 @@ package com.example.bank3.ui.home;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -14,7 +25,13 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -52,7 +69,9 @@ public class ProfileActivity extends AppCompatActivity
     private ProgressBar profileProgressBar;
 
     private TextView txtAvatarInitials;
+    private ImageView imgAvatar;
     private TextView txtHeaderFullName;
+    private ActivityResultLauncher<Intent> imagePickerLauncher;
 
     private TextView valFullName;
     private TextView valLogin;
@@ -217,6 +236,40 @@ public class ProfileActivity extends AppCompatActivity
             itemChangePassword.setOnClickListener(v -> showChangePasswordDialog());
         }
 
+        imgAvatar = findViewById(R.id.imgAvatar);
+
+        imagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Uri uri = result.getData().getData();
+                        if (uri != null) {
+                            processAndSaveSelectedImage(uri);
+                        }
+                    }
+                }
+        );
+
+        View.OnClickListener avatarClickListener = v -> {
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
+            try {
+                imagePickerLauncher.launch(intent);
+            } catch (Exception e) {
+                Toast.makeText(ProfileActivity.this, "Nie można otworzyć galerii.", Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        View avatarContainer = findViewById(R.id.avatarContainer);
+        if (avatarContainer != null) {
+            avatarContainer.setOnClickListener(avatarClickListener);
+        }
+
+        View btnChangeAvatar = findViewById(R.id.btnChangeAvatar);
+        if (btnChangeAvatar != null) {
+            btnChangeAvatar.setOnClickListener(avatarClickListener);
+        }
+
         // Domyślny stan na podstawie Intent
         setupInitialData();
 
@@ -224,6 +277,107 @@ public class ProfileActivity extends AppCompatActivity
         loadUserData();
 
         applyThemeColors();
+    }
+
+    public Bitmap getCircularBitmap(Bitmap bitmap) {
+        if (bitmap == null) return null;
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int size = Math.min(width, height);
+
+        Bitmap output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(output);
+
+        final Paint paint = new Paint();
+        final Rect rect = new Rect(0, 0, size, size);
+        final RectF rectF = new RectF(rect);
+
+        paint.setAntiAlias(true);
+        canvas.drawARGB(0, 0, 0, 0);
+        canvas.drawOval(rectF, paint);
+
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+
+        int left = (width - size) / 2;
+        int top = (height - size) / 2;
+        Rect srcRect = new Rect(left, top, left + size, top + size);
+
+        canvas.drawBitmap(bitmap, srcRect, rect, paint);
+        return output;
+    }
+
+    private void processAndSaveSelectedImage(Uri uri) {
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(uri);
+            if (inputStream == null) return;
+
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            BitmapFactory.decodeStream(inputStream, null, options);
+            inputStream.close();
+
+            int targetSize = 512;
+            int scale = 1;
+            while (options.outWidth / scale / 2 >= targetSize && options.outHeight / scale / 2 >= targetSize) {
+                scale *= 2;
+            }
+
+            BitmapFactory.Options decodeOptions = new BitmapFactory.Options();
+            decodeOptions.inSampleSize = scale;
+
+            inputStream = getContentResolver().openInputStream(uri);
+            Bitmap rawBitmap = BitmapFactory.decodeStream(inputStream, null, decodeOptions);
+            if (inputStream != null) inputStream.close();
+
+            if (rawBitmap == null) {
+                Toast.makeText(this, "Nie udało się wczytać zdjęcia.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Bitmap circularBitmap = getCircularBitmap(rawBitmap);
+
+            File avatarFile = getAvatarFile();
+            FileOutputStream fos = new FileOutputStream(avatarFile);
+            circularBitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            fos.flush();
+            fos.close();
+
+            runOnUiThread(() -> {
+                displayProfileImage(circularBitmap);
+                Toast.makeText(this, "Zdjęcie profilowe zostało pomyślnie zmienione.", Toast.LENGTH_SHORT).show();
+            });
+
+        } catch (Exception e) {
+            Toast.makeText(this, "Błąd podczas zapisywania zdjęcia.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private File getAvatarFile() {
+        String fileName = "profile_avatar_" + (uzytkownikId > 0 ? uzytkownikId : "default") + ".png";
+        return new File(getFilesDir(), fileName);
+    }
+
+    private void loadSavedProfileImage() {
+        File avatarFile = getAvatarFile();
+        if (avatarFile.exists()) {
+            try {
+                Bitmap bitmap = BitmapFactory.decodeFile(avatarFile.getAbsolutePath());
+                if (bitmap != null) {
+                    displayProfileImage(bitmap);
+                }
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private void displayProfileImage(Bitmap circularBitmap) {
+        if (imgAvatar != null) {
+            imgAvatar.setImageBitmap(circularBitmap);
+            imgAvatar.setVisibility(View.VISIBLE);
+        }
+        if (txtAvatarInitials != null) {
+            txtAvatarInitials.setVisibility(View.GONE);
+        }
     }
 
     private void revealFullAccountNumber() {
@@ -535,6 +689,8 @@ public class ProfileActivity extends AppCompatActivity
         } else {
             valUserId.setText("—");
         }
+
+        loadSavedProfileImage();
 
         if (!nickFallback.isEmpty()) {
             valLogin.setText(nickFallback);

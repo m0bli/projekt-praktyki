@@ -84,16 +84,56 @@
                 android:orientation="vertical"
                 android:padding="22dp">
 
+                <!-- Kontener na Avatar (Inicjały lub Zdjęcie) -->
+                <FrameLayout
+                    android:id="@+id/avatarContainer"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless">
+
+                    <TextView
+                        android:id="@+id/txtAvatarInitials"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_quick_action"
+                        android:gravity="center"
+                        android:text="- -"
+                        android:textColor="@color/theme_primary"
+                        android:textSize="28sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/imgAvatar"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone"
+                        android:contentDescription="Zdjęcie profilowe" />
+
+                    <!-- Plakietka aparatu w prawym dolnym rogu -->
+                    <TextView
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:layout_gravity="bottom|end"
+                        android:background="@drawable/bg_card_badge"
+                        android:gravity="center"
+                        android:text="📷"
+                        android:textSize="12sp" />
+                </FrameLayout>
+
                 <TextView
-                    android:id="@+id/txtAvatarInitials"
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
-                    android:background="@drawable/bg_quick_action"
-                    android:gravity="center"
-                    android:text="- -"
-                    android:textColor="@color/theme_primary"
-                    android:textSize="28sp"
-                    android:textStyle="bold" />
+                    android:id="@+id/btnChangeAvatar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Zmień zdjęcie"
+                    android:textColor="#93C5FD"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:clickable="true"
+                    android:focusable="true" />
 
                 <TextView
                     android:id="@+id/txtHeaderFullName"
