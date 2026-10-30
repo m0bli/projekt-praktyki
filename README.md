@@ -1,6 +1,6 @@
 # Dokumentacja
 <p align="center">
-  <img src="app/src/main/res/drawable/sprint.xml" width="500">
+  <img src="American-P.jpeg" width="500">
 </p>
 ---
 
