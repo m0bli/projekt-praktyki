@@ -1,5 +1,4 @@
 # Dokumentacja
----
 
 ## jak uruchomić
 
@@ -285,7 +284,8 @@ app/src/main/java/com/example/bank3/
 
 
 
-<p align="center">
+<p align="left">
   <img src="American-P.jpeg" width="500">
 </p>
+
 *Powered by sprint.xml*
