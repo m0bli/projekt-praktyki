@@ -1,7 +1,4 @@
 # Dokumentacja
-<p align="center">
-  <img src="American-P.jpeg" width="500">
-</p>
 ---
 
 ## jak uruchomić
@@ -266,3 +263,29 @@ app/src/main/java/com/example/bank3/
 ---
 
 *Dokumentacja as of v1.0.0 (Android SDK 37).*
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<p align="center">
+  <img src="American-P.jpeg" width="500">
+</p>
+*Powered by sprint.xml*
