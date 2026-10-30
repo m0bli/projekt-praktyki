@@ -48,16 +48,6 @@
         </LinearLayout>
 
         <TextView
-            android:id="@+id/txtSettingsSubtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="10dp"
-            android:paddingBottom="24dp"
-            android:text="Dostosuj aplikację do swoich potrzeb"
-            android:textColor="@color/theme_text_secondary"
-            android:textSize="14sp" />
-
-        <TextView
             android:id="@+id/sectionAppearance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -105,7 +95,7 @@
                     android:id="@+id/titleThemes"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Themes"
+                    android:text="Motywy"
                     android:textColor="@color/theme_text"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -115,7 +105,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingTop="4dp"
-                    android:text="Zmień motyw i kolorystykę aplikacji"
+                    android:text="Zmień motyw aplikacji"
                     android:textColor="@color/theme_text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -275,7 +265,6 @@
         </LinearLayout>
 
         <!-- Wyloguj się -->
-        <!-- todo:lepszy pop-up tak jak w "Potwierdź Toższamość" -->
         <LinearLayout
             android:id="@+id/settingLogout"
             android:layout_width="match_parent"
@@ -315,31 +304,11 @@
                     android:layout_height="wrap_content"
                     android:text="Wyloguj się"
                     android:textColor="@color/theme_transaction_negative"
-                    android:textSize="16sp"
+                    android:textSize="18sp"
                     android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/descriptionLogout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingTop="4dp"
-                    android:text="Bezpieczne wylogowanie z konta"
-                    android:textColor="@color/theme_text_secondary"
-                    android:textSize="12sp" />
             </LinearLayout>
 
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/txtSettingsVersion"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:paddingTop="28dp"
-            android:paddingBottom="8dp"
-            android:text="Bank3 • Ustawienia"
-            android:textColor="@color/theme_text_secondary"
-            android:textSize="12sp" />
 
     </LinearLayout>
 </ScrollView>

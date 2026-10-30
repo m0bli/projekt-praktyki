@@ -135,12 +135,6 @@ public class CardsFragment extends Fragment {
             titleView.setTextColor(text);
         }
 
-        TextView subtitleView = dialogView.findViewById(R.id.dialogVerifySubtitle);
-        if (subtitleView != null) {
-            subtitleView.setText("Podaj swoje hasło do konta, aby odsłonić dane karty bankowej.");
-            subtitleView.setTextColor(secondary);
-        }
-
         final TextInputLayout inputLayout = dialogView.findViewById(R.id.dialogVerifyPasswordLayout);
         final TextInputEditText editPassword = dialogView.findViewById(R.id.editDialogVerifyPassword);
 
@@ -244,8 +238,8 @@ public class CardsFragment extends Fragment {
         TextView titleView = dialogView.findViewById(R.id.dialogLimitTitle);
         if (titleView != null) titleView.setTextColor(text);
 
-        TextView subtitleView = dialogView.findViewById(R.id.dialogLimitSubtitle);
-        if (subtitleView != null) subtitleView.setTextColor(secondary);
+//        TextView subtitleView = dialogView.findViewById(R.id.dialogLimitSubtitle);
+//        if (subtitleView != null) subtitleView.setTextColor(secondary);
 
         final TextInputLayout inputLayout = dialogView.findViewById(R.id.layoutLimitInput);
         final TextInputEditText editLimit = dialogView.findViewById(R.id.editLimitValue);

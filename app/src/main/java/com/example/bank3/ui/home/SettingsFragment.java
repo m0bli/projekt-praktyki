@@ -108,20 +108,68 @@ public class SettingsFragment extends Fragment implements ThemeManager.ThemeChan
 
     private void showLogoutConfirmationDialog() {
         if (getContext() == null) return;
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Wyloguj się")
-                .setMessage("Czy na pewno chcesz się wylogować?")
-                .setNegativeButton("Anuluj", (dialog, which) -> dialog.dismiss())
-                .setPositiveButton("Wyloguj", (dialog, which) -> {
-                    dialog.dismiss();
-                    Intent intent = new Intent(requireContext(), MainActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    if (getActivity() != null) {
-                        getActivity().finish();
-                    }
-                })
-                .show();
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_logout, null);
+
+        int surface = ThemeManager.getSurfaceColor(requireContext());
+        int text = ThemeManager.getTextColor(requireContext());
+        int secondary = ThemeManager.getSecondaryTextColor(requireContext());
+        boolean dark = ThemeManager.isBlack(requireContext());
+
+        View dialogRoot = dialogView.findViewById(R.id.dialogLogoutRoot);
+        if (dialogRoot != null) {
+            dialogRoot.setBackground(round(surface, 24));
+        }
+
+        TextView iconView = dialogView.findViewById(R.id.dialogLogoutIcon);
+        if (iconView != null) {
+            iconView.setBackground(round(Color.parseColor("#15EF4444"), 18));
+            iconView.setTextColor(Color.parseColor("#EF4444"));
+        }
+
+        TextView titleView = dialogView.findViewById(R.id.dialogLogoutTitle);
+        if (titleView != null) titleView.setTextColor(text);
+
+        TextView messageView = dialogView.findViewById(R.id.dialogLogoutMessage);
+        if (messageView != null) messageView.setTextColor(secondary);
+
+        TextView btnCancel = dialogView.findViewById(R.id.btnDialogLogoutCancel);
+        TextView btnConfirm = dialogView.findViewById(R.id.btnDialogLogoutConfirm);
+
+        if (btnCancel != null) {
+            btnCancel.setBackground(round(dark ? Color.rgb(44, 57, 78) : Color.rgb(232, 240, 255), 14));
+            btnCancel.setTextColor(secondary);
+        }
+
+        if (btnConfirm != null) {
+            btnConfirm.setBackground(round(Color.parseColor("#EF4444"), 14));
+            btnConfirm.setTextColor(Color.WHITE);
+        }
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        if (btnConfirm != null) {
+            btnConfirm.setOnClickListener(v -> {
+                dialog.dismiss();
+                Intent intent = new Intent(requireContext(), MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                if (getActivity() != null) {
+                    getActivity().finish();
+                }
+            });
+        }
+
+        dialog.show();
     }
 
     @Override
@@ -218,15 +266,12 @@ public class SettingsFragment extends Fragment implements ThemeManager.ThemeChan
         }
 
         int[] secondaryTextIds = {
-                R.id.txtSettingsSubtitle,
                 R.id.sectionAppearance,
                 R.id.sectionAccount,
                 R.id.sectionApp,
                 R.id.descriptionThemes,
                 R.id.descriptionProfile,
-                R.id.descriptionNotifications,
-                R.id.descriptionLogout,
-                R.id.txtSettingsVersion
+                R.id.descriptionNotifications
         };
 
         for (int id : secondaryTextIds) {

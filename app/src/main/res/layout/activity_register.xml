@@ -217,7 +217,7 @@
                         app:errorTextColor="@color/theme_transaction_negative"
                         app:boxStrokeErrorColor="@color/theme_transaction_negative"
                         android:textColorHint="@color/theme_text_secondary"
-                        app:startIconDrawable="@android:drawable/ic_dialog_email"
+                        app:startIconDrawable="@drawable/ic_email"
                         app:startIconTint="@color/theme_text_secondary"
                         app:errorIconTint="@color/theme_transaction_negative">
 

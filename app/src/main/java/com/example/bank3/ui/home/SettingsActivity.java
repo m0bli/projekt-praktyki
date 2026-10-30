@@ -117,18 +117,66 @@ public class SettingsActivity extends AppCompatActivity
     }
 
     private void showLogoutConfirmationDialog() {
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Wyloguj się")
-                .setMessage("Czy na pewno chcesz się wylogować?")
-                .setNegativeButton("Anuluj", (dialog, which) -> dialog.dismiss())
-                .setPositiveButton("Wyloguj", (dialog, which) -> {
-                    dialog.dismiss();
-                    Intent intent = new Intent(SettingsActivity.this, com.example.bank3.ui.auth.MainActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    finish();
-                })
-                .show();
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_logout, null);
+
+        int surface = ThemeManager.getSurfaceColor(this);
+        int text = ThemeManager.getTextColor(this);
+        int secondary = ThemeManager.getSecondaryTextColor(this);
+        boolean dark = ThemeManager.isBlack(this);
+
+        View dialogRoot = dialogView.findViewById(R.id.dialogLogoutRoot);
+        if (dialogRoot != null) {
+            dialogRoot.setBackground(round(surface, 24));
+        }
+
+        TextView iconView = dialogView.findViewById(R.id.dialogLogoutIcon);
+        if (iconView != null) {
+            iconView.setBackground(round(Color.parseColor("#15EF4444"), 18));
+            iconView.setTextColor(Color.parseColor("#EF4444"));
+        }
+
+        TextView titleView = dialogView.findViewById(R.id.dialogLogoutTitle);
+        if (titleView != null) titleView.setTextColor(text);
+
+        TextView messageView = dialogView.findViewById(R.id.dialogLogoutMessage);
+        if (messageView != null) messageView.setTextColor(secondary);
+
+        TextView btnCancel = dialogView.findViewById(R.id.btnDialogLogoutCancel);
+        TextView btnConfirm = dialogView.findViewById(R.id.btnDialogLogoutConfirm);
+
+        if (btnCancel != null) {
+            btnCancel.setBackground(round(dark ? Color.rgb(44, 57, 78) : Color.rgb(232, 240, 255), 14));
+            btnCancel.setTextColor(secondary);
+        }
+
+        if (btnConfirm != null) {
+            btnConfirm.setBackground(round(Color.parseColor("#EF4444"), 14));
+            btnConfirm.setTextColor(Color.WHITE);
+        }
+
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        if (btnConfirm != null) {
+            btnConfirm.setOnClickListener(v -> {
+                dialog.dismiss();
+                Intent intent = new Intent(SettingsActivity.this, com.example.bank3.ui.auth.MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            });
+        }
+
+        dialog.show();
     }
 
     private void updateNotificationsDescription(boolean enabled) {
@@ -229,15 +277,12 @@ public class SettingsActivity extends AppCompatActivity
         }
 
         int[] secondaryTextIds = {
-                R.id.txtSettingsSubtitle,
                 R.id.sectionAppearance,
                 R.id.sectionAccount,
                 R.id.sectionApp,
                 R.id.descriptionThemes,
                 R.id.descriptionProfile,
-                R.id.descriptionNotifications,
-                R.id.descriptionLogout,
-                R.id.txtSettingsVersion
+                R.id.descriptionNotifications
         };
 
         for (int id : secondaryTextIds) {

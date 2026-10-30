@@ -33,17 +33,6 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <!-- Opis -->
-    <TextView
-        android:id="@+id/dialogLimitSubtitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:gravity="center"
-        android:text="Podaj maksymalną kwotę dziennych transakcji w PLN (1 - 1 000 000 PLN)."
-        android:textColor="@color/theme_text_secondary"
-        android:textSize="13sp" />
-
     <!-- Pole na kwotę limitu -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/layoutLimitInput"

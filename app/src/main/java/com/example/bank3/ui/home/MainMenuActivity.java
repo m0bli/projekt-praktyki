@@ -238,20 +238,7 @@ public class MainMenuActivity extends AppCompatActivity
                 showNotificationsDialog()
         );
 
-        findViewById(R.id.btnLogout).setOnClickListener(v -> {
-            Intent intent = new Intent(
-                    MainMenuActivity.this,
-                    MainActivity.class
-            );
-
-            intent.setFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK
-                            | Intent.FLAG_ACTIVITY_CLEAR_TASK
-            );
-
-            startActivity(intent);
-            finish();
-        });
+        findViewById(R.id.btnLogout).setOnClickListener(v -> showLogoutConfirmationDialog());
 
         navHome.setOnClickListener(v -> selectTab(0));
         navPayments.setOnClickListener(v -> selectTab(1));
@@ -1083,6 +1070,69 @@ public class MainMenuActivity extends AppCompatActivity
         }
     }
 
+    private void showLogoutConfirmationDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_logout, null);
+
+        int surface = ThemeManager.getSurfaceColor(this);
+        int text = ThemeManager.getTextColor(this);
+        int secondary = ThemeManager.getSecondaryTextColor(this);
+        boolean dark = ThemeManager.isBlack(this);
+
+        View dialogRoot = dialogView.findViewById(R.id.dialogLogoutRoot);
+        if (dialogRoot != null) {
+            dialogRoot.setBackground(createRoundedBackground(surface, 24));
+        }
+
+        TextView iconView = dialogView.findViewById(R.id.dialogLogoutIcon);
+        if (iconView != null) {
+            iconView.setBackground(createRoundedBackground(Color.parseColor("#15EF4444"), 18));
+            iconView.setTextColor(Color.parseColor("#EF4444"));
+        }
+
+        TextView titleView = dialogView.findViewById(R.id.dialogLogoutTitle);
+        if (titleView != null) titleView.setTextColor(text);
+
+        TextView messageView = dialogView.findViewById(R.id.dialogLogoutMessage);
+        if (messageView != null) messageView.setTextColor(secondary);
+
+        TextView btnCancel = dialogView.findViewById(R.id.btnDialogLogoutCancel);
+        TextView btnConfirm = dialogView.findViewById(R.id.btnDialogLogoutConfirm);
+
+        if (btnCancel != null) {
+            btnCancel.setBackground(createRoundedBackground(dark ? Color.rgb(44, 57, 78) : Color.rgb(232, 240, 255), 14));
+            btnCancel.setTextColor(secondary);
+        }
+
+        if (btnConfirm != null) {
+            btnConfirm.setBackground(createRoundedBackground(Color.parseColor("#EF4444"), 14));
+            btnConfirm.setTextColor(Color.WHITE);
+        }
+
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        if (btnConfirm != null) {
+            btnConfirm.setOnClickListener(v -> {
+                dialog.dismiss();
+                Intent intent = new Intent(MainMenuActivity.this, com.example.bank3.ui.auth.MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            });
+        }
+
+        dialog.show();
+    }
+
     private void populateNotificationsList(LinearLayout container) {
         if (container == null) return;
         container.removeAllViews();
@@ -1094,7 +1144,7 @@ public class MainMenuActivity extends AppCompatActivity
             emptyLayout.setPadding(dp(20), dp(40), dp(20), dp(40));
 
             TextView iconView = new TextView(this);
-            iconView.setText("🔔");
+            iconView.setText("0");
             iconView.setTextSize(40);
             iconView.setGravity(Gravity.CENTER);
 
@@ -1106,15 +1156,9 @@ public class MainMenuActivity extends AppCompatActivity
             emptyTitle.setGravity(Gravity.CENTER);
             emptyTitle.setPadding(0, dp(12), 0, dp(4));
 
-            TextView emptySub = new TextView(this);
-            emptySub.setText("Powiadomienia o Twoich przelewach pojawią się tutaj.");
-            emptySub.setTextColor(ThemeManager.getSecondaryTextColor(this));
-            emptySub.setTextSize(14);
-            emptySub.setGravity(Gravity.CENTER);
 
             emptyLayout.addView(iconView);
             emptyLayout.addView(emptyTitle);
-            emptyLayout.addView(emptySub);
             container.addView(emptyLayout);
             return;
         }

@@ -30,15 +30,6 @@
         android:textSize="22sp"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/dialogSuccessSubtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Środki zostały pomyślnie wysłane"
-        android:textColor="@color/theme_text_secondary"
-        android:textSize="13sp" />
-
     <!-- Karta ze szczegółami wysłanego przelewu -->
     <LinearLayout
         android:layout_width="match_parent"

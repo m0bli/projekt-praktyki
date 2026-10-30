@@ -16,15 +16,6 @@
         android:textSize="22sp"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/dialogConfirmSubtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Sprawdź dane przelewu przed wysłaniem"
-        android:textColor="@color/theme_text_secondary"
-        android:textSize="13sp" />
-
     <!-- Karta podsumowania kwoty -->
     <LinearLayout
         android:id="@+id/confirmAmountCard"

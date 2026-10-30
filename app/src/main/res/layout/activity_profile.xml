@@ -62,16 +62,6 @@
                     android:visibility="gone" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/txtProfileSubtitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="10dp"
-                android:paddingBottom="20dp"
-                android:text="Informacje o koncie i dane osobowe"
-                android:textColor="@color/theme_text_secondary"
-                android:textSize="14sp" />
-
             <!-- Karta Nagłówkowa Profilu (Avatar, Imię Nazwisko, Status) -->
             <LinearLayout
                 android:id="@+id/cardProfileHeader"
@@ -267,7 +257,7 @@
                         android:id="@+id/lblLogin"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Nazwa użytkownika (Login)"
+                        android:text="login"
                         android:textColor="@color/theme_text_secondary"
                         android:textSize="12sp" />
 
@@ -332,16 +322,6 @@
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:visibility="gone" />
-
-                    <TextView
-                        android:id="@+id/txtEmailInfo"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingTop="3dp"
-                        android:text="Adres email jest potrzebny do robienia przelewów"
-                        android:textColor="@color/theme_text_secondary"
-                        android:textSize="11sp" />
-
                 </LinearLayout>
 
                 <TextView
@@ -499,18 +479,6 @@
                         android:textSize="16sp"
                         android:textStyle="bold" />
                 </LinearLayout>
-
-                <TextView
-                    android:id="@+id/btnCopyAccountId"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_quick_action"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="6dp"
-                    android:text="Kopiuj"
-                    android:textColor="@color/theme_primary"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
 
             </LinearLayout>
 
@@ -684,17 +652,6 @@
                     android:textStyle="bold" />
 
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/txtProfileFooter"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:paddingTop="16dp"
-                android:paddingBottom="8dp"
-                android:text="Bank3 • Moje dane"
-                android:textColor="@color/theme_text_secondary"
-                android:textSize="12sp" />
 
         </LinearLayout>
     </ScrollView>

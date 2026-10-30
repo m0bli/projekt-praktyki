@@ -121,11 +121,6 @@ public class MainActivity extends AppCompatActivity {
             main.setBackgroundColor(backgroundColor);
         }
 
-        TextView txtLogo = findViewById(R.id.txtLogo);
-        if (txtLogo != null && txtLogo.getBackground() != null) {
-            txtLogo.getBackground().setTint(accentColor);
-        }
-
         TextView bankTitle = findViewById(R.id.bank);
         if (bankTitle != null) {
             bankTitle.setTextColor(textColor);

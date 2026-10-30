@@ -48,16 +48,6 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/txtCardsSubtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="8dp"
-            android:paddingBottom="16dp"
-            android:text="Zarządzaj kartą, jej blokadą i limitem płatności."
-            android:textColor="@color/theme_text_secondary"
-            android:textSize="14sp" />
-
         <!-- Card View Container -->
         <LinearLayout
             android:id="@+id/cardContainer"
@@ -201,7 +191,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingTop="3dp"
-                    android:text="Blokuje możliwość wykonywania przelewów wychodzących."
+                    android:text="Blokuje możliwość wykonywania przelewów."
                     android:textColor="@color/theme_text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>

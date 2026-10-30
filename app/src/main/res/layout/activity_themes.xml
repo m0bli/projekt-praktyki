@@ -42,21 +42,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="14dp"
                 android:layout_weight="1"
-                android:text="Themes"
+                android:text="Motywy"
                 android:textColor="@color/theme_text"
                 android:textSize="25sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/txtSubtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="10dp"
-            android:paddingBottom="24dp"
-            android:text="Wybierz wygląd swojej aplikacji"
-            android:textColor="@color/theme_text_secondary"
-            android:textSize="14sp" />
 
         <!-- Section: Motyw -->
         <TextView
@@ -111,14 +102,6 @@
                     android:textColor="@color/theme_text"
                     android:textSize="16sp"
                     android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingTop="4dp"
-                    android:text="Jasne tło i niebieskie akcenty"
-                    android:textColor="@color/theme_text_secondary"
-                    android:textSize="12sp" />
             </LinearLayout>
 
             <TextView
@@ -170,14 +153,6 @@
                     android:textColor="@color/theme_text"
                     android:textSize="16sp"
                     android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingTop="4dp"
-                    android:text="Ciemne tło i jasny tekst"
-                    android:textColor="@color/theme_text_secondary"
-                    android:textSize="12sp" />
             </LinearLayout>
 
             <TextView

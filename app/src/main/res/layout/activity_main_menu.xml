@@ -39,7 +39,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="MP"
+                android:text="bank"
                 android:textColor="@color/theme_primary"
                 android:textSize="18sp"
                 android:textStyle="bold"

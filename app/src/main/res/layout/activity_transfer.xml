@@ -45,15 +45,6 @@
             android:textSize="28sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/transferSubtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Wybierz swoje konto i podaj dane odbiorcy."
-            android:textColor="@color/theme_text_secondary"
-            android:textSize="14sp" />
-
     </LinearLayout>
 
     <!-- ScrollView dla formularza (transferFormCard) -->

@@ -198,16 +198,6 @@ public class ProfileActivity extends AppCompatActivity
             }
         });
 
-        View btnCopyAccountId = findViewById(R.id.btnCopyAccountId);
-        if (btnCopyAccountId != null) {
-            btnCopyAccountId.setOnClickListener(v -> {
-                String accIdText = valAccountId.getText().toString();
-                if (!accIdText.isEmpty() && !accIdText.equals("—") && !accIdText.equals("#—")) {
-                    copyToClipboard("ID Konta", accIdText);
-                }
-            });
-        }
-
         // Pokaż pełny numer konta - po weryfikacji hasła (tylko raz na sesję ekranu)
         btnShowFullAccountNumber.setOnClickListener(v -> {
             if (isAccountVerifiedSession) {
@@ -416,8 +406,6 @@ public class ProfileActivity extends AppCompatActivity
         TextView titleView = dialogView.findViewById(R.id.dialogVerifyTitle);
         if (titleView != null) titleView.setTextColor(text);
 
-        TextView subtitleView = dialogView.findViewById(R.id.dialogVerifySubtitle);
-        if (subtitleView != null) subtitleView.setTextColor(secondary);
 
         final TextInputLayout inputLayout = dialogView.findViewById(R.id.dialogVerifyPasswordLayout);
         final TextInputEditText editPassword = dialogView.findViewById(R.id.editDialogVerifyPassword);
@@ -522,9 +510,6 @@ public class ProfileActivity extends AppCompatActivity
 
         TextView titleView = dialogView.findViewById(R.id.dialogChangePassTitle);
         if (titleView != null) titleView.setTextColor(text);
-
-        TextView subtitleView = dialogView.findViewById(R.id.dialogChangePassSubtitle);
-        if (subtitleView != null) subtitleView.setTextColor(secondary);
 
         final TextInputLayout layoutCurrentPass = dialogView.findViewById(R.id.layoutCurrentPass);
         final TextInputEditText editCurrentPass = dialogView.findViewById(R.id.editCurrentPass);
@@ -972,20 +957,17 @@ public class ProfileActivity extends AppCompatActivity
             }
         }
 
-        int[] secondaryTextIds = {
-                R.id.txtProfileSubtitle,
+        int[] secondaryTextIds ={
                 R.id.sectionPersonalData,
                 R.id.sectionAccountData,
                 R.id.sectionSecurityData,
                 R.id.lblFullName,
                 R.id.lblLogin,
                 R.id.lblEmail,
-                R.id.txtEmailInfo,
                 R.id.lblUserId,
                 R.id.lblAccountId,
                 R.id.lblFullAccountNumber,
-                R.id.subChangePassword,
-                R.id.txtProfileFooter
+                R.id.subChangePassword
         };
 
         for (int id : secondaryTextIds) {
