@@ -2,7 +2,7 @@
 
 ---
 
-## 📚 Spis Dokumentacji
+# Spis Dokumentacji
 
 **__[Sprawdź szczegółową dokumentacje](file:///C:/Users/praktyk1/AndroidStudioProjects/projekt-praktyki/DOCUMENTATION.md)__**
 
@@ -15,14 +15,14 @@
 
 ---
 
-## ⚙️ Szybkie Uruchomienie
+# Uruchomienie
 
-### 1. Przekierowanie Portu ADB dla Lokalnego Backend
+## 1. Przekierowanie Portu ADB dla Lokalnego Backend
 ```powershell
 $env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe reverse tcp:13308 tcp:13308
 ```
 
-### 2. Kompilacja i Instalacja
+## 2. Kompilacja i Instalacja
 ```bash
 ./gradlew installDebug
 ```
