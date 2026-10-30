@@ -1,4 +1,5 @@
 # Dokumentacja
+![sprint](app/src/main/res/drawable/sprint.xml)
 ---
 
 ## jak uruchomić
