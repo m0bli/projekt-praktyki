@@ -138,8 +138,6 @@ public class SettingsActivity extends AppCompatActivity
         TextView titleView = dialogView.findViewById(R.id.dialogLogoutTitle);
         if (titleView != null) titleView.setTextColor(text);
 
-        TextView messageView = dialogView.findViewById(R.id.dialogLogoutMessage);
-        if (messageView != null) messageView.setTextColor(secondary);
 
         TextView btnCancel = dialogView.findViewById(R.id.btnDialogLogoutCancel);
         TextView btnConfirm = dialogView.findViewById(R.id.btnDialogLogoutConfirm);
@@ -252,10 +250,14 @@ public class SettingsActivity extends AppCompatActivity
         };
 
         for (int id : iconIds) {
-            TextView icon = findViewById(id);
+            View icon = findViewById(id);
             if (icon != null) {
                 icon.setBackground(round(iconSurface, 14));
-                icon.setTextColor(accent);
+                if (icon instanceof TextView) {
+                    ((TextView) icon).setTextColor(accent);
+                } else if (icon instanceof android.widget.ImageView) {
+                    ((android.widget.ImageView) icon).setColorFilter(accent);
+                }
             }
         }
 

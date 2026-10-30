@@ -1092,8 +1092,6 @@ public class MainMenuActivity extends AppCompatActivity
         TextView titleView = dialogView.findViewById(R.id.dialogLogoutTitle);
         if (titleView != null) titleView.setTextColor(text);
 
-        TextView messageView = dialogView.findViewById(R.id.dialogLogoutMessage);
-        if (messageView != null) messageView.setTextColor(secondary);
 
         TextView btnCancel = dialogView.findViewById(R.id.btnDialogLogoutCancel);
         TextView btnConfirm = dialogView.findViewById(R.id.btnDialogLogoutConfirm);

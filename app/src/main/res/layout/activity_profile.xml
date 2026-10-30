@@ -118,9 +118,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Zmień zdjęcie"
+                    android:text="zmień zdjęcie"
                     android:textColor="#93C5FD"
-                    android:textSize="12sp"
+                    android:textSize="8sp"
                     android:textStyle="bold"
                     android:clickable="true"
                     android:focusable="true" />

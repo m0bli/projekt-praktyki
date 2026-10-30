@@ -33,18 +33,6 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <!-- Opis / Komunikat -->
-    <TextView
-        android:id="@+id/dialogLogoutMessage"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:gravity="center"
-        android:lineSpacingExtra="3dp"
-        android:text="Czy na pewno chcesz się wylogować z konta?"
-        android:textColor="@color/theme_text_secondary"
-        android:textSize="14sp" />
-
     <!-- Przyciski akcji -->
     <LinearLayout
         android:layout_width="match_parent"

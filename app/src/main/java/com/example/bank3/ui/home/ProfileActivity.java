@@ -682,7 +682,7 @@ public class ProfileActivity extends AppCompatActivity
             txtAvatarInitials.setText(getInitials(nickFallback, ""));
             txtHeaderFullName.setText(nickFallback);
             valFullName.setText(nickFallback);
-            valEmail.setText(nickFallback.toLowerCase() + "@example.com");
+            valEmail.setText(nickFallback.toLowerCase() + "@howdidunotsetanemail.com");
         } else {
             valLogin.setText("Użytkownik");
             txtAvatarInitials.setText("MB");

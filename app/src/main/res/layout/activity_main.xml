@@ -42,7 +42,6 @@
                 android:textStyle="bold"
                 android:letterSpacing="0.08" />
 
-            <!-- Karta logowania -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -67,7 +66,6 @@
                         android:textSize="28sp"
                         android:textStyle="bold" />
 
-                    <!-- Login lub E-mail -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/loginLayout"
                         android:layout_width="match_parent"
@@ -103,8 +101,6 @@
 
                     </com.google.android.material.textfield.TextInputLayout>
 
-
-                    <!-- Hasło -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/hasloLayout"
                         android:layout_width="match_parent"
@@ -142,7 +138,6 @@
 
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- Rejestracja -->
                     <TextView
                         android:id="@+id/btnRegister"
                         android:layout_width="wrap_content"
@@ -159,18 +154,15 @@
                         android:focusable="true"
                         android:background="?attr/selectableItemBackground" />
 
-                    <!-- Komunikaty błędów -->
                     <TextView
                         android:id="@+id/errorText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-
                         android:textColor="@color/theme_transaction_negative"
                         android:textSize="13sp"
                         android:accessibilityLiveRegion="polite" />
 
-                    <!-- Przycisk logowania -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnLogin"
                         android:layout_width="match_parent"
@@ -188,12 +180,10 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- wersja -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-
                 android:gravity="center"
                 android:text="v0.0.1"
                 android:textColor="@color/theme_text_secondary"
