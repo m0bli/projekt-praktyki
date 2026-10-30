@@ -1,5 +1,7 @@
 # Dokumentacja
-![sprint](app/src/main/res/drawable/sprint.xml)
+<p align="center">
+  <img src="app/src/main/res/drawable/sprint.xml" width="500">
+</p>
 ---
 
 ## jak uruchomić
