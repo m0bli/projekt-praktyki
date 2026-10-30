@@ -4,7 +4,7 @@
 
 # Spis Dokumentacji
 
-**__[Sprawdź szczegółową dokumentacje](file:///C:/Users/praktyk1/AndroidStudioProjects/projekt-praktyki/DOCUMENTATION.md)__**
+**__[Sprawdź szczegółową dokumentacje](DOCUMENTATION.md)__**
 
 1. **[Architekturę Systemu](DOCUMENTATION.md#1-architektura-systemu)** – Warstwy UI, Repozytoria, Klient Retrofit.
 2. **[Specyfikację REST API](DOCUMENTATION.md#2-specyfikacja-interfejsów-rest-api)** – Punkt końcowy `http://127.0.0.1:13308/`, opis klas `UserAPI`, `AuthAPI`, `KontoAPI`.
